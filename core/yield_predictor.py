@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from core.reaction_explain import explain_reaction
+from core.reaction_features import featurize_reaction
 from core.route import Route
 
 
@@ -12,12 +13,16 @@ class YieldEstimate:
     confidence: str
     factors: list[str]
     note: str
+    method: str = "heuristic_rules"
+    applicability_domain: str = "规则启发式；仅适合演示和相对排序。"
 
     def as_dict(self) -> dict[str, object]:
         return {
             "heuristic_yield_percent": self.heuristic_yield_percent,
             "predicted_yield_percent": self.heuristic_yield_percent,
+            "method": self.method,
             "confidence": self.confidence,
+            "applicability_domain": self.applicability_domain,
             "factors": self.factors,
             "note": self.note,
         }
@@ -30,6 +35,8 @@ class RouteFeasibility:
     heuristic_feasibility_score: float
     risk_flags: list[str]
     note: str
+    method: str = "heuristic_route_feasibility"
+    applicability_domain: str = "规则启发式；未使用 HTE 或专用反应族产率模型。"
 
     def as_dict(self) -> dict[str, object]:
         return {
@@ -38,6 +45,8 @@ class RouteFeasibility:
             "heuristic_feasibility_score": self.heuristic_feasibility_score,
             "estimated_overall_yield_percent": self.heuristic_overall_yield_percent,
             "route_feasibility_score": self.heuristic_feasibility_score,
+            "method": self.method,
+            "applicability_domain": self.applicability_domain,
             "risk_flags": self.risk_flags,
             "note": self.note,
         }
@@ -74,6 +83,33 @@ def estimate_reaction_yield(reaction_smiles: str | None, template: str | None = 
         factors=factors,
         note="规则演示估计：用于相对排序和课堂展示，不是 DRFP/HTE 真实产率模型，不能替代实验测定。",
     )
+
+
+def estimate_reaction_yield_layered(reaction_smiles: str | None, template: str | None = None) -> dict[str, object]:
+    rxn = reaction_smiles or ""
+    heuristic = estimate_reaction_yield(rxn, template)
+    features = featurize_reaction(rxn).as_dict() if rxn else {
+        "status": "unavailable",
+        "method": "none",
+        "features": {},
+        "applicability_domain": "缺少 reaction SMILES。",
+        "unavailable": ["reaction_smiles"],
+        "note": "无法生成反应特征。",
+    }
+    return {
+        "method": "layered_heuristic_plus_optional_features",
+        "status": "heuristic_only" if features["status"] != "available" else "features_available",
+        "heuristic": heuristic.as_dict(),
+        "ml_features": features,
+        "trained_model": {
+            "available": False,
+            "method": "chemprop_or_rxn_yields_placeholder",
+            "reason": "当前未配置训练好的产率模型权重；不会输出伪 ML 产率。",
+        },
+        "confidence": heuristic.confidence,
+        "applicability_domain": heuristic.applicability_domain,
+        "note": "产率采用分层输出：启发式估计可用，DRFP/RXNFP/Chemprop 仅在安装和配置后作为特征或训练模型层使用。",
+    }
 
 
 def score_route_feasibility(route: Route) -> RouteFeasibility:

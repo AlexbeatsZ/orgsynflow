@@ -51,7 +51,13 @@ http://127.0.0.1:8765
 
 - `GET /health`
 - `POST /analyze`
+- `POST /molecule/properties`
+- `POST /molecule/descriptors`
 - `POST /reaction/explain`
+- `POST /reaction/map`
+- `POST /reaction/ts-plan`
+- `POST /reaction/yield`
+- `POST /reaction/features`
 - `POST /gaussian/input`
 - `GET /gaussian/status`
 - `POST /gaussian/run`
@@ -70,6 +76,32 @@ http://127.0.0.1:8765
 ```powershell
 Invoke-RestMethod http://127.0.0.1:8765/health
 ```
+
+## CLI
+
+统一命令行入口：
+
+```powershell
+uv run python run_cli.py health
+uv run python run_cli.py adapters
+uv run python run_cli.py molecule "CCO"
+uv run python run_cli.py properties "CCO" --include-opera
+uv run python run_cli.py descriptors "CCO" --format json
+uv run python run_cli.py route "CC(=O)Oc1ccccc1C(=O)O" --max-routes 3
+uv run python run_cli.py gaussian-status
+uv run python run_cli.py gaussian-input "CCO" --job-type "opt freq"
+uv run python run_cli.py reaction-explain "CCO>>CC=O"
+uv run python run_cli.py reaction-map "CCO>>CC=O"
+uv run python run_cli.py ts-plan "CCO>>CC=O"
+uv run python run_cli.py yield "CCO>>CC=O"
+uv run python run_cli.py reaction-features "CCO>>CC=O" --format json
+```
+
+说明：
+
+- `--format json` 使用 ASCII-safe JSON，便于 Windows 子进程测试和自动化解析。
+- OPERA、Mordred、RXNMapper、DRFP/RXNFP、xTB、CREST、GoodVibes、cclib 都按可选适配器处理；未安装时返回 unavailable/fallback，不影响主流程。
+- TS 相关命令只生成半自动搜索计划，不宣称已经获得或验证过渡态。
 
 ## 测试
 

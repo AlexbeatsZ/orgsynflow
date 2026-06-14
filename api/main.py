@@ -6,10 +6,16 @@ from fastapi import FastAPI
 from services.workbench import (
     analyze_profile_from_logs,
     analyze_target,
+    calculate_molecule_descriptors,
+    calculate_reaction_features,
+    estimate_single_reaction_yield,
     explain_single_reaction,
     gaussian_status,
     make_gaussian_input,
+    map_single_reaction,
     parse_gaussian_text,
+    plan_single_transition_state,
+    predict_molecule_properties,
     run_local_gaussian,
 )
 
@@ -22,11 +28,19 @@ class AnalyzeRequest(BaseModel):
     demo_target: str = "Aspirin"
     use_aizynth: bool = False
     max_routes: int = 3
+    aizynth_config: str | None = None
+    aizynth_stock: str | None = None
+    aizynth_policy: str | None = None
 
 
 class ReactionExplainRequest(BaseModel):
     reaction_smiles: str
     template: str | None = None
+
+
+class MoleculePropertiesRequest(BaseModel):
+    smiles: str
+    include_opera: bool = False
 
 
 class GaussianInputRequest(BaseModel):
@@ -66,12 +80,45 @@ def analyze(request: AnalyzeRequest) -> dict[str, object]:
         demo_target=request.demo_target,
         use_aizynth=request.use_aizynth,
         max_routes=request.max_routes,
+        aizynth_config=request.aizynth_config,
+        aizynth_stock=request.aizynth_stock,
+        aizynth_policy=request.aizynth_policy,
     )
 
 
 @app.post("/reaction/explain")
 def reaction_explain(request: ReactionExplainRequest) -> dict[str, object]:
     return explain_single_reaction(request.reaction_smiles, request.template)
+
+
+@app.post("/molecule/properties")
+def molecule_properties(request: MoleculePropertiesRequest) -> dict[str, object]:
+    return predict_molecule_properties(request.smiles, include_opera=request.include_opera)
+
+
+@app.post("/molecule/descriptors")
+def molecule_descriptors(request: MoleculePropertiesRequest) -> dict[str, object]:
+    return calculate_molecule_descriptors(request.smiles)
+
+
+@app.post("/reaction/map")
+def reaction_map(request: ReactionExplainRequest) -> dict[str, object]:
+    return map_single_reaction(request.reaction_smiles)
+
+
+@app.post("/reaction/ts-plan")
+def reaction_ts_plan(request: ReactionExplainRequest) -> dict[str, object]:
+    return plan_single_transition_state(request.reaction_smiles)
+
+
+@app.post("/reaction/yield")
+def reaction_yield(request: ReactionExplainRequest) -> dict[str, object]:
+    return estimate_single_reaction_yield(request.reaction_smiles, request.template)
+
+
+@app.post("/reaction/features")
+def reaction_features(request: ReactionExplainRequest) -> dict[str, object]:
+    return calculate_reaction_features(request.reaction_smiles)
 
 
 @app.post("/gaussian/input")

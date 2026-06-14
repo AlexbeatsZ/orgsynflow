@@ -21,6 +21,9 @@ def predict_routes_with_fallback(
     smiles: str,
     fallback_routes: list[Route],
     max_routes: int = 3,
+    config_path: str | None = None,
+    stock_path: str | None = None,
+    policy_path: str | None = None,
 ) -> AiZynthResult:
     executable = shutil.which("aizynthcli")
     if executable is None:
@@ -40,6 +43,12 @@ def predict_routes_with_fallback(
         "--output",
         str(output_path),
     ]
+    if config_path:
+        command.extend(["--config", config_path])
+    if stock_path:
+        command.extend(["--stock", stock_path])
+    if policy_path:
+        command.extend(["--policy", policy_path])
     try:
         completed = subprocess.run(
             command,
@@ -163,4 +172,3 @@ def _route_from_tree(tree: dict, index: int, raw: dict) -> Route:
         },
         source="aizynthfinder",
     )
-

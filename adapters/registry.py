@@ -3,6 +3,8 @@ from __future__ import annotations
 import shutil
 
 from adapters.base import AdapterCapability, AdapterStatus
+from adapters.goodvibes_adapter import find_goodvibes_executable
+from adapters.xtb_adapter import find_crest_executable, find_xtb_executable
 from core.gaussian_runner import find_gaussian_executable
 from core.molecule import has_rdkit
 
@@ -12,6 +14,14 @@ def list_adapter_statuses() -> list[AdapterStatus]:
         _rdkit_status(),
         _aizynth_status(),
         _gaussian_status(),
+        _python_package_status(
+            name="cclib",
+            display_name="cclib",
+            module_name="cclib",
+            capability=AdapterCapability("quantum_log_parse", "解析 Gaussian/ORCA 等计算化学输出。"),
+            source="Python import",
+        ),
+        _goodvibes_status(),
         _executable_status(
             name="opera",
             display_name="OPERA QSAR",
@@ -25,6 +35,7 @@ def list_adapter_statuses() -> list[AdapterStatus]:
             executable_names=("xtb", "xtb.exe"),
             capability=AdapterCapability("semiempirical_qc", "半经验量化预优化、能量与快速构象评估。"),
             source="xTB CLI",
+            detected_executable=find_xtb_executable(),
         ),
         _executable_status(
             name="crest",
@@ -32,6 +43,21 @@ def list_adapter_statuses() -> list[AdapterStatus]:
             executable_names=("crest", "crest.exe"),
             capability=AdapterCapability("conformer_search", "基于 xTB 的构象搜索与转子搜索。"),
             source="CREST CLI",
+            detected_executable=find_crest_executable(),
+        ),
+        _python_package_status(
+            name="rxnmapper",
+            display_name="RXNMapper",
+            module_name="rxnmapper",
+            capability=AdapterCapability("reaction_mapping", "为 reaction SMILES 生成原子映射并辅助反应中心识别。"),
+            source="Python import",
+        ),
+        _python_package_status(
+            name="drfp",
+            display_name="DRFP",
+            module_name="drfp",
+            capability=AdapterCapability("reaction_features", "生成反应差分指纹，供产率或分类模型使用。"),
+            source="Python import",
         ),
     ]
 
@@ -100,8 +126,9 @@ def _executable_status(
     executable_names: tuple[str, ...],
     capability: AdapterCapability,
     source: str,
+    detected_executable: str | None = None,
 ) -> AdapterStatus:
-    executable = next((found for candidate in executable_names if (found := shutil.which(candidate))), None)
+    executable = detected_executable or next((found for candidate in executable_names if (found := shutil.which(candidate))), None)
     return AdapterStatus(
         name=name,
         display_name=display_name,
@@ -112,4 +139,53 @@ def _executable_status(
         source=source,
         confidence="path_probe",
         metadata={"executable": executable},
+    )
+
+
+def _goodvibes_status() -> AdapterStatus:
+    executable = find_goodvibes_executable()
+    return AdapterStatus(
+        name="goodvibes",
+        display_name="GoodVibes",
+        available=executable is not None,
+        status="available" if executable else "unavailable",
+        reason=None if executable else "未在 PATH 中检测到 GoodVibes；热化学校正作为可选能力保留。",
+        capabilities=[
+            AdapterCapability("thermochemistry_correction", "对 Gaussian log 进行准谐振热化学校正。"),
+        ],
+        source="GoodVibes CLI",
+        confidence="path_probe",
+        metadata={"executable": executable},
+    )
+
+
+def _python_package_status(
+    name: str,
+    display_name: str,
+    module_name: str,
+    capability: AdapterCapability,
+    source: str,
+) -> AdapterStatus:
+    try:
+        __import__(module_name)
+    except Exception as exc:
+        return AdapterStatus(
+            name=name,
+            display_name=display_name,
+            available=False,
+            status="unavailable",
+            reason=f"当前 Python 环境无法导入 {module_name}：{exc}",
+            capabilities=[capability],
+            source=source,
+            confidence="runtime_import",
+        )
+    return AdapterStatus(
+        name=name,
+        display_name=display_name,
+        available=True,
+        status="available",
+        reason=None,
+        capabilities=[capability],
+        source=source,
+        confidence="runtime_import",
     )

@@ -25,6 +25,10 @@
 
 来源：{{ route.source }}
 
+{% if route.metadata %}
+元数据：`{{ route.metadata }}`
+{% endif %}
+
 | 指标 | 值 |
 | --- | --- |
 | 路线综合分 | {{ scores[route.id].route_score }} |
@@ -36,6 +40,8 @@
 | 步数简洁度分 | {{ scores[route.id].step_score }} |
 
 评分说明：{{ scores[route.id].explanation }}
+
+> 预测来源说明：路线分数来自当前工作台的统一评分层；外部模型缺失时会使用 demo/fallback 数据，并在运行状态中说明。
 
 #### 分子清单
 

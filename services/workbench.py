@@ -8,11 +8,16 @@ from core.gaussian import generate_gaussian_input, parse_gaussian_log
 from core.gaussian_runner import find_gaussian_executable, run_gaussian_job
 from core.kinetics import analyze_energy_profile
 from core.molecule import summarize_molecule
+from core.properties import calculate_descriptors, predict_properties
+from core.quantum import parse_quantum_log
+from core.reaction_features import featurize_reaction
 from core.reaction_explain import explain_reaction
+from core.reaction_mapping import map_reaction
 from core.report import render_report
 from core.route import Route, load_demo_routes
 from core.scoring import score_route
-from core.yield_predictor import estimate_reaction_yield, score_route_feasibility
+from core.transition_state import plan_transition_state_search
+from core.yield_predictor import estimate_reaction_yield, estimate_reaction_yield_layered, score_route_feasibility
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -31,15 +36,33 @@ def summarize_target_molecule(smiles: str) -> dict[str, object]:
     return summarize_molecule(smiles).as_display_dict()
 
 
+def predict_molecule_properties(smiles: str, include_opera: bool = False) -> dict[str, object]:
+    return predict_properties(smiles, include_opera=include_opera).as_dict()
+
+
+def calculate_molecule_descriptors(smiles: str) -> dict[str, object]:
+    return calculate_descriptors(smiles).as_dict()
+
+
 def analyze_target(
     smiles: str,
     demo_target: str = "Aspirin",
     use_aizynth: bool = False,
     max_routes: int = 3,
+    aizynth_config: str | None = None,
+    aizynth_stock: str | None = None,
+    aizynth_policy: str | None = None,
 ) -> dict[str, object]:
     fallback_routes = load_demo_routes(DEMO_TARGETS.get(demo_target, DEMO_TARGETS["Aspirin"]))
     if use_aizynth:
-        result = predict_routes_with_fallback(smiles, fallback_routes, max_routes=max_routes)
+        result = predict_routes_with_fallback(
+            smiles,
+            fallback_routes,
+            max_routes=max_routes,
+            config_path=aizynth_config,
+            stock_path=aizynth_stock,
+            policy_path=aizynth_policy,
+        )
         routes = result.routes
         status = _zh_status(result.status)
     else:
@@ -68,6 +91,22 @@ def explain_single_reaction(reaction_smiles: str, template: str | None = None) -
         **explanation.as_dict(),
         "yield_estimate": yield_estimate.as_dict(),
     }
+
+
+def map_single_reaction(reaction_smiles: str) -> dict[str, object]:
+    return map_reaction(reaction_smiles).as_dict()
+
+
+def plan_single_transition_state(reaction_smiles: str) -> dict[str, object]:
+    return plan_transition_state_search(reaction_smiles).as_dict()
+
+
+def estimate_single_reaction_yield(reaction_smiles: str, template: str | None = None) -> dict[str, object]:
+    return estimate_reaction_yield_layered(reaction_smiles, template)
+
+
+def calculate_reaction_features(reaction_smiles: str) -> dict[str, object]:
+    return featurize_reaction(reaction_smiles).as_dict()
 
 
 def make_gaussian_input(payload: dict[str, object]) -> str:
@@ -103,7 +142,14 @@ def gaussian_status() -> dict[str, object]:
 
 
 def parse_gaussian_text(text: str) -> dict[str, object]:
-    return parse_gaussian_log(text).as_dict()
+    quantum = parse_quantum_log(text).as_dict()
+    gaussian = quantum["gaussian_result"]
+    if isinstance(gaussian, dict):
+        return {
+            **gaussian,
+            "quantum_parse": quantum,
+        }
+    return {"quantum_parse": quantum}
 
 
 def analyze_profile_from_logs(reactant_log: str, product_log: str, ts_log: str) -> dict[str, object]:
