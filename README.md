@@ -77,6 +77,36 @@ http://127.0.0.1:8765
 Invoke-RestMethod http://127.0.0.1:8765/health
 ```
 
+## 本地 Web 前端
+
+启动 Streamlit 工作台：
+
+```powershell
+uv run streamlit run app/main.py --server.address 127.0.0.1 --server.port 8501
+```
+
+WSL/conda 环境中启动，并使用已安装的 OPERA：
+
+```bash
+cd /home/meta/Project/Workspaces/orgsynflow
+export PATH="$HOME/.local/bin:$PATH"
+/home/meta/.local/opt/miniforge3/bin/mamba run -n orgsynflow-chem streamlit run app/main.py --server.address 127.0.0.1 --server.port 8501
+```
+
+默认访问：
+
+```text
+http://127.0.0.1:8501
+```
+
+前端功能：
+
+- 分子摘要、RDKit/Mordred 描述符、可选 OPERA QSAR 物性预测。
+- 内置 demo 路线、AiZynthFinder 回退路线、路线评分和 Markdown 报告导出。
+- 反应解释、RXNMapper 映射、TS 搜索计划、分层产率估计和 DRFP/fallback 特征。
+- Gaussian 状态检查、Gaussian 输入生成、Gaussian log/out 解析。
+- 基于 Gaussian 自由能的 ΔG、ΔG‡ 和 Eyring 速率估算。
+
 ## CLI
 
 统一命令行入口：
