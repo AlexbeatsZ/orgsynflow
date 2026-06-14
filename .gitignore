@@ -5,8 +5,15 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 reports/outputs/
+data/workspaces/*.json
+!data/workspaces/example-workspace.json
 build/
 build_v6/
 dist/
 dist_v6/
+web/node_modules/
+web/dist/
+web/*.tsbuildinfo
+web/vite.config.js
+web/vite.config.d.ts
 *.spec

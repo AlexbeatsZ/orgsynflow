@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pydantic import BaseModel
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 
 from services.workbench import (
     analyze_profile_from_logs,
@@ -18,6 +18,17 @@ from services.workbench import (
     predict_molecule_properties,
     run_local_gaussian,
 )
+from core.job_queue import gaussian_job_queue
+from core.molecule import molecule_svg
+from core.reaction_validation import validate_reaction_smiles
+from core.workspaces import (
+    add_cell,
+    create_workspace,
+    delete_workspace,
+    get_workspace,
+    list_workspaces,
+    save_workspace,
+)
 
 
 app = FastAPI(title="OrgSyn Flow API", version="0.6.0")
@@ -27,6 +38,14 @@ class AnalyzeRequest(BaseModel):
     smiles: str
     demo_target: str = "Aspirin"
     use_aizynth: bool = False
+    max_routes: int = 3
+    aizynth_config: str | None = None
+    aizynth_stock: str | None = None
+    aizynth_policy: str | None = None
+
+
+class RoutePredictRequest(BaseModel):
+    smiles: str
     max_routes: int = 3
     aizynth_config: str | None = None
     aizynth_stock: str | None = None
@@ -63,9 +82,94 @@ class EnergyProfileRequest(BaseModel):
     ts_log: str
 
 
+class WorkspaceCreateRequest(BaseModel):
+    title: str = "Untitled workspace"
+
+
+class WorkspaceSaveRequest(BaseModel):
+    workspace: dict[str, object]
+
+
+class CellCreateRequest(BaseModel):
+    cell_type: str
+    title: str
+    objects: dict[str, object] = {}
+
+
+class MoleculeSvgRequest(BaseModel):
+    smiles: str
+    width: int = 320
+    height: int = 220
+
+
+class ReactionValidationRequest(BaseModel):
+    reaction_smiles: str
+    template: str | None = None
+
+
+class GaussianJobRequest(BaseModel):
+    gjf_text: str
+    workspace_id: str | None = None
+    cell_id: str | None = None
+    object_id: str | None = None
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok", "version": "V6"}
+
+
+@app.get("/workspaces")
+def workspaces_list() -> dict[str, object]:
+    return {"workspaces": list_workspaces()}
+
+
+@app.post("/workspaces")
+def workspaces_create(request: WorkspaceCreateRequest) -> dict[str, object]:
+    return create_workspace(request.title)
+
+
+@app.get("/workspaces/{workspace_id}")
+def workspaces_get(workspace_id: str) -> dict[str, object]:
+    try:
+        return get_workspace(workspace_id)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.put("/workspaces/{workspace_id}")
+def workspaces_save(workspace_id: str, request: WorkspaceSaveRequest) -> dict[str, object]:
+    try:
+        return save_workspace(workspace_id, request.workspace)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.delete("/workspaces/{workspace_id}")
+def workspaces_delete(workspace_id: str) -> dict[str, object]:
+    try:
+        return delete_workspace(workspace_id)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.post("/workspaces/{workspace_id}/cells")
+def workspaces_add_cell(workspace_id: str, request: CellCreateRequest) -> dict[str, object]:
+    try:
+        return add_cell(workspace_id, request.cell_type, request.title, request.objects)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.post("/chem/render/molecule-svg")
+def render_molecule_svg(request: MoleculeSvgRequest) -> dict[str, object]:
+    svg = molecule_svg(request.smiles, size=(request.width, request.height))
+    return {"available": svg is not None, "svg": svg}
+
+
+@app.post("/chem/validate/reaction")
+def validate_reaction(request: ReactionValidationRequest) -> dict[str, object]:
+    return validate_reaction_smiles(request.reaction_smiles, request.template)
 
 
 @app.get("/gaussian/status")
@@ -84,6 +188,34 @@ def analyze(request: AnalyzeRequest) -> dict[str, object]:
         aizynth_stock=request.aizynth_stock,
         aizynth_policy=request.aizynth_policy,
     )
+
+
+@app.post("/route/predict")
+def route_predict(request: RoutePredictRequest) -> dict[str, object]:
+    if not request.aizynth_config:
+        return {
+            "available": False,
+            "status": "disabled",
+            "reason": "未配置 AiZynthFinder config，路线预测按钮应禁用；可改用手动画布录入路线。",
+            "target_smiles": request.smiles,
+            "candidates": [],
+        }
+    result = analyze_target(
+        request.smiles,
+        use_aizynth=True,
+        max_routes=request.max_routes,
+        aizynth_config=request.aizynth_config,
+        aizynth_stock=request.aizynth_stock,
+        aizynth_policy=request.aizynth_policy,
+    )
+    return {
+        "available": True,
+        "status": result["status"],
+        "target_smiles": request.smiles,
+        "candidates": result["routes"],
+        "route_scores": result["route_scores"],
+        "feasibility": result["feasibility"],
+    }
 
 
 @app.post("/reaction/explain")
@@ -129,6 +261,37 @@ def gaussian_input(request: GaussianInputRequest) -> dict[str, str]:
 @app.post("/gaussian/run")
 def gaussian_run(request: GaussianInputRequest) -> dict[str, object]:
     return run_local_gaussian(request.model_dump())
+
+
+@app.post("/jobs/gaussian")
+def submit_gaussian_job(request: GaussianJobRequest) -> dict[str, object]:
+    return gaussian_job_queue.submit(
+        request.gjf_text,
+        workspace_id=request.workspace_id,
+        cell_id=request.cell_id,
+        object_id=request.object_id,
+    )
+
+
+@app.get("/jobs")
+def list_jobs() -> dict[str, object]:
+    return {"jobs": gaussian_job_queue.list()}
+
+
+@app.get("/jobs/{job_id}")
+def get_job(job_id: str) -> dict[str, object]:
+    job = gaussian_job_queue.get(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail=f"Job not found: {job_id}")
+    return job
+
+
+@app.post("/jobs/{job_id}/cancel")
+def cancel_job(job_id: str) -> dict[str, object]:
+    job = gaussian_job_queue.cancel(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail=f"Job not found: {job_id}")
+    return job
 
 
 @app.post("/gaussian/parse")

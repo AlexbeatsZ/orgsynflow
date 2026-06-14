@@ -77,9 +77,48 @@ http://127.0.0.1:8765
 Invoke-RestMethod http://127.0.0.1:8765/health
 ```
 
-## 本地 Web 前端
+## React 工作区前端
 
-启动 Streamlit 工作台：
+新的主前端是 React + Vite 工作区：
+
+```powershell
+# 终端 1：启动 FastAPI
+uv run python run_api.py
+
+# 终端 2：启动 React 前端
+cd web
+npm install
+npm run dev
+```
+
+默认访问：
+
+```text
+http://127.0.0.1:5173
+```
+
+React 工作区功能：
+
+- 一个本地 JSON 工作区包含多个 notebook 单元，单元类型包括分子、反应和路线。
+- 单元预览页类似 Jupyter；点击单元进入画布详情页。
+- 详情页使用 React Flow：分子是节点，反应是可选中的箭头。
+- 右侧任务面板会根据选中的分子节点或反应箭头显示可运行任务。
+- 分子任务包括 RDKit/OPERA 物性、描述符、Gaussian 输入和 Gaussian 串行作业提交。
+- 反应任务包括基础校验、反应解释、RXNMapper 映射、产率估计、DRFP/fallback 特征、TS 计划和 TS Gaussian 草稿。
+- Ketcher 作为本地 npm 依赖嵌入，用于可视化绘图输入；文本 SMILES/RXN 输入保留为回退。
+- 工作区 JSON 默认写入 `data/workspaces/`，用户创建的 `*.json` 默认被 Git 忽略。
+- 无 AiZynthFinder 配置时，路线预测返回 disabled，不使用 demo 路线冒充真实预测。
+
+前端构建测试：
+
+```powershell
+cd web
+npm run build
+```
+
+## Streamlit 调试前端
+
+旧版 Streamlit 入口仍可用于快速调试：
 
 ```powershell
 uv run streamlit run app/main.py --server.address 127.0.0.1 --server.port 8501
