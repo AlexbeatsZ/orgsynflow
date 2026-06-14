@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-import os
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 from core.gaussian import GaussianResult, parse_gaussian_log
+from core.temp_paths import orgsynflow_temp_dir
 
 
 @dataclass(frozen=True)
@@ -59,7 +59,7 @@ def parse_quantum_log(text: str) -> QuantumParseResult:
 
 
 def _write_temp_log(text: str) -> Path:
-    root = Path(os.environ.get("LOCALAPPDATA", Path.home())) / "Temp" / "codex" / "orgsynflow" / "quantum_parse"
+    root = orgsynflow_temp_dir("quantum_parse", "")
     root.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
     path = root / f"parse_{stamp}.log"

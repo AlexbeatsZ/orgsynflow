@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import csv
-import os
 import shutil
 import subprocess
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+
+from core.temp_paths import orgsynflow_temp_dir
 
 
 @dataclass(frozen=True)
@@ -135,6 +136,5 @@ def _latest_csv(work_dir: Path) -> Path | None:
 
 
 def _default_job_dir() -> Path:
-    root = Path(os.environ.get("LOCALAPPDATA", Path.home())) / "Temp" / "codex" / "orgsynflow" / "opera_jobs"
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    return root / stamp
+    return orgsynflow_temp_dir("opera_jobs", stamp)

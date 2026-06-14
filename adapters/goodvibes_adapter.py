@@ -3,8 +3,11 @@ from __future__ import annotations
 import shutil
 import subprocess
 from dataclasses import dataclass, field
+from datetime import datetime
 from pathlib import Path
 from typing import Any
+
+from core.temp_paths import orgsynflow_temp_dir
 
 
 @dataclass(frozen=True)
@@ -43,7 +46,9 @@ def run_goodvibes(log_paths: list[str | Path], timeout_seconds: int = 120) -> Go
             reason="未在 PATH 中检测到 GoodVibes；热化学校正保持 Gaussian/cclib fallback。",
         )
 
-    command = [executable, *[str(path) for path in log_paths]]
+    work_dir = orgsynflow_temp_dir("goodvibes_jobs", datetime.now().strftime("%Y%m%d_%H%M%S"))
+    work_dir.mkdir(parents=True, exist_ok=True)
+    command = [executable, *[str(Path(path).resolve()) for path in log_paths]]
     try:
         completed = subprocess.run(
             command,
@@ -51,6 +56,7 @@ def run_goodvibes(log_paths: list[str | Path], timeout_seconds: int = 120) -> Go
             capture_output=True,
             text=True,
             timeout=timeout_seconds,
+            cwd=str(work_dir),
         )
     except Exception as exc:
         return GoodVibesResult(True, "failed", "GoodVibes CLI", reason=str(exc))

@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-import os
 import shutil
 import subprocess
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+
+from core.temp_paths import orgsynflow_temp_dir
 
 
 @dataclass(frozen=True)
@@ -112,6 +113,5 @@ def _which(names: tuple[str, ...]) -> str | None:
 
 
 def _default_job_dir(kind: str) -> Path:
-    root = Path(os.environ.get("LOCALAPPDATA", Path.home())) / "Temp" / "codex" / "orgsynflow" / kind
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    return root / stamp
+    return orgsynflow_temp_dir(kind, stamp)

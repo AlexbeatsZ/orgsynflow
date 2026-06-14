@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-import os
 import shutil
 import subprocess
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
+from core.temp_paths import orgsynflow_temp_dir
 from core.gaussian import GaussianResult, parse_gaussian_log
 
 
@@ -117,9 +117,8 @@ def run_gaussian_job(
 
 
 def _default_job_dir() -> Path:
-    root = Path(os.environ.get("LOCALAPPDATA", Path.home())) / "Temp" / "codex" / "orgsynflow" / "gaussian_jobs"
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    return root / stamp
+    return orgsynflow_temp_dir("gaussian_jobs", stamp)
 
 
 def _find_log(job_dir: Path) -> Path | None:
