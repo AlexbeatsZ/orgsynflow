@@ -12,13 +12,13 @@ import {
   type Node,
 } from "@xyflow/react";
 import {
-  Activity,
   Atom,
-  Beaker,
   BookOpen,
   Boxes,
-  GitBranch,
+  ChevronDown,
   Loader2,
+  PanelLeftClose,
+  PanelLeftOpen,
   Plus,
   Save,
 } from "lucide-react";
@@ -37,7 +37,6 @@ import {
   planTs,
   predictProperties,
   reactionFeatures,
-  renderMoleculeSvg,
   saveWorkspace,
   submitGaussianJob,
   validateReaction,
@@ -64,6 +63,8 @@ export function App() {
   const [result, setResult] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
   const [jobs, setJobs] = useState<GaussianJob[]>([]);
+  const [workspaceMenuOpen, setWorkspaceMenuOpen] = useState(false);
+  const [unitRailOpen, setUnitRailOpen] = useState(true);
 
   useEffect(() => {
     refreshWorkspaces();
@@ -113,7 +114,7 @@ export function App() {
     await refreshWorkspaces();
   }
 
-  async function handleAddCell(type: CellType) {
+  async function handleAddCell(type: CellType = "chem") {
     if (!workspace) return;
     const defaults = defaultObjectsFor(type);
     const cell = await addCell(workspace.id, type, defaults.title, defaults.objects);
@@ -136,48 +137,38 @@ export function App() {
   const activeCell = workspace?.cells.find((cell) => cell.id === activeCellId) ?? null;
 
   return (
-    <div className="app-shell">
-      <aside className="sidebar">
-        <div className="brand">
-          <Atom size={24} />
-          <div>
-            <h1>OrgSynFlow</h1>
-            <p>Notebook workbench</p>
-          </div>
-        </div>
-        <button className="primary-button" onClick={handleNewWorkspace}>
-          <Plus size={16} /> 新建工作区
-        </button>
-        <div className="section-title">工作区</div>
-        <div className="workspace-list">
-          {summaries.map((item) => (
-            <button
-              key={item.id}
-              className={`workspace-item ${workspace?.id === item.id ? "active" : ""}`}
-              onClick={() => handleOpenWorkspace(item.id)}
-            >
-              <span>{item.title}</span>
-              <small>{item.cell_count} cells</small>
-            </button>
-          ))}
-        </div>
-        <div className="section-title">新增单元</div>
-        <button className="ghost-button" onClick={() => handleAddCell("molecule")} disabled={!workspace}>
-          <Beaker size={16} /> 分子单元
-        </button>
-        <button className="ghost-button" onClick={() => handleAddCell("reaction")} disabled={!workspace}>
-          <Activity size={16} /> 反应单元
-        </button>
-        <button className="ghost-button" onClick={() => handleAddCell("route")} disabled={!workspace}>
-          <GitBranch size={16} /> 路线单元
-        </button>
-      </aside>
-
+    <div className={`app-shell ${unitRailOpen ? "" : "unit-rail-collapsed"}`}>
       <main className="main">
         <header className="topbar">
-          <div>
-            <h2>{workspace?.title ?? "未打开工作区"}</h2>
-            <p>{workspace ? `${workspace.cells.length} 个单元 · ${workspace.updated_at}` : "创建或打开一个工作区开始"}</p>
+          <div className="topbar-left">
+            <button className="rail-toggle" onClick={() => setUnitRailOpen((open) => !open)} title={unitRailOpen ? "隐藏单元栏" : "显示单元栏"}>
+              {unitRailOpen ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />}
+            </button>
+            <div className="workspace-switcher">
+              <button className="workspace-trigger" onClick={() => setWorkspaceMenuOpen((open) => !open)}>
+                <Atom size={18} />
+                <span>{workspace?.title ?? "选择工作区"}</span>
+                <ChevronDown size={18} />
+              </button>
+              <p>{workspace ? `${workspace.cells.length} 个单元 · ${workspace.updated_at}` : "创建或打开一个工作区开始"}</p>
+              {workspaceMenuOpen && (
+                <div className="workspace-menu">
+                  <button className="workspace-menu-new" onClick={() => { handleNewWorkspace(); setWorkspaceMenuOpen(false); }}>
+                    <Plus size={16} /> 新建工作区
+                  </button>
+                  {summaries.map((item) => (
+                    <button
+                      key={item.id}
+                      className={`workspace-menu-item ${workspace?.id === item.id ? "active" : ""}`}
+                      onClick={() => { handleOpenWorkspace(item.id); setWorkspaceMenuOpen(false); }}
+                    >
+                      <span>{item.title}</span>
+                      <small>{item.cell_count} cells</small>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
           <button className="primary-button" onClick={() => handleSaveWorkspace()} disabled={!workspace}>
             <Save size={16} /> 保存
@@ -185,18 +176,35 @@ export function App() {
         </header>
 
         <div className="content-grid">
-          <section className="notebook">
-            <NotebookCells
-              workspace={workspace}
-              activeCellId={activeCellId}
-              onSelect={(cell) => {
-                setActiveCellId(cell.id);
-                setSelected({ kind: "cell", cell });
-                setResult(null);
-              }}
-            />
-          </section>
-
+          {unitRailOpen && (
+            <aside className="unit-rail">
+              <div className="unit-rail-header">
+                <strong>单元</strong>
+                <button className="primary-button compact" onClick={() => handleAddCell("chem")} disabled={!workspace}>
+                  <Plus size={15} /> 添加
+                </button>
+              </div>
+              <div className="cell-list compact-list">
+                {workspace?.cells.map((cell) => (
+                  <button
+                    key={cell.id}
+                    className={`cell-card ${activeCellId === cell.id ? "active" : ""}`}
+                    onClick={() => {
+                      setActiveCellId(cell.id);
+                      setSelected({ kind: "cell", cell });
+                      setResult(null);
+                    }}
+                  >
+                    <div className="cell-card-header">
+                      <span className="type-pill chem">chem</span>
+                      <strong>{cell.title}</strong>
+                    </div>
+                    <CellPreview cell={cell} />
+                  </button>
+                ))}
+              </div>
+            </aside>
+          )}
           <section className="detail">
             {activeCell ? (
               <CellDetail
@@ -235,38 +243,7 @@ export function App() {
   );
 }
 
-function NotebookCells({
-  workspace,
-  activeCellId,
-  onSelect,
-}: {
-  workspace: Workspace | null;
-  activeCellId: string | null;
-  onSelect: (cell: WorkspaceCell) => void;
-}) {
-  if (!workspace) return <EmptyState />;
-  return (
-    <div className="cell-list">
-      {workspace.cells.map((cell) => (
-        <button key={cell.id} className={`cell-card ${activeCellId === cell.id ? "active" : ""}`} onClick={() => onSelect(cell)}>
-          <div className="cell-card-header">
-            <span className={`type-pill ${cell.type}`}>{cell.type}</span>
-            <strong>{cell.title}</strong>
-          </div>
-          <CellPreview cell={cell} />
-        </button>
-      ))}
-    </div>
-  );
-}
-
 function CellPreview({ cell }: { cell: WorkspaceCell }) {
-  if (cell.type === "molecule") {
-    return <p>{cell.objects.molecules?.map((molecule) => molecule.smiles).join(", ") || "空分子单元"}</p>;
-  }
-  if (cell.type === "reaction") {
-    return <ReactionLine reaction={cell.objects.reactions?.[0]?.reaction_smiles ?? examples.reaction} />;
-  }
   return (
     <div>
       <p>{cell.objects.molecules?.length ?? 0} molecules · {cell.objects.reactions?.length ?? 0} reactions</p>
@@ -353,55 +330,58 @@ function CellDetail({
 }
 
 function EditorStrip({ cell, onUpdate }: { cell: WorkspaceCell; onUpdate: (cell: WorkspaceCell) => void }) {
-  const [smiles, setSmiles] = useState(examples.molecule);
-  const [reaction, setReaction] = useState(examples.reaction);
+  const [input, setInput] = useState(examples.molecule);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  function addMolecule() {
-    const id = `mol-${Date.now()}`;
-    const molecule = { id, label: smiles, smiles };
+  function addInput() {
+    const lines = input
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean);
+    const molecules = [...(cell.objects.molecules ?? [])];
+    const reactions = [...(cell.objects.reactions ?? [])];
+    for (const line of lines) {
+      if (line.includes(">>")) {
+        const reactionId = `rxn-${Date.now()}-${reactions.length}`;
+        reactions.push({ id: reactionId, label: `Step ${reactions.length + 1}`, reaction_smiles: line });
+        for (const smiles of moleculesFromReaction(line)) {
+          if (!molecules.some((item) => item.smiles === smiles)) {
+            molecules.push({ id: `mol-${Date.now()}-${molecules.length}`, label: smiles, smiles });
+          }
+        }
+      } else if (!molecules.some((item) => item.smiles === line)) {
+        molecules.push({ id: `mol-${Date.now()}-${molecules.length}`, label: line, smiles: line });
+      }
+    }
     onUpdate({
       ...cell,
       objects: {
         ...cell.objects,
-        molecules: [...(cell.objects.molecules ?? []), molecule],
+        molecules,
+        reactions,
       },
-    });
-  }
-
-  function addReaction() {
-    const id = `rxn-${Date.now()}`;
-    const reactionObject = { id, label: "Reaction", reaction_smiles: reaction };
-    onUpdate({
-      ...cell,
-      objects: {
-        ...cell.objects,
-        reactions: [...(cell.objects.reactions ?? []), reactionObject],
-      },
+      canvas: { nodes: [], edges: [] },
     });
   }
 
   return (
     <div className="editor-strip">
-      <div>
-        <label>添加分子</label>
-        <input value={smiles} onChange={(event) => setSmiles(event.target.value)} />
-        <button onClick={addMolecule}>添加</button>
-      </div>
-      <div>
-        <label>添加反应</label>
-        <input value={reaction} onChange={(event) => setReaction(event.target.value)} />
-        <button onClick={addReaction}>添加</button>
-      </div>
+      <label>输入结构/反应/路线</label>
+      <textarea
+        value={input}
+        onChange={(event) => setInput(event.target.value)}
+        placeholder={"CCO\nCCO>>CC=O\nA.B>>C"}
+      />
+      <button onClick={addInput}>添加到画布</button>
       <button className="ghost-button compact" onClick={() => setDrawerOpen(true)}>
         打开绘图器
       </button>
       {drawerOpen && (
         <KetcherModal
-          initialSmiles={smiles}
+          initialSmiles={input.includes(">>") ? "" : input.split(/\r?\n/)[0] ?? ""}
           onClose={() => setDrawerOpen(false)}
           onApply={(nextSmiles) => {
-            setSmiles(nextSmiles);
+            setInput(nextSmiles);
             setDrawerOpen(false);
           }}
         />
@@ -742,33 +722,10 @@ function EmptyState() {
 }
 
 function defaultObjectsFor(type: CellType): { title: string; objects: Record<string, unknown> } {
-  if (type === "reaction") {
-    return {
-      title: "Reaction analysis",
-      objects: {
-        molecules: [],
-        reactions: [{ id: "rxn-1", label: "Oxidation example", reaction_smiles: examples.reaction }],
-        routes: [],
-      },
-    };
-  }
-  if (type === "route") {
-    return {
-      title: "Manual route",
-      objects: {
-        molecules: [
-          { id: "mol-reactant", label: "Reactant", smiles: "CCO" },
-          { id: "mol-product", label: "Product", smiles: "CC=O" },
-        ],
-        reactions: [{ id: "rxn-route-1", label: "Step 1", reaction_smiles: examples.reaction }],
-        routes: [],
-      },
-    };
-  }
   return {
-    title: "Molecule analysis",
+    title: "Chem cell",
     objects: {
-      molecules: [{ id: "mol-1", label: "Ethanol", smiles: examples.molecule }],
+      molecules: [],
       reactions: [],
       routes: [],
     },
@@ -786,7 +743,7 @@ function toNodes(cell: WorkspaceCell): Node[] {
   return molecules.map((molecule, index) => ({
     id: molecule.id,
     type: "default",
-    position: { x: 80 + index * 260, y: 120 },
+    position: { x: 80 + (index % 3) * 260, y: 90 + Math.floor(index / 3) * 150 },
     data: { label: `${molecule.label}\n${molecule.smiles}` },
   }));
 }
@@ -795,22 +752,30 @@ function toEdges(cell: WorkspaceCell): Edge[] {
   if (cell.canvas?.edges?.length) return cell.canvas.edges;
   const molecules = cell.objects.molecules ?? [];
   const reactions = cell.objects.reactions ?? [];
-  if (molecules.length >= 2 && reactions[0]) {
-    return [
-      {
-        id: reactions[0].id,
-        source: molecules[0].id,
-        target: molecules[1].id,
-        label: reactions[0].label,
+  const edges: Edge[] = [];
+  reactions.forEach((reaction, reactionIndex) => {
+    const [left, right] = reaction.reaction_smiles.split(">>");
+    const reactantSmiles = left?.split(".").filter(Boolean) ?? [];
+    const productSmiles = right?.split(".").filter(Boolean) ?? [];
+    const target = molecules.find((molecule) => productSmiles.includes(molecule.smiles));
+    if (!target) return;
+    reactantSmiles.forEach((smiles, index) => {
+      const source = molecules.find((molecule) => molecule.smiles === smiles);
+      if (!source) return;
+      edges.push({
+        id: `${reaction.id}-${index}`,
+        source: source.id,
+        target: target.id,
+        label: reaction.label || `Step ${reactionIndex + 1}`,
         markerEnd: { type: MarkerType.ArrowClosed },
-      },
-    ];
-  }
-  return [];
+      });
+    });
+  });
+  return edges;
 }
 
 function reactionFromEdge(cell: WorkspaceCell, edge: Edge): ReactionObject | undefined {
-  return cell.objects.reactions?.find((reaction) => reaction.id === edge.id) ?? cell.objects.reactions?.[0];
+  return cell.objects.reactions?.find((reaction) => edge.id.startsWith(reaction.id)) ?? cell.objects.reactions?.[0];
 }
 
 function objectsFromCanvas(cell: WorkspaceCell, nodes: Node[], edges: Edge[]) {
@@ -823,4 +788,12 @@ function objectsFromCanvas(cell: WorkspaceCell, nodes: Node[], edges: Edge[]) {
     return existing ?? { id: edge.id, label: String(edge.label ?? `Step ${index + 1}`), reaction_smiles: "" };
   });
   return { ...cell.objects, molecules, reactions };
+}
+
+function moleculesFromReaction(reactionSmiles: string): string[] {
+  return reactionSmiles
+    .split(">>")
+    .flatMap((side) => side.split("."))
+    .map((item) => item.trim())
+    .filter(Boolean);
 }

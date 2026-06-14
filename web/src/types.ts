@@ -1,6 +1,6 @@
 import type { Edge, Node } from "@xyflow/react";
 
-export type CellType = "molecule" | "reaction" | "route";
+export type CellType = "chem" | "molecule" | "reaction" | "route";
 
 export interface WorkspaceSummary {
   id: string;
