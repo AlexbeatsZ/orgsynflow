@@ -2,7 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Background,
   Controls,
+  Handle,
   MarkerType,
+  Position,
   ReactFlow,
   addEdge,
   useEdgesState,
@@ -10,12 +12,14 @@ import {
   type Connection,
   type Edge,
   type Node,
+  type NodeProps,
 } from "@xyflow/react";
 import {
   Atom,
   BookOpen,
   Boxes,
   ChevronDown,
+  Trash2,
   Loader2,
   PanelLeftClose,
   PanelLeftOpen,
@@ -37,6 +41,7 @@ import {
   planTs,
   predictProperties,
   reactionFeatures,
+  renderMoleculeSvg,
   saveWorkspace,
   submitGaussianJob,
   validateReaction,
@@ -114,6 +119,19 @@ export function App() {
     await refreshWorkspaces();
   }
 
+  async function handleDeleteCell(cellId: string) {
+    if (!workspace) return;
+    const nextCells = workspace.cells.filter((cell) => cell.id !== cellId);
+    const next = { ...workspace, cells: nextCells };
+    setWorkspace(next);
+    if (activeCellId === cellId) {
+      const fallback = nextCells[0] ?? null;
+      setActiveCellId(fallback?.id ?? null);
+      setSelected(fallback ? { kind: "cell", cell: fallback } : null);
+    }
+    await handleSaveWorkspace(next);
+  }
+
   async function handleAddCell(type: CellType = "chem") {
     if (!workspace) return;
     const defaults = defaultObjectsFor(type);
@@ -186,21 +204,41 @@ export function App() {
               </div>
               <div className="cell-list compact-list">
                 {workspace?.cells.map((cell) => (
-                  <button
+                  <div
                     key={cell.id}
                     className={`cell-card ${activeCellId === cell.id ? "active" : ""}`}
+                    role="button"
+                    tabIndex={0}
                     onClick={() => {
                       setActiveCellId(cell.id);
                       setSelected({ kind: "cell", cell });
                       setResult(null);
                     }}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        setActiveCellId(cell.id);
+                        setSelected({ kind: "cell", cell });
+                        setResult(null);
+                      }
+                    }}
                   >
                     <div className="cell-card-header">
                       <span className="type-pill chem">chem</span>
                       <strong>{cell.title}</strong>
+                      <button
+                        className="icon-button danger"
+                        title="删除单元"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleDeleteCell(cell.id);
+                        }}
+                      >
+                        <Trash2 size={15} />
+                      </button>
                     </div>
                     <CellPreview cell={cell} />
-                  </button>
+                  </div>
                 ))}
               </div>
             </aside>
@@ -278,6 +316,7 @@ function CellDetail({
   const initialEdges = useMemo(() => toEdges(cell), [cell.id]);
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const nodeTypes = useMemo(() => ({ molecule: MoleculeNode }), []);
 
   useEffect(() => {
     setNodes(toNodes(cell));
@@ -307,6 +346,7 @@ function CellDetail({
         <ReactFlow
           nodes={nodes}
           edges={edges}
+          nodeTypes={nodeTypes}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
@@ -325,6 +365,43 @@ function CellDetail({
         </ReactFlow>
       </div>
       <EditorStrip cell={cell} onUpdate={onUpdate} />
+    </div>
+  );
+}
+
+function MoleculeNode({ data }: NodeProps) {
+  const smiles = String(data.smiles ?? "");
+  const label = String(data.label ?? smiles);
+  const [svg, setSvg] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setSvg(null);
+    setFailed(false);
+    if (!smiles) return;
+    renderMoleculeSvg(smiles)
+      .then((nextSvg) => {
+        if (!cancelled) setSvg(nextSvg);
+      })
+      .catch(() => {
+        if (!cancelled) setFailed(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [smiles]);
+
+  return (
+    <div className="molecule-node">
+      <Handle type="target" position={Position.Left} />
+      <div className="molecule-drawing">
+        {svg ? <div dangerouslySetInnerHTML={{ __html: svg }} /> : <span>{failed ? "无法渲染结构" : "渲染中..."}</span>}
+      </div>
+      <div className="molecule-caption" title={label === smiles ? smiles : `${label} · ${smiles}`}>
+        {smiles}
+      </div>
+      <Handle type="source" position={Position.Right} />
     </div>
   );
 }
@@ -733,18 +810,13 @@ function defaultObjectsFor(type: CellType): { title: string; objects: Record<str
 }
 
 function toNodes(cell: WorkspaceCell): Node[] {
-  if (cell.canvas?.nodes?.length) {
-    return cell.canvas.nodes.map((node) => ({
-      ...node,
-      type: node.type === "molecule" ? "default" : node.type,
-    }));
-  }
   const molecules = cell.objects.molecules ?? [];
+  const savedNodes = new Map((cell.canvas?.nodes ?? []).map((node) => [node.id, node]));
   return molecules.map((molecule, index) => ({
     id: molecule.id,
-    type: "default",
-    position: { x: 80 + (index % 3) * 260, y: 90 + Math.floor(index / 3) * 150 },
-    data: { label: `${molecule.label}\n${molecule.smiles}` },
+    type: "molecule",
+    position: savedNodes.get(molecule.id)?.position ?? { x: 80 + (index % 3) * 260, y: 90 + Math.floor(index / 3) * 170 },
+    data: { label: molecule.label, smiles: molecule.smiles },
   }));
 }
 

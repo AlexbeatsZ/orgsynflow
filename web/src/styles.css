@@ -151,6 +151,7 @@ button {
   padding: 14px;
   text-align: left;
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+  cursor: pointer;
 }
 
 .cell-card-header {
@@ -158,6 +159,35 @@ button {
   align-items: center;
   gap: 8px;
   margin-bottom: 10px;
+}
+
+.cell-card-header strong {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.icon-button {
+  width: 28px;
+  height: 28px;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 6px;
+  background: #eef3f8;
+  color: #475569;
+}
+
+.icon-button:hover {
+  background: #dbe7f3;
+}
+
+.icon-button.danger:hover {
+  background: #fee2e2;
+  color: #b91c1c;
 }
 
 .type-pill {
@@ -223,6 +253,45 @@ button {
   border: 1px solid #d9e1eb;
   border-radius: 8px;
   overflow: hidden;
+}
+
+.molecule-node {
+  width: 190px;
+  min-height: 142px;
+  padding: 8px;
+  background: white;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+.molecule-drawing {
+  height: 108px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.molecule-drawing svg {
+  max-width: 170px;
+  max-height: 104px;
+}
+
+.molecule-drawing span {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.molecule-caption {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid #e2e8f0;
+  color: #17202a;
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.25;
+  text-align: center;
+  overflow-wrap: anywhere;
 }
 
 .editor-strip {
