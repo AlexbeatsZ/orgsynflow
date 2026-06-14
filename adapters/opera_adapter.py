@@ -56,6 +56,22 @@ def predict_with_opera(smiles: str, timeout_seconds: int = 120) -> OperaPredicti
     input_path.write_text(f"{smiles}\tquery\n", encoding="utf-8")
 
     commands = [
+        [
+            executable,
+            "--SMI",
+            str(input_path),
+            "-o",
+            str(output_path),
+            "-e",
+            "MP",
+            "BP",
+            "logP",
+            "WS",
+            "VP",
+            "-v",
+            "0",
+            "-c",
+        ],
         [executable, str(input_path), str(output_path)],
         [executable, "-i", str(input_path), "-o", str(output_path)],
     ]
@@ -103,11 +119,11 @@ def _parse_opera_csv(path: Path) -> dict[str, dict[str, Any]]:
 
     row = rows[0]
     property_aliases = {
-        "melting_point": ("MP", "mp", "MeltingPoint", "Melting_Point"),
-        "boiling_point": ("BP", "bp", "BoilingPoint", "Boiling_Point"),
-        "logp": ("LogP", "logP", "LOGP"),
-        "water_solubility": ("WS", "WaterSolubility", "Water_Solubility"),
-        "vapor_pressure": ("VP", "VaporPressure", "Vapor_Pressure"),
+        "melting_point": ("MP_pred", "MP", "mp", "MeltingPoint", "Melting_Point"),
+        "boiling_point": ("BP_pred", "BP", "bp", "BoilingPoint", "Boiling_Point"),
+        "logp": ("LogP_pred", "LogP", "logP", "LOGP"),
+        "water_solubility": ("LogWS_pred", "WS_pred", "WS", "WaterSolubility", "Water_Solubility"),
+        "vapor_pressure": ("LogVP_pred", "VP_pred", "VP", "VaporPressure", "Vapor_Pressure"),
     }
     ad_aliases = {
         "melting_point_ad": ("MP_AD", "AD_MP"),
