@@ -11,10 +11,6 @@ import {
   type Edge,
   type Node,
 } from "@xyflow/react";
-import { Editor } from "ketcher-react";
-import "ketcher-react/dist/index.css";
-import { StandaloneStructServiceProvider } from "ketcher-standalone/dist/binaryWasm";
-import type { Ketcher } from "ketcher-core";
 import {
   Activity,
   Atom,
@@ -423,9 +419,34 @@ function KetcherModal({
   onClose: () => void;
   onApply: (smiles: string) => void;
 }) {
-  const ketcherRef = useRef<Ketcher | null>(null);
-  const structServiceProvider = useMemo(() => new StandaloneStructServiceProvider(), []);
+  const ketcherRef = useRef<any>(null);
+  const [EditorComponent, setEditorComponent] = useState<any>(null);
+  const [structServiceProvider, setStructServiceProvider] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadKetcher() {
+      try {
+        (globalThis as any).global = globalThis;
+        await import("ketcher-react/dist/index.css");
+        const [{ Editor }, { StandaloneStructServiceProvider }] = await Promise.all([
+          import("ketcher-react"),
+          import("ketcher-standalone/dist/binaryWasm"),
+        ]);
+        if (!cancelled) {
+          setEditorComponent(() => Editor);
+          setStructServiceProvider(new StandaloneStructServiceProvider());
+        }
+      } catch (exc) {
+        if (!cancelled) setError(`Ketcher 加载失败：${String(exc)}`);
+      }
+    }
+    loadKetcher();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   async function apply() {
     if (!ketcherRef.current) {
@@ -448,17 +469,21 @@ function KetcherModal({
           <button onClick={onClose}>关闭</button>
         </div>
         <div className="ketcher-host">
-          <Editor
-            staticResourcesUrl="/"
-            structServiceProvider={structServiceProvider}
-            errorHandler={(message) => setError(String(message))}
-            onInit={(ketcher) => {
-              ketcherRef.current = ketcher;
-              if (initialSmiles) {
-                ketcher.setMolecule(initialSmiles).catch((exc) => setError(String(exc)));
-              }
-            }}
-          />
+          {EditorComponent && structServiceProvider ? (
+            <EditorComponent
+              staticResourcesUrl="/"
+              structServiceProvider={structServiceProvider}
+              errorHandler={(message: unknown) => setError(String(message))}
+              onInit={(ketcher: any) => {
+                ketcherRef.current = ketcher;
+                if (initialSmiles) {
+                  ketcher.setMolecule(initialSmiles).catch((exc: unknown) => setError(String(exc)));
+                }
+              }}
+            />
+          ) : (
+            <div className="empty-state">正在加载 Ketcher 绘图器...</div>
+          )}
         </div>
         {error && <div className="error-box">{error}</div>}
         <div className="modal-footer">
@@ -751,7 +776,12 @@ function defaultObjectsFor(type: CellType): { title: string; objects: Record<str
 }
 
 function toNodes(cell: WorkspaceCell): Node[] {
-  if (cell.canvas?.nodes?.length) return cell.canvas.nodes;
+  if (cell.canvas?.nodes?.length) {
+    return cell.canvas.nodes.map((node) => ({
+      ...node,
+      type: node.type === "molecule" ? "default" : node.type,
+    }));
+  }
   const molecules = cell.objects.molecules ?? [];
   return molecules.map((molecule, index) => ({
     id: molecule.id,

@@ -3,6 +3,18 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
+  define: {
+    "process.env": {},
+    global: "globalThis",
+  },
+  optimizeDeps: {
+    esbuildOptions: {
+      define: {
+        "process.env": "{}",
+        global: "globalThis",
+      },
+    },
+  },
   server: {
     host: "127.0.0.1",
     port: 5173,
