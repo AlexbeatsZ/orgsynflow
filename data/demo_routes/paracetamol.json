@@ -1,0 +1,43 @@
+{
+  "routes": [
+    {
+      "id": "paracetamol-route-1",
+      "title": "Paracetamol via p-aminophenol acetylation",
+      "target_id": "paracetamol",
+      "molecules": [
+        {
+          "id": "paracetamol",
+          "name": "Paracetamol",
+          "smiles": "CC(=O)Nc1ccc(O)cc1",
+          "in_stock": false
+        },
+        {
+          "id": "p-aminophenol",
+          "name": "p-Aminophenol",
+          "smiles": "Nc1ccc(O)cc1",
+          "in_stock": true
+        },
+        {
+          "id": "acetic-anhydride",
+          "name": "Acetic anhydride",
+          "smiles": "CC(=O)OC(C)=O",
+          "in_stock": true
+        }
+      ],
+      "steps": [
+        {
+          "id": "step-1",
+          "product_id": "paracetamol",
+          "precursor_ids": ["p-aminophenol", "acetic-anhydride"],
+          "reaction_smiles": "Nc1ccc(O)cc1.CC(=O)OC(C)=O>>CC(=O)Nc1ccc(O)cc1",
+          "policy_score": 0.89,
+          "template": "Amine acetylation"
+        }
+      ],
+      "metadata": {
+        "target_aliases": ["paracetamol", "acetaminophen"]
+      }
+    }
+  ]
+}
+

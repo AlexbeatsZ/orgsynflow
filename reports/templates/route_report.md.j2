@@ -1,0 +1,58 @@
+# OrgSyn Workbench 路线分析报告
+
+生成时间：{{ generated_at }}
+
+## 运行状态
+
+{{ status }}
+
+## 目标分子
+
+| 字段 | 值 |
+| --- | --- |
+{% for key, value in target.as_display_dict().items() -%}
+| {{ key }} | {{ value }} |
+{% endfor %}
+
+{% if target.warning %}
+> {{ target.warning }}
+{% endif %}
+
+## 候选路线
+
+{% for route in routes %}
+### {{ loop.index }}. {{ route.title }}
+
+来源：{{ route.source }}
+
+| 指标 | 值 |
+| --- | --- |
+| 路线综合分 | {{ scores[route.id].route_score }} |
+| 路线步数 | {{ route.depth }} |
+| 叶子前体数量 | {{ route.precursor_count }} |
+| 可购买叶子前体 | {{ route.stock_count }} |
+| 模型置信分 | {{ scores[route.id].model_score }} |
+| 原料可得性分 | {{ scores[route.id].stock_score }} |
+| 步数简洁度分 | {{ scores[route.id].step_score }} |
+
+评分说明：{{ scores[route.id].explanation }}
+
+#### 分子清单
+
+| 名称 | SMILES | 是否可购买 |
+| --- | --- | --- |
+{% for molecule in route.molecules -%}
+| {{ molecule.name }} | `{{ molecule.smiles }}` | {{ "是" if molecule.in_stock else "否" }} |
+{% endfor %}
+
+#### 反应步骤
+
+| 步骤 | 产物 | 前体 | 反应类型 | 反应中心 | 解释 |
+| --- | --- | --- | --- | --- | --- |
+{% set molecules = route.molecule_by_id -%}
+{% for step in route.steps -%}
+{% set explanation = explain_reaction(step.reaction_smiles, step.template) -%}
+| {{ step.id }} | {{ molecules[step.product_id].name }} | {% for precursor_id in step.precursor_ids %}{{ molecules[precursor_id].name }}{% if not loop.last %}, {% endif %}{% endfor %} | {{ explanation.reaction_type }} | {{ explanation.reaction_center | join("、") }} | {{ explanation.summary }} |
+{% endfor %}
+
+{% endfor %}

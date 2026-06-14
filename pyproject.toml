@@ -1,0 +1,25 @@
+[project]
+name = "orgsynflow"
+version = "0.1.0"
+description = "OrgSyn Workbench MVP for retrosynthesis route display and molecule analysis."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.124.0",
+    "httpx2>=2.0.0",
+    "jinja2>=3.1.6",
+    "pandas>=2.2.3",
+    "pyinstaller>=6.17.0",
+    "pydantic>=2.11.0",
+    "pytest>=9.0.0",
+    "rdkit>=2026.3.3",
+    "streamlit>=1.45.0",
+    "uvicorn>=0.38.0",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

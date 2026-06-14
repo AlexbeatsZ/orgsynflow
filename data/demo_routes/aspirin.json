@@ -1,0 +1,95 @@
+{
+  "routes": [
+    {
+      "id": "aspirin-route-1",
+      "title": "Aspirin via salicylic acid acetylation",
+      "target_id": "aspirin",
+      "molecules": [
+        {
+          "id": "aspirin",
+          "name": "Aspirin",
+          "smiles": "CC(=O)Oc1ccccc1C(=O)O",
+          "in_stock": false
+        },
+        {
+          "id": "salicylic-acid",
+          "name": "Salicylic acid",
+          "smiles": "O=C(O)c1ccccc1O",
+          "in_stock": true
+        },
+        {
+          "id": "acetic-anhydride",
+          "name": "Acetic anhydride",
+          "smiles": "CC(=O)OC(C)=O",
+          "in_stock": true
+        }
+      ],
+      "steps": [
+        {
+          "id": "step-1",
+          "product_id": "aspirin",
+          "precursor_ids": ["salicylic-acid", "acetic-anhydride"],
+          "reaction_smiles": "O=C(O)c1ccccc1O.CC(=O)OC(C)=O>>CC(=O)Oc1ccccc1C(=O)O",
+          "policy_score": 0.86,
+          "template": "Phenol acetylation"
+        }
+      ],
+      "metadata": {
+        "target_aliases": ["aspirin", "acetylsalicylic acid"]
+      }
+    },
+    {
+      "id": "aspirin-route-2",
+      "title": "Aspirin via salicylate ester hydrolysis then acetylation",
+      "target_id": "aspirin",
+      "molecules": [
+        {
+          "id": "aspirin",
+          "name": "Aspirin",
+          "smiles": "CC(=O)Oc1ccccc1C(=O)O",
+          "in_stock": false
+        },
+        {
+          "id": "methyl-salicylate",
+          "name": "Methyl salicylate",
+          "smiles": "COC(=O)c1ccccc1O",
+          "in_stock": true
+        },
+        {
+          "id": "salicylic-acid",
+          "name": "Salicylic acid",
+          "smiles": "O=C(O)c1ccccc1O",
+          "in_stock": true
+        },
+        {
+          "id": "acetic-anhydride",
+          "name": "Acetic anhydride",
+          "smiles": "CC(=O)OC(C)=O",
+          "in_stock": true
+        }
+      ],
+      "steps": [
+        {
+          "id": "step-1",
+          "product_id": "salicylic-acid",
+          "precursor_ids": ["methyl-salicylate"],
+          "reaction_smiles": "COC(=O)c1ccccc1O>>O=C(O)c1ccccc1O",
+          "policy_score": 0.58,
+          "template": "Ester hydrolysis"
+        },
+        {
+          "id": "step-2",
+          "product_id": "aspirin",
+          "precursor_ids": ["salicylic-acid", "acetic-anhydride"],
+          "reaction_smiles": "O=C(O)c1ccccc1O.CC(=O)OC(C)=O>>CC(=O)Oc1ccccc1C(=O)O",
+          "policy_score": 0.84,
+          "template": "Phenol acetylation"
+        }
+      ],
+      "metadata": {
+        "target_aliases": ["aspirin", "acetylsalicylic acid"]
+      }
+    }
+  ]
+}
+

@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.py[cod]
+.streamlit/
+.pytest_cache/
+.ruff_cache/
+reports/outputs/
+build/
+build_v6/
+dist/
+dist_v6/
+*.spec
