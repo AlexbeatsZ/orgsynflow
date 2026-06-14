@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from adapters.registry import list_adapter_statuses
 from adapters.aizynth_adapter import predict_routes_with_fallback
 from core.gaussian import generate_gaussian_input, parse_gaussian_log
 from core.gaussian_runner import find_gaussian_executable, run_gaussian_job
@@ -20,6 +21,14 @@ DEMO_TARGETS = {
     "Aspirin": DEMO_DIR / "aspirin.json",
     "Paracetamol": DEMO_DIR / "paracetamol.json",
 }
+
+
+def list_adapters() -> list[dict[str, object]]:
+    return [status.as_dict() for status in list_adapter_statuses()]
+
+
+def summarize_target_molecule(smiles: str) -> dict[str, object]:
+    return summarize_molecule(smiles).as_display_dict()
 
 
 def analyze_target(
