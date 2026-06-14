@@ -41,7 +41,18 @@ def featurize_reaction(reaction_smiles: str) -> ReactionFeatures:
             note="未安装 DRFP/RXNFP；当前输出不是训练模型特征，不应用于真实产率预测。",
         )
 
-    vector = DrfpEncoder.encode([reaction_smiles], n_folded_length=256)[0]
+    try:
+        vector = DrfpEncoder.encode([reaction_smiles], n_folded_length=256)[0]
+    except Exception as exc:
+        return ReactionFeatures(
+            reaction_smiles=reaction_smiles,
+            method="hashed_reaction_smiles_fallback",
+            status="fallback",
+            features=_hashed_fingerprint(reaction_smiles),
+            applicability_domain="未知；DRFP 已安装但编码失败，仅可作为稳定测试特征。",
+            unavailable=["drfp_runtime"],
+            note=f"DRFP 编码失败：{exc}；当前输出不是训练模型特征，不应用于真实产率预测。",
+        )
     return ReactionFeatures(
         reaction_smiles=reaction_smiles,
         method="drfp",
