@@ -1166,9 +1166,7 @@ button {
 
 .osf-ketcher-host > div {
   height: 100%;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+  width: 100%;
 }
 
 .error-box {
