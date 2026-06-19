@@ -4,7 +4,6 @@ import {
   ConnectionMode,
   Controls,
   Handle,
-  MarkerType,
   Position,
   ReactFlow,
   addEdge,
@@ -20,6 +19,7 @@ import {
   BookOpen,
   Boxes,
   ChevronDown,
+  Cpu,
   Link2,
   Trash2,
   Loader2,
@@ -70,6 +70,18 @@ type SelectedObject =
   | { kind: "reaction"; cell: WorkspaceCell; reaction: ReactionObject }
   | null;
 
+type ModalState =
+  | { kind: "result"; title: string; result: unknown }
+  | { kind: "backend"; status: ComputeStatus | null }
+  | { kind: "jobs"; jobs: GaussianJob[]; refresh: () => Promise<void> }
+  | { kind: "routes"; sets: RouteCandidateSet[]; workspace: Workspace; selected: SelectedObject; onSave: (workspace?: Workspace | null) => Promise<void> }
+  | null;
+
+type RunTask = (
+  task: () => Promise<unknown>,
+  options?: { openResult?: boolean; title?: string },
+) => Promise<unknown>;
+
 const examples = {
   molecule: "CCO",
   reaction: "CCO>>CC=O",
@@ -96,10 +108,11 @@ export function App() {
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [activeCellId, setActiveCellId] = useState<string | null>(null);
   const [selected, setSelected] = useState<SelectedObject>(null);
-  const [result, setResult] = useState<unknown>(null);
+  const [, setResult] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
   const [jobs, setJobs] = useState<GaussianJob[]>([]);
   const [computeStatus, setComputeStatus] = useState<ComputeStatus | null>(null);
+  const [modal, setModal] = useState<ModalState>(null);
   const [workspaceMenuOpen, setWorkspaceMenuOpen] = useState(false);
   const [unitRailOpen, setUnitRailOpen] = useState(true);
 
@@ -234,9 +247,14 @@ export function App() {
               )}
             </div>
           </div>
-          <button className="primary-button" onClick={() => handleSaveWorkspace()} disabled={!workspace}>
-            <Save size={16} /> 保存
-          </button>
+          <div className="topbar-actions">
+            <button className="ghost-button compact" onClick={() => setModal({ kind: "backend", status: computeStatus })}>
+              <Cpu size={15} /> 后端
+            </button>
+            <button className="primary-button" onClick={() => handleSaveWorkspace()} disabled={!workspace}>
+              <Save size={16} /> 保存
+            </button>
+          </div>
         </header>
 
         <div className="content-grid">
@@ -300,7 +318,6 @@ export function App() {
               ) : (
                 <EmptyState />
               )}
-              <ResultPanel result={result} />
             </div>
           </section>
 
@@ -311,15 +328,23 @@ export function App() {
               busy={busy}
               setBusy={setBusy}
               setResult={setResult}
+              openModal={setModal}
               onSave={handleSaveWorkspace}
               jobs={jobs}
-              computeStatus={computeStatus}
               refreshJobs={refreshJobs}
             />
           </aside>
         </div>
 
       </main>
+      {modal && (
+        <AppModal
+          modal={modal}
+          onClose={() => setModal(null)}
+          setResult={setResult}
+          openModal={setModal}
+        />
+      )}
     </div>
   );
 }
@@ -932,9 +957,9 @@ function TaskPanel({
   busy,
   setBusy,
   setResult,
+  openModal,
   onSave,
   jobs,
-  computeStatus,
   refreshJobs,
 }: {
   selected: SelectedObject;
@@ -942,17 +967,25 @@ function TaskPanel({
   busy: boolean;
   setBusy: (busy: boolean) => void;
   setResult: (result: unknown) => void;
+  openModal: (modal: ModalState) => void;
   onSave: (workspace?: Workspace | null) => Promise<void>;
   jobs: GaussianJob[];
-  computeStatus: ComputeStatus | null;
   refreshJobs: () => Promise<void>;
 }) {
-  async function runTask(task: () => Promise<unknown>) {
+  async function runTask(task: () => Promise<unknown>, options?: { openResult?: boolean; title?: string }) {
     setBusy(true);
     try {
-      setResult(await task());
+      const nextResult = await task();
+      setResult(nextResult);
+      if (options?.openResult !== false) {
+        openModal({ kind: "result", title: options?.title ?? "任务结果", result: nextResult });
+      }
+      return nextResult;
     } catch (error) {
-      setResult({ error: String(error) });
+      const nextResult = { error: String(error) };
+      setResult(nextResult);
+      openModal({ kind: "result", title: "任务错误", result: nextResult });
+      return nextResult;
     } finally {
       setBusy(false);
     }
@@ -964,16 +997,17 @@ function TaskPanel({
         <Boxes size={16} />
         <span>任务面板</span>
       </div>
-      <BackendStatus status={computeStatus} />
       {busy && <div className="busy"><Loader2 size={16} /> 运行中...</div>}
       {!selected && <p className="muted">选择 notebook 单元、分子节点或反应箭头。</p>}
-      {selected?.kind === "cell" && <CellTasks selected={selected} runTask={runTask} setResult={setResult} />}
+      {selected?.kind === "cell" && <CellTasks selected={selected} runTask={runTask} />}
       {selected?.kind === "molecule" && (
         <MoleculeTasks
           selected={selected}
           workspace={workspace}
           runTask={runTask}
           setResult={setResult}
+          openModal={openModal}
+          jobs={jobs}
           onSave={onSave}
           refreshJobs={refreshJobs}
         />
@@ -984,27 +1018,11 @@ function TaskPanel({
           workspace={workspace}
           runTask={runTask}
           setResult={setResult}
+          openModal={openModal}
+          jobs={jobs}
           refreshJobs={refreshJobs}
         />
       )}
-      {workspace?.route_candidate_sets?.length ? (
-        <RouteCandidateSets
-          sets={workspace.route_candidate_sets}
-          workspace={workspace}
-          selected={selected}
-          onSave={onSave}
-          setResult={setResult}
-        />
-      ) : null}
-      <div className="panel-title jobs-title">Gaussian 队列</div>
-      <div className="job-list">
-        {jobs.slice(0, 6).map((job) => (
-          <div key={job.job_id} className="job-row">
-            <span>{job.job_id}</span>
-            <strong>{job.status}</strong>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
@@ -1074,6 +1092,65 @@ function RouteCandidateSets({
   );
 }
 
+function AppModal({
+  modal,
+  onClose,
+  setResult,
+  openModal,
+}: {
+  modal: Exclude<ModalState, null>;
+  onClose: () => void;
+  setResult: (result: unknown) => void;
+  openModal: (modal: ModalState) => void;
+}) {
+  return (
+    <div className="modal-backdrop">
+      <div className={modal.kind === "result" ? "result-modal" : "config-modal"}>
+        <div className="modal-header">
+          <strong>
+            {modal.kind === "result" && modal.title}
+            {modal.kind === "backend" && "计算后端状态"}
+            {modal.kind === "jobs" && "Gaussian 队列"}
+            {modal.kind === "routes" && "路线候选"}
+          </strong>
+          <button onClick={onClose}>关闭</button>
+        </div>
+        <div className="modal-body">
+          {modal.kind === "result" && <ResultPanel result={modal.result} />}
+          {modal.kind === "backend" && <BackendStatus status={modal.status} />}
+          {modal.kind === "jobs" && <GaussianJobsView jobs={modal.jobs} refresh={modal.refresh} />}
+          {modal.kind === "routes" && (
+            <RouteCandidateSets
+              sets={modal.sets}
+              workspace={modal.workspace}
+              selected={modal.selected}
+              onSave={modal.onSave}
+              setResult={(result) => {
+                setResult(result);
+                openModal({ kind: "result", title: "路线操作结果", result });
+              }}
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function GaussianJobsView({ jobs, refresh }: { jobs: GaussianJob[]; refresh: () => Promise<void> }) {
+  return (
+    <div className="job-list modal-job-list">
+      <button className="ghost-button compact" onClick={() => refresh()}>刷新队列</button>
+      {jobs.length ? jobs.map((job) => (
+        <div key={job.job_id} className="job-row">
+          <span>{job.job_id}</span>
+          <strong>{job.status}</strong>
+        </div>
+      )) : <p className="muted">暂无 Gaussian 作业。</p>}
+    </div>
+  );
+}
+
 function BackendStatus({ status }: { status: ComputeStatus | null }) {
   const orderedKeys = ["gaussian", "aizynthfinder", "opera", "xtb", "crest", "openbabel", "pyscf", "psi4", "geometric", "goodvibes"];
   const entries = orderedKeys
@@ -1103,16 +1180,14 @@ function BackendStatus({ status }: { status: ComputeStatus | null }) {
 function CellTasks({
   selected,
   runTask,
-  setResult,
 }: {
   selected: Extract<SelectedObject, { kind: "cell" }>;
-  runTask: (task: () => Promise<unknown>) => Promise<void>;
-  setResult: (result: unknown) => void;
+  runTask: RunTask;
 }) {
   return (
     <div className="task-group">
       <h3>{selected.cell.title}</h3>
-      <button onClick={() => setResult(selected.cell)}>查看单元 JSON</button>
+      <button onClick={() => runTask(() => Promise.resolve(selected.cell), { title: "单元数据" })}>查看单元 JSON</button>
       {selected.cell.type === "route" && (
         <button onClick={() => runTask(() => Promise.resolve({ note: "路线级报告沿用后端 report_markdown；下一步可在此接入 PDF/Markdown 导出。" }))}>
           路线报告
@@ -1127,18 +1202,23 @@ function MoleculeTasks({
   workspace,
   runTask,
   setResult,
+  openModal,
+  jobs,
   onSave,
   refreshJobs,
 }: {
   selected: Extract<SelectedObject, { kind: "molecule" }>;
   workspace: Workspace | null;
-  runTask: (task: () => Promise<unknown>) => Promise<void>;
+  runTask: RunTask;
   setResult: (result: unknown) => void;
+  openModal: (modal: ModalState) => void;
+  jobs: GaussianJob[];
   onSave: (workspace?: Workspace | null) => Promise<void>;
   refreshJobs: () => Promise<void>;
 }) {
   const { molecule } = selected;
   const [gaussianConfigOpen, setGaussianConfigOpen] = useState(false);
+  const moleculeRouteSets = workspace?.route_candidate_sets?.filter((set) => set.target_smiles === molecule.smiles) ?? [];
   return (
     <div className="task-group">
       <h3>{molecule.label}</h3>
@@ -1148,8 +1228,10 @@ function MoleculeTasks({
       <button onClick={() => runTask(() => runXtb(molecule.smiles, 300))}>xTB 优化/能量</button>
       <button onClick={() => runTask(() => runCrest(molecule.smiles, 1800))}>CREST 构象搜索</button>
       <button
-        onClick={() =>
-          runTask(async () => {
+        onClick={async () => {
+          let routeSet: RouteCandidateSet | null = null;
+          let nextWorkspace = workspace;
+          const prediction = await runTask(async () => {
             const prediction = (await analyzeRoute(molecule.smiles, 3, true)) as {
               status?: string;
               used_fallback?: boolean;
@@ -1158,30 +1240,39 @@ function MoleculeTasks({
               route_scores?: Record<string, unknown>;
               feasibility?: Record<string, unknown>;
             };
+            routeSet = {
+              id: `rcs-${Date.now()}`,
+              target_smiles: prediction.target_smiles ?? molecule.smiles,
+              status: prediction.status ?? "unknown",
+              created_at: new Date().toISOString(),
+              candidates: prediction.candidates ?? [],
+              route_scores: prediction.route_scores,
+              feasibility: prediction.feasibility,
+              used_fallback: prediction.used_fallback,
+            };
             if (workspace) {
-              await onSave({
+              nextWorkspace = {
                 ...workspace,
-                route_candidate_sets: [
-                  ...(workspace.route_candidate_sets ?? []),
-                  {
-                    id: `rcs-${Date.now()}`,
-                    target_smiles: prediction.target_smiles ?? molecule.smiles,
-                    status: prediction.status ?? "unknown",
-                    created_at: new Date().toISOString(),
-                    candidates: prediction.candidates ?? [],
-                    route_scores: prediction.route_scores,
-                    feasibility: prediction.feasibility,
-                    used_fallback: prediction.used_fallback,
-                  },
-                ],
-              });
+                route_candidate_sets: [...(workspace.route_candidate_sets ?? []), routeSet],
+              };
+              await onSave(nextWorkspace);
             }
             return prediction;
-          })
-        }
+          }, { openResult: false });
+          if (routeSet && nextWorkspace) {
+            openModal({ kind: "routes", sets: [routeSet], workspace: nextWorkspace, selected, onSave });
+          } else {
+            openModal({ kind: "result", title: "路线预测结果", result: prediction });
+          }
+        }}
       >
         预测逆合成路线
       </button>
+      {workspace && moleculeRouteSets.length > 0 && (
+        <button onClick={() => openModal({ kind: "routes", sets: moleculeRouteSets, workspace, selected, onSave })}>
+          查看路线候选 ({moleculeRouteSets.length})
+        </button>
+      )}
       <button
         onClick={() =>
           runTask(async () => {
@@ -1196,6 +1287,7 @@ function MoleculeTasks({
         提交 Gaussian opt/freq
       </button>
       <button onClick={() => setGaussianConfigOpen(true)}>Gaussian 高级配置</button>
+      <button onClick={() => openModal({ kind: "jobs", jobs, refresh: refreshJobs })}>查看 Gaussian 队列</button>
       {gaussianConfigOpen && (
         <GaussianConfigModal
           smiles={molecule.smiles}
@@ -1227,12 +1319,16 @@ function ReactionTasks({
   workspace,
   runTask,
   setResult,
+  openModal,
+  jobs,
   refreshJobs,
 }: {
   selected: Extract<SelectedObject, { kind: "reaction" }>;
   workspace: Workspace | null;
-  runTask: (task: () => Promise<unknown>) => Promise<void>;
+  runTask: RunTask;
   setResult: (result: unknown) => void;
+  openModal: (modal: ModalState) => void;
+  jobs: GaussianJob[];
   refreshJobs: () => Promise<void>;
 }) {
   const { reaction } = selected;
@@ -1270,6 +1366,7 @@ function ReactionTasks({
       >
         提交 TS Gaussian 作业
       </button>
+      <button onClick={() => openModal({ kind: "jobs", jobs, refresh: refreshJobs })}>查看 Gaussian 队列</button>
     </div>
   );
 }
@@ -1370,7 +1467,10 @@ function toNodes(cell: WorkspaceCell): Node[] {
 }
 
 function toEdges(cell: WorkspaceCell): Edge[] {
-  if (cell.canvas?.edges?.length) return cell.canvas.edges.map(normalizeEdge);
+  if (cell.canvas?.edges?.length) {
+    const nodeMap = new Map(toNodes(cell).map((node) => [node.id, node]));
+    return cell.canvas.edges.map((edge) => normalizeEdge(edge, nodeMap));
+  }
   const molecules = cell.objects.molecules ?? [];
   const reactions = cell.objects.reactions ?? [];
   const edges: Edge[] = [];
@@ -1413,16 +1513,24 @@ function objectsFromCanvas(cell: WorkspaceCell, nodes: Node[], edges: Edge[]) {
   return { ...cell.objects, molecules, reactions: [...reactionsById.values()] };
 }
 
-function normalizeEdge(edge: Edge): Edge {
+function normalizeEdge(edge: Edge, nodeMap?: Map<string, Node>): Edge {
+  const sourceNode = nodeMap?.get(edge.source);
+  const targetNode = nodeMap?.get(edge.target);
+  const handles = sourceNode && targetNode
+    ? smartConnectionHandles(sourceNode, targetNode)
+    : {
+        sourceHandle: normalizeMoleculeHandleId(edge.sourceHandle, "right"),
+        targetHandle: normalizeMoleculeHandleId(edge.targetHandle, "left"),
+      };
   return {
     ...edge,
     type: "straight",
     className: edge.className ?? "canvas-edge",
     interactionWidth: edge.interactionWidth ?? 18,
-    markerEnd: edge.markerEnd ?? { type: MarkerType.ArrowClosed, color: "#0f172a", width: 18, height: 18 },
     style: { stroke: "#0f172a", strokeWidth: 3, ...(edge.style ?? {}) },
-    sourceHandle: normalizeMoleculeHandleId(edge.sourceHandle, "right"),
-    targetHandle: normalizeMoleculeHandleId(edge.targetHandle, "left"),
+    markerEnd: undefined,
+    sourceHandle: handles.sourceHandle,
+    targetHandle: handles.targetHandle,
   };
 }
 
@@ -1437,14 +1545,16 @@ function makeCanvasEdge(edge: Partial<Edge> & { source: string; target: string }
     label: edge.label,
     className: "canvas-edge",
     interactionWidth: 18,
-    markerEnd: { type: MarkerType.ArrowClosed, color: "#0f172a", width: 18, height: 18 },
+    markerEnd: undefined,
     style: { stroke: "#0f172a", strokeWidth: 3, ...(edge.style ?? {}) },
   };
 }
 
 function smartConnectionHandles(source: Node, target: Node): { sourceHandle: string; targetHandle: string } {
-  const dx = target.position.x - source.position.x;
-  const dy = target.position.y - source.position.y;
+  const sourceCenter = nodeCenter(source);
+  const targetCenter = nodeCenter(target);
+  const dx = targetCenter.x - sourceCenter.x;
+  const dy = targetCenter.y - sourceCenter.y;
   if (Math.abs(dx) >= Math.abs(dy)) {
     return dx >= 0
       ? { sourceHandle: "right", targetHandle: "left" }
@@ -1453,6 +1563,15 @@ function smartConnectionHandles(source: Node, target: Node): { sourceHandle: str
   return dy >= 0
     ? { sourceHandle: "bottom", targetHandle: "top" }
     : { sourceHandle: "top", targetHandle: "bottom" };
+}
+
+function nodeCenter(node: Node): { x: number; y: number } {
+  const width = typeof node.measured?.width === "number" ? node.measured.width : 190;
+  const height = typeof node.measured?.height === "number" ? node.measured.height : 142;
+  return {
+    x: node.position.x + width / 2,
+    y: node.position.y + height / 2,
+  };
 }
 
 function normalizeMoleculeHandleId(handleId: string | null | undefined, fallback: string): string {
@@ -1473,12 +1592,33 @@ function createMoleculeObject(smiles: string, index: number): MoleculeObject {
 
 function addRouteCandidateToCell(cell: WorkspaceCell, route: RouteCandidate, anchorMolecule: MoleculeObject | null): WorkspaceCell {
   const stamp = Date.now();
-  const idMap = new Map(route.molecules.map((molecule) => [molecule.id, `route-${stamp}-${route.id}-${molecule.id}`]));
-  const routeMolecules: MoleculeObject[] = route.molecules.map((molecule) => ({
-    id: idMap.get(molecule.id) ?? `route-${stamp}-${molecule.id}`,
-    label: molecule.name || molecule.smiles,
-    smiles: molecule.smiles,
-  }));
+  const existingNodes = toNodes(cell);
+  const existingEdges = toEdges(cell);
+  const baseX = 80 + existingNodes.length * 36;
+  const baseY = 80 + existingNodes.length * 20;
+  const idMap = new Map<string, string[]>();
+  const routeMolecules: MoleculeObject[] = [];
+  const routeNodes: Node[] = [];
+  route.molecules.forEach((molecule, index) => {
+    const components = splitSmilesComponents(molecule.smiles);
+    const ids = components.map((smiles, componentIndex) => `route-${stamp}-${route.id}-${molecule.id}-${componentIndex}`);
+    idMap.set(molecule.id, ids);
+    const layoutNode = route.layout?.nodes?.[molecule.id];
+    components.forEach((smiles, componentIndex) => {
+      const id = ids[componentIndex];
+      const label = components.length > 1 ? `${molecule.name || molecule.smiles} ${componentIndex + 1}` : molecule.name || smiles;
+      routeMolecules.push({ id, label, smiles });
+      routeNodes.push({
+        id,
+        type: "molecule",
+        position: {
+          x: baseX + (layoutNode?.x ?? 260 * index),
+          y: baseY + (layoutNode?.y ?? 120 * index) + componentIndex * 170,
+        },
+        data: { label, smiles },
+      });
+    });
+  });
   const routeReactions: ReactionObject[] = route.steps.map((step, index) => {
     const product = route.molecules.find((molecule) => molecule.id === step.product_id);
     const precursors = step.precursor_ids
@@ -1491,43 +1631,30 @@ function addRouteCandidateToCell(cell: WorkspaceCell, route: RouteCandidate, anc
       template: step.template ?? undefined,
     };
   });
-  const existingNodes = toNodes(cell);
-  const existingEdges = toEdges(cell);
-  const baseX = 80 + existingNodes.length * 36;
-  const baseY = 80 + existingNodes.length * 20;
-  const routeNodes: Node[] = route.molecules.map((molecule, index) => {
-    const layoutNode = route.layout?.nodes?.[molecule.id];
-    return {
-      id: idMap.get(molecule.id) ?? `route-${stamp}-${index}`,
-      type: "molecule",
-      position: {
-        x: baseX + (layoutNode?.x ?? 260 * index),
-        y: baseY + (layoutNode?.y ?? 120 * index),
-      },
-      data: { label: molecule.name || molecule.smiles, smiles: molecule.smiles },
-    };
-  });
   const routeEdges: Edge[] = [];
   route.steps.forEach((step, stepIndex) => {
     step.precursor_ids.forEach((precursorId, precursorIndex) => {
-      const source = idMap.get(precursorId);
-      const target = idMap.get(step.product_id);
-      if (!source || !target) return;
-      const sourceNode = routeNodes.find((node) => node.id === source);
-      const targetNode = routeNodes.find((node) => node.id === target);
-      const handles = sourceNode && targetNode ? smartConnectionHandles(sourceNode, targetNode) : { sourceHandle: "right", targetHandle: "left" };
-      routeEdges.push(makeCanvasEdge({
-        id: `${routeReactions[stepIndex]?.id ?? `route-edge-${stamp}-${stepIndex}`}-${precursorIndex}`,
-        source,
-        target,
-        sourceHandle: handles.sourceHandle,
-        targetHandle: handles.targetHandle,
-        label: step.template || `Step ${stepIndex + 1}`,
-      }));
+      const sources = idMap.get(precursorId) ?? [];
+      const targets = idMap.get(step.product_id) ?? [];
+      sources.forEach((source, sourceIndex) => {
+        targets.forEach((target, targetIndex) => {
+          const sourceNode = routeNodes.find((node) => node.id === source);
+          const targetNode = routeNodes.find((node) => node.id === target);
+          const handles = sourceNode && targetNode ? smartConnectionHandles(sourceNode, targetNode) : { sourceHandle: "right", targetHandle: "left" };
+          routeEdges.push(makeCanvasEdge({
+            id: `${routeReactions[stepIndex]?.id ?? `route-edge-${stamp}-${stepIndex}`}-${precursorIndex}-${sourceIndex}-${targetIndex}`,
+            source,
+            target,
+            sourceHandle: handles.sourceHandle,
+            targetHandle: handles.targetHandle,
+            label: step.template || `Step ${stepIndex + 1}`,
+          }));
+        });
+      });
     });
   });
   if (anchorMolecule) {
-    const routeTarget = idMap.get(route.target_id);
+    const routeTarget = idMap.get(route.target_id)?.[0];
     const routeTargetNode = routeNodes.find((node) => node.id === routeTarget);
     const anchorNode = existingNodes.find((node) => node.id === anchorMolecule.id);
     if (routeTarget && routeTargetNode && anchorNode) {
@@ -1611,6 +1738,14 @@ function moleculesFromReaction(reactionSmiles: string): string[] {
     .flatMap((side) => side.split("."))
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+function splitSmilesComponents(smiles: string): string[] {
+  const components = smiles
+    .split(/[.·•]/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+  return components.length ? components : [smiles];
 }
 
 function displayFormulaLike(value: string): string {

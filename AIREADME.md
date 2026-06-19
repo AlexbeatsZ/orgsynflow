@@ -139,6 +139,10 @@ WSL 临时文件必须放在：
 - 分子节点连接位点太少会限制路线/网络表达。当前每个分子节点应提供 8 个连接位点：top-a/top-b/right-a/right-b/bottom-a/bottom-b/left-a/left-b。
 - 不要把 React Flow 的多个连接位点直接显示成蓝点，这会让用户以为必须拖拽锚点且画布很乱。连接位点应作为内部锚点隐藏；用户通过“连接分子”按钮进入连续连线状态，或按住 Shift 临时进入连续连线状态；每次点击分子会从上一个分子自动连到当前分子，并把当前分子作为下一段起点。连接线应使用更粗的深色 smoothstep 箭头，选中态再用蓝色强调。画布需要提供“一键删除全部连线”。
 - 用户对分子块之间的连接线更偏好几何直觉：当 B 在 A 上方时，应从 A 顶部中心连到 B 底部中心并画成一条直线；左右关系也应使用左右中心锚点。React Flow 边应使用 `straight` 类型，旧的 `top-a/right-a/...` 等边 handle 需要归一到中心 `top/right/bottom/left`，避免历史数据继续画出多弯折线。
+- React Flow `markerEnd` 会在分子节点边缘形成黑色楔形，尤其是节点遮挡箭头尖端时。当前关系线不使用箭头 marker；旧边加载时按当前节点中心重新计算最近的上下/左右 handle，而不是保留历史错误端点。Edge label 默认隐藏，只在选中边时显示，避免文字压在线和分子块上。
+- 计算后端状态不应常驻占用右侧任务面板。右上角只保留紧凑“后端”入口，点击后弹窗查看；Gaussian 队列和路线候选属于当前分子/反应的二级窗口入口，不应与分子任务平级常驻展示。
+- 任务结果应通过独立 modal 展示；中间区域不再常驻“结果/日志”面板，右侧任务面板只承载当前选中对象的操作。点击路线预测后应直接打开候选 modal，窗口内提供查看、加入当前画布和新建路线单元。
+- 路线候选中的点式多组分 SMILES（例如 `CO.O`）表示多个分子节点，插入画布时必须按点拆分为 `CO` 和 `O` 两个框并分别连接到产物，不能把整串放进一个分子框。
 - 前端改动后应尽量用浏览器/Playwright 检查真实 UI，而不只看 `npm run build`。
 
 化学结果表达经验：
@@ -200,6 +204,10 @@ WSL 临时文件必须放在：
 - [done] Windows 后端已桥接 WSL OPERA 和 WSL AiZynthFinder CLI，并在 `/compute/status` 暴露 OPERA/AiZynthFinder 状态。
 - [done] 路线预测 UI 已改为可查看候选卡，候选可加入当前画布或新建路线单元；无 AiZynthFinder config 时显示明确 demo fallback。
 - [done] Gaussian 分子任务已改为默认直接提交 opt/freq，高级配置弹窗提供 job type、method、basis、charge、multiplicity 和 gjf 预览。
+- [done] 右侧面板已移除常驻后端状态、路线候选集和 Gaussian 队列；后端状态移到顶部小弹窗入口，候选与队列移到当前对象任务下的二级窗口。
+- [done] 任务结果已改为 modal 展示，中间常驻结果区已移除；路线预测完成后直接打开候选 modal 并可执行插入操作。
+- [done] 画布关系线已移除 marker 箭头楔形；旧边加载时重新计算最近边中心 handle，edge label 默认隐藏。
+- [done] 路线中的 `CO.O` 等点式前体插入画布时会拆成多个独立分子节点。
 - [done] 单元删除入口已加入。
 - [done] 桌面一键开关脚本已创建并验证。
 - [done] `AIREADME.md` 已按项目日志结构重写。
@@ -241,6 +249,9 @@ WSL 临时文件必须放在：
 - 前端 UI 检查：内置浏览器刷新 `http://127.0.0.1:5173/` 后右侧任务面板显示计算后端状态；选中 CCO 分子后出现 `xTB 优化/能量`、`CREST 构象搜索`；点击 xTB 后结果面板显示 `xTB CLI via WSL` 和 `/tmp/codex/orgsynflow/xtb_jobs/...`。
 - WSL OPERA/AiZynthFinder 检查：`/compute/status` 返回 `opera` 为 `wsl:/home/meta/.local/bin/opera`、`aizynthfinder` 为 `wsl:/home/meta/.local/opt/miniforge3/envs/orgsynflow-chem/bin/aizynthcli`；`/molecule/properties include_opera=true` 对 `CCO` 返回 OPERA `melting_point=-114`、`boiling_point=78`、`logp=-0.31`。
 - 路线候选 UI 检查：内置浏览器选中 CCO 后可见 `RDKit + OPERA QSAR 物性`、`预测逆合成路线`、`提交 Gaussian opt/freq`、`Gaussian 高级配置`；点击路线预测后出现候选卡、fallback 提示、`加入当前画布` 和 `新建路线单元`。
+- 二级窗口/连线 UI 检查：右侧未选中对象时仅显示任务提示，不再出现后端列表、候选卡或队列；顶部有紧凑 `后端` 入口；弹窗内显示后端/路线/队列；画布 `markerCount=0`、默认可见 edge label 数为 0。
+- 路线预测直接弹窗检查：点击 `预测逆合成路线` 后 modal 标题为 `路线候选`，出现 2 个候选卡，并直接显示 `加入当前画布` 与 `新建路线单元`；中间常驻结果面板数量为 0。
+- 点式路线插入回归：临时注入前体 `CO.O` 的路线候选并点击 `加入当前画布`，结果为独立 `CO`、`O` 节点各 1 个，`CO.O` 合并节点 0 个；测试后已原样恢复工作区文件。
 - 连接 UI 检查：内置浏览器添加三个 CCO 后打开 `连接分子`，依次点击三个分子得到 `edgeCount=2`、`visibleHandles=0`，模式保持开启且提示继续选择下一个分子；点击 `删除全部连线` 后 `edgeCount=0`。
 - 直线连接 UI 检查：内置浏览器临时把示例工作区放成上下两个节点，打开 `连接分子` 后点击下方 A 再点击上方 B，生成 `react-flow__edge-straight canvas-edge`，SVG path 为单段 `M 315,317.5L 315,196.5`，`visibleHandles=0`；验证后已恢复示例数据。
 - 桌面开关脚本：已验证可启动、关闭、重新启动 8765/5173。
