@@ -134,6 +134,7 @@ def health() -> dict[str, str]:
     return {"status": "ok", "version": "V6"}
 
 
+
 @app.get("/workspaces")
 def workspaces_list() -> dict[str, object]:
     return {"workspaces": list_workspaces()}

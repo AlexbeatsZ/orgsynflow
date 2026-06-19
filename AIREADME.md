@@ -173,17 +173,20 @@ WSL 临时文件必须放在：
 服务和启动经验：
 
 - 桌面开关脚本 `scripts/orgsynflow-toggle.ps1` 用 8765 和 5173 端口判断运行状态。
-- 启动时后台运行 `uv run python run_api.py` 和 `npm run dev`。
+- 启动时后台运行 `uv run python run_api.py` and `npm run dev`。
 - 同一个桌面 `.cmd` 再次双击会关闭服务。
 - PowerShell 脚本需要兼容 Windows PowerShell 5.1，避免使用 PowerShell 7 独有语法，例如 `??`。
 - `.cmd` 中不要用在非交互环境会报错的 `timeout /t`；已改为 `powershell Start-Sleep`。
+- 每次对 Python 适配器代码（如 `adapters/aizynth_adapter.py`）进行更改后，必须通过 `scripts/orgsynflow-toggle.ps1` 重启 API 后端服务（Uvicorn 进程），否则进程会一直加载旧的内存模块而忽略新的路径自动解析逻辑，导致即使在 WSL 成功部署并配置好了 policy/stock，API 后端还是会报告未配置 policy/stock/config 并回退到内置演示候选路线。
 
 数据和测试经验：
 
-- `data/workspaces/example-workspace.json` 很容易在浏览器测试、保存工作区、自动化点击时被弄脏。不要把测试创建的 cell、route candidate 或 updated_at 混入提交，除非明确要更新 fixture。
+- `data/workspaces/example-workspace.json` 很容易在浏览器测试、保存工作区、自动化点击时被弄脏。不要把测试创建 of cell、route candidate 或 updated_at 混入提交，除非明确要更新 fixture。
 - Vite/Ketcher 构建会出现大 chunk warning，当前是预期现象，不等于构建失败。
 - 浏览器自动化若用按钮文本选择，注意 `添加` 与 `添加到画布` 会模糊匹配冲突，应用 exact 匹配。
 - Windows 与 WSL 项目副本不会自动同步。Windows 提交推送后，如需 WSL 可用，要在 `/home/meta/Project/Workspaces/orgsynflow` 执行 `git pull --ff-only`。
+- 默认工作区文件 `data/workspaces/example-workspace.json` 中如果有之前的 fallback/未配置警告缓存记录（例如 `molecule:mol-ethanol:retrosynthesis` 里的 status / used_fallback 记录），页面初次加载时会由于缓存导致直接在页面展示出“已检测到 AiZynthFinder，但尚未配置...”的失效提示。必须手动清理此类任务结果缓存，恢复为初始的“未计算”状态，以便用户重新发起真实的逆合成计算。
+
 
 ## 3. Task Board
 
