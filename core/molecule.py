@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from functools import lru_cache
+import html
+import re
 from typing import Any
 
 
@@ -114,20 +116,87 @@ def summarize_molecule(smiles: str) -> MoleculeSummary:
 def molecule_svg(smiles: str, size: tuple[int, int] = (320, 220)) -> str | None:
     modules = rdkit_modules()
     if not modules:
-        return None
+        return formula_svg(smiles, size=size)
 
     Chem = modules[0]
     try:
         from rdkit.Chem.Draw import rdMolDraw2D
     except Exception:
-        return None
+        return formula_svg(smiles, size=size)
 
-    mol = Chem.MolFromSmiles(smiles)
+    cleaned = smiles.strip()
+    mol = Chem.MolFromSmiles(cleaned)
     if mol is None:
-        return None
+        return formula_svg(cleaned, size=size)
 
     drawer = rdMolDraw2D.MolDraw2DSVG(*size)
     drawer.DrawMolecule(mol)
     drawer.FinishDrawing()
     return drawer.GetDrawingText()
 
+
+_FORMULA_COMPONENT_RE = re.compile(r"^(?:\d+)?(?:[A-Z][a-z]?\d*)+$")
+
+
+def formula_svg(formula: str, size: tuple[int, int] = (320, 220)) -> str | None:
+    cleaned = formula.strip()
+    if not _is_formula_like(cleaned):
+        return None
+
+    width, height = size
+    font_size = max(18, min(34, int(width / max(len(cleaned) * 0.55, 5))))
+    subscript_size = max(12, int(font_size * 0.62))
+    tspans = "".join(_formula_tspans(cleaned, subscript_size))
+    return (
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
+        f'viewBox="0 0 {width} {height}">'
+        '<rect width="100%" height="100%" fill="white"/>'
+        f'<text x="{width / 2:.1f}" y="{height / 2:.1f}" text-anchor="middle" '
+        f'dominant-baseline="middle" font-family="Inter, Segoe UI, Arial, sans-serif" '
+        f'font-size="{font_size}" font-weight="650" fill="#17202a">{tspans}</text>'
+        f'<text x="{width / 2:.1f}" y="{height - 24}" text-anchor="middle" '
+        'font-family="Cascadia Mono, Consolas, monospace" font-size="12" fill="#64748b">'
+        'formula notation'
+        "</text>"
+        "</svg>"
+    )
+
+
+def _is_formula_like(value: str) -> bool:
+    parts = re.split(r"[.·•]", value)
+    return bool(parts) and all(_FORMULA_COMPONENT_RE.fullmatch(part) for part in parts)
+
+
+def _formula_tspans(value: str, subscript_size: int) -> list[str]:
+    spans: list[str] = []
+    previous_was_element = False
+    index = 0
+    while index < len(value):
+        char = value[index]
+        if char in ".·•":
+            spans.append('<tspan dx="6">&#183;</tspan><tspan dx="6"></tspan>')
+            previous_was_element = False
+            index += 1
+            continue
+
+        if char.isdigit():
+            start = index
+            while index < len(value) and value[index].isdigit():
+                index += 1
+            digits = html.escape(value[start:index])
+            if previous_was_element:
+                spans.append(
+                    f'<tspan baseline-shift="sub" font-size="{subscript_size}">{digits}</tspan>'
+                )
+            else:
+                spans.append(f"<tspan>{digits}</tspan>")
+            previous_was_element = False
+            continue
+
+        start = index
+        index += 1
+        if index < len(value) and value[index].islower():
+            index += 1
+        spans.append(f"<tspan>{html.escape(value[start:index])}</tspan>")
+        previous_was_element = True
+    return spans

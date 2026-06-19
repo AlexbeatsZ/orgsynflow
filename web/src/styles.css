@@ -282,6 +282,17 @@ button {
   font-size: 12px;
 }
 
+.molecule-drawing .formula-fallback {
+  max-width: 160px;
+  color: #17202a;
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
 .molecule-caption {
   margin-top: 6px;
   padding-top: 6px;

@@ -382,7 +382,10 @@ function MoleculeNode({ data }: NodeProps) {
     if (!smiles) return;
     renderMoleculeSvg(smiles)
       .then((nextSvg) => {
-        if (!cancelled) setSvg(nextSvg);
+        if (!cancelled) {
+          setSvg(nextSvg);
+          setFailed(!nextSvg);
+        }
       })
       .catch(() => {
         if (!cancelled) setFailed(true);
@@ -396,7 +399,7 @@ function MoleculeNode({ data }: NodeProps) {
     <div className="molecule-node">
       <Handle type="target" position={Position.Left} />
       <div className="molecule-drawing">
-        {svg ? <div dangerouslySetInnerHTML={{ __html: svg }} /> : <span>{failed ? "无法渲染结构" : "渲染中..."}</span>}
+        {svg ? <div dangerouslySetInnerHTML={{ __html: svg }} /> : <span className={failed ? "formula-fallback" : ""}>{failed ? displayFormulaLike(smiles) : "渲染中..."}</span>}
       </div>
       <div className="molecule-caption" title={label === smiles ? smiles : `${label} · ${smiles}`}>
         {smiles}
@@ -868,4 +871,11 @@ function moleculesFromReaction(reactionSmiles: string): string[] {
     .flatMap((side) => side.split("."))
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+function displayFormulaLike(value: string): string {
+  if (/^(?:\d+)?(?:[A-Z][a-z]?\d*)+(?:[.·•](?:\d+)?(?:[A-Z][a-z]?\d*)+)*$/.test(value.trim())) {
+    return value.replace(/[.·•]/g, " · ");
+  }
+  return "无法渲染结构";
 }

@@ -56,6 +56,12 @@ def test_molecule_svg_and_gaussian_job_submission() -> None:
     assert svg["available"] is True
     assert "<svg" in svg["svg"]
 
+    formula_svg = client.post("/chem/render/molecule-svg", json={"smiles": "CO2.H2O"}).json()
+    assert formula_svg["available"] is True
+    assert "<svg" in formula_svg["svg"]
+    assert "formula notation" in formula_svg["svg"]
+    assert "baseline-shift=\"sub\"" in formula_svg["svg"]
+
     job = client.post(
         "/jobs/gaussian",
         json={"gjf_text": "%chk=test.chk\n# opt freq\n\nTest\n\n0 1\n\n"},
