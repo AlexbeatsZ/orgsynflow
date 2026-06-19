@@ -56,3 +56,29 @@ def test_api_exposes_compute_backend_status() -> None:
     payload = response.json()
     assert {"gaussian", "xtb", "crest", "pyscf", "psi4"}.issubset(payload)
     assert "available" in payload["xtb"]
+
+
+def test_api_route_predict_with_engines() -> None:
+    client = TestClient(app)
+
+    # Test aizynthfinder engine
+    response_aizynth = client.post(
+        "/route/predict",
+        json={"smiles": "CCO", "max_routes": 1, "engine": "aizynthfinder"}
+    )
+    assert response_aizynth.status_code == 200
+    payload_aizynth = response_aizynth.json()
+    assert payload_aizynth["engine"] == "aizynthfinder"
+    assert payload_aizynth["used_fallback"] is True
+
+    # Test askcos engine
+    response_askcos = client.post(
+        "/route/predict",
+        json={"smiles": "CCO", "max_routes": 1, "engine": "askcos"}
+    )
+    assert response_askcos.status_code == 200
+    payload_askcos = response_askcos.json()
+    assert payload_askcos["engine"] == "askcos"
+    assert payload_askcos["used_fallback"] is True
+    assert "ASKCOS Mock Route" in payload_askcos["candidates"][0]["title"]
+

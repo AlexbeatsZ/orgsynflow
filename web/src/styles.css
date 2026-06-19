@@ -1200,3 +1200,70 @@ button {
   border-radius: 8px;
   overflow: hidden;
 }
+
+/* Engine Selector Modal styling */
+.engine-selector-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.engine-selector-desc {
+  font-size: 14px;
+  color: #475569;
+  margin: 0 0 8px 0;
+}
+.engine-options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.engine-option-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  padding: 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  width: 100%;
+}
+.engine-option-card:hover {
+  border-color: #2563eb;
+  background: #f1f5f9;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
+}
+.engine-option-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 6px;
+}
+.engine-option-header strong {
+  font-size: 16px;
+  color: #0f172a;
+}
+.engine-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-weight: 500;
+}
+.engine-badge.ready {
+  background: #dcfce7;
+  color: #15803d;
+}
+.engine-badge.not-ready {
+  background: #fef3c7;
+  color: #d97706;
+}
+.engine-option-desc {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+}
+

@@ -15,6 +15,7 @@ from adapters.xtb_adapter import (
 )
 from adapters.registry import list_adapter_statuses
 from adapters.aizynth_adapter import find_aizynthcli, predict_routes_with_fallback
+from adapters.askcos_adapter import predict_routes_with_askcos
 from adapters.opera_adapter import find_opera_executable
 from core.gaussian import coordinates_from_smiles, generate_gaussian_input, parse_gaussian_log
 from core.gaussian_runner import find_gaussian_executable, run_gaussian_job
@@ -61,13 +62,25 @@ def analyze_target(
     smiles: str,
     demo_target: str = "Aspirin",
     use_aizynth: bool = False,
+    engine: str = "aizynthfinder",
     max_routes: int = 3,
     aizynth_config: str | None = None,
     aizynth_stock: str | None = None,
     aizynth_policy: str | None = None,
+    askcos_url: str | None = None,
 ) -> dict[str, object]:
     fallback_routes = load_demo_routes(DEMO_TARGETS.get(demo_target, DEMO_TARGETS["Aspirin"]))
-    if use_aizynth:
+    if engine == "askcos":
+        result = predict_routes_with_askcos(
+            smiles,
+            fallback_routes,
+            max_routes=max_routes,
+            askcos_url=askcos_url,
+        )
+        routes = result.routes
+        status = result.status
+        used_fallback = result.used_fallback
+    elif use_aizynth or engine == "aizynthfinder":
         result = predict_routes_with_fallback(
             smiles,
             fallback_routes,

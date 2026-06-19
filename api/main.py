@@ -51,9 +51,11 @@ class AnalyzeRequest(BaseModel):
 class RoutePredictRequest(BaseModel):
     smiles: str
     max_routes: int = 3
+    engine: str = "aizynthfinder"
     aizynth_config: str | None = None
     aizynth_stock: str | None = None
     aizynth_policy: str | None = None
+    askcos_url: str | None = None
 
 
 class ReactionExplainRequest(BaseModel):
@@ -225,11 +227,13 @@ def analyze(request: AnalyzeRequest) -> dict[str, object]:
 def route_predict(request: RoutePredictRequest) -> dict[str, object]:
     result = analyze_target(
         request.smiles,
-        use_aizynth=True,
+        use_aizynth=(request.engine == "aizynthfinder"),
+        engine=request.engine,
         max_routes=request.max_routes,
         aizynth_config=request.aizynth_config,
         aizynth_stock=request.aizynth_stock,
         aizynth_policy=request.aizynth_policy,
+        askcos_url=request.askcos_url,
     )
     return {
         "available": not bool(result.get("used_fallback")),
@@ -239,6 +243,7 @@ def route_predict(request: RoutePredictRequest) -> dict[str, object]:
         "candidates": result["routes"],
         "route_scores": result["route_scores"],
         "feasibility": result["feasibility"],
+        "engine": request.engine,
     }
 
 

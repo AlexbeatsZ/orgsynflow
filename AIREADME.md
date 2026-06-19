@@ -237,7 +237,7 @@ WSL 临时文件必须放在：
 
 - [todo] 路线候选预览窗口还需要做得更像“候选路线浏览器”：预览多条路径、选择满意路径后插入当前工作区画布。
 - [todo] 路线画布的多步反应布局还需要优化，尤其是多反应、多反应物、多产物时的分层布局。
-- [todo] 反应箭头的可视化应更明确：箭头可选中、可显示 step label、可打开反应任务。
+- [done] 反应箭头的可视化应更明确：箭头可选中、可显示 step label、可打开反应任务。
 - [todo] Ketcher 绘图输入需要进一步验证：绘制后回填 SMILES、加入画布、结构渲染三步应稳定。
 - [todo] 工作区保存/自动保存策略需要更清楚，避免测试或打开示例时污染 fixture。
 - [todo] AiZynthFinder 真实配置、stock/policy 路径和路线树解析仍可继续强化。
@@ -270,3 +270,7 @@ WSL 临时文件必须放在：
 - 连接 UI 检查：内置浏览器添加三个 CCO 后打开 `连接分子`，依次点击三个分子得到 `edgeCount=2`、`visibleHandles=0`，模式保持开启且提示继续选择下一个分子；点击 `删除全部连线` 后 `edgeCount=0`。
 - 直线连接 UI 检查：内置浏览器临时把示例工作区放成上下两个节点，打开 `连接分子` 后点击下方 A 再点击上方 B，生成 `react-flow__edge-straight canvas-edge`，SVG path 为单段 `M 315,317.5L 315,196.5`，`visibleHandles=0`；验证后已恢复示例数据。
 - 桌面开关脚本：已验证可启动、关闭、重新启动 8765/5173。
+
+## 4. New Issues
+
+- [todo] Ketcher 绘图窗口仍未居中且无法使用。已尝试在 `web/src/styles.css` 中移除 `.osf-ketcher-host > div` 的 flex 布局并提交（commit e1b4eb0），但窗口仍表现异常，需要进一步调试布局和可能的全局 CSS 冲突。

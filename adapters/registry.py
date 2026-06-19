@@ -4,6 +4,7 @@ import shutil
 
 from adapters.base import AdapterCapability, AdapterStatus
 from adapters.aizynth_adapter import find_aizynthcli
+from adapters.askcos_adapter import check_askcos_available, get_askcos_url
 from adapters.goodvibes_adapter import find_goodvibes_executable
 from adapters.opera_adapter import find_opera_executable
 from adapters.xtb_adapter import find_crest_executable, find_xtb_executable
@@ -15,6 +16,7 @@ def list_adapter_statuses() -> list[AdapterStatus]:
     return [
         _rdkit_status(),
         _aizynth_status(),
+        _askcos_status(),
         _gaussian_status(),
         _python_package_status(
             name="cclib",
@@ -191,4 +193,22 @@ def _python_package_status(
         capabilities=[capability],
         source=source,
         confidence="runtime_import",
+    )
+
+
+def _askcos_status() -> AdapterStatus:
+    url = get_askcos_url()
+    available = check_askcos_available(url)
+    return AdapterStatus(
+        name="askcos",
+        display_name="ASKCOS",
+        available=available,
+        status="available" if available else "unavailable",
+        reason=None if available else f"无法连接到 ASKCOS 服务 ({url})；请确保 Docker 容器已启动。",
+        capabilities=[
+            AdapterCapability("retrosynthesis", "从目标分子预测逆合成路线并尝试分解到库存原料。"),
+        ],
+        source="ASKCOS API",
+        confidence="http_ping",
+        metadata={"url": url},
     )

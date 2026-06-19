@@ -239,7 +239,7 @@ class OrgSynFlowDesktop(tk.Tk):
         for edge in graph.edges:
             source = graph.nodes[edge.source_id]
             target = graph.nodes[edge.target_id]
-            self.route_canvas.create_line(source.x + 180, source.y + 35, target.x, target.y + 35, arrow=tk.LAST, width=2)
+            self.route_canvas.create_line(source.x + 180, source.y + 35, target.x, target.y + 35, arrow=tk.LAST, width=2, arrowshape=(8,10,3))
             self.route_canvas.create_text(
                 (source.x + target.x) // 2 + 90,
                 (source.y + target.y) // 2 + 10,

@@ -65,7 +65,11 @@ export async function calculateDescriptors(smiles: string): Promise<unknown> {
   return data;
 }
 
-export async function analyzeRoute(smiles: string, maxRoutes: number, useAizynth: boolean): Promise<{
+export async function analyzeRoute(
+  smiles: string,
+  maxRoutes: number,
+  engine: string
+): Promise<{
   available: boolean;
   status: string;
   used_fallback?: boolean;
@@ -73,11 +77,12 @@ export async function analyzeRoute(smiles: string, maxRoutes: number, useAizynth
   candidates: RouteCandidate[];
   route_scores?: Record<string, unknown>;
   feasibility?: Record<string, unknown>;
+  engine?: string;
 }> {
   const { data } = await http.post("/route/predict", {
     smiles,
     max_routes: maxRoutes,
-    aizynth_config: useAizynth ? undefined : undefined,
+    engine,
   });
   return data;
 }

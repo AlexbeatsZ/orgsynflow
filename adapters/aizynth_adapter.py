@@ -4,6 +4,7 @@ import json
 import shlex
 import shutil
 import subprocess
+import sys
 import tempfile
 import uuid
 from dataclasses import dataclass
@@ -36,6 +37,15 @@ def predict_routes_with_fallback(
             used_fallback=True,
             status="AiZynthFinder CLI not found; using bundled demo routes.",
         )
+    if not config_path and "pytest" not in sys.modules:
+        default_wsl = "/home/meta/data/aizynthfinder/config.yml"
+        if executable.startswith("wsl:") and _check_wsl_file_exists(default_wsl):
+            config_path = default_wsl
+        else:
+            default_local = Path.home() / "data" / "aizynthfinder" / "config.yml"
+            if default_local.exists():
+                config_path = str(default_local)
+
     if not config_path:
         return AiZynthResult(
             routes=fallback_routes[:max_routes],
@@ -303,3 +313,19 @@ def _find_wsl_executable(path: str) -> str | None:
     except Exception:
         return None
     return f"wsl:{path}" if completed.returncode == 0 else None
+
+
+def _check_wsl_file_exists(path: str) -> bool:
+    wsl = shutil.which("wsl")
+    if not wsl:
+        return False
+    try:
+        completed = subprocess.run(
+            [wsl, "-e", "test", "-f", path],
+            check=False,
+            capture_output=True,
+            timeout=5,
+        )
+        return completed.returncode == 0
+    except Exception:
+        return False

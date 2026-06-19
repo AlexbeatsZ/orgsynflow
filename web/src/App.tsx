@@ -83,6 +83,7 @@ type ModalState =
   | { kind: "backend"; status: ComputeStatus | null }
   | { kind: "jobs"; jobs: GaussianJob[]; refresh: () => Promise<void> }
   | { kind: "routes"; sets: RouteCandidateSet[]; workspace: Workspace; selected: SelectedObject; onSave: (workspace?: Workspace | null) => Promise<void> }
+  | { kind: "engine-select"; onSelect: (engine: string) => void; backendStatus: ComputeStatus | null }
   | null;
 
 type RunTask = (
@@ -1221,6 +1222,7 @@ function TaskPanel({
           jobs={jobs}
           onSave={onSave}
           refreshJobs={refreshJobs}
+          computeStatus={computeStatus}
         />
       )}
       {selected?.kind === "reaction" && (
@@ -1302,6 +1304,54 @@ function RouteCandidateSets({
   );
 }
 
+function EngineSelectorView({
+  onSelect,
+  backendStatus,
+}: {
+  onSelect: (engine: string) => void;
+  backendStatus: ComputeStatus | null;
+}) {
+  const aizynth = backendStatus?.aizynthfinder;
+  const askcos = backendStatus?.askcos;
+
+  return (
+    <div className="engine-selector-container">
+      <p className="engine-selector-desc">请选择用来预测逆合成反应路线的计算后端引擎：</p>
+      <div className="engine-options-list">
+        <button
+          className="engine-option-card"
+          onClick={() => onSelect("aizynthfinder")}
+        >
+          <div className="engine-option-header">
+            <strong>AiZynthFinder (本地/WSL)</strong>
+            <span className={`engine-badge ${aizynth?.available ? "ready" : "not-ready"}`}>
+              {aizynth?.available ? "已就绪" : "演示候选（未配置）"}
+            </span>
+          </div>
+          <p className="engine-option-desc">
+            运行在本地 WSL 中的 AI 逆合成推荐引擎。已完成本地模型包配置，能进行真实计算。
+          </p>
+        </button>
+
+        <button
+          className="engine-option-card"
+          onClick={() => onSelect("askcos")}
+        >
+          <div className="engine-option-header">
+            <strong>ASKCOS (Docker/远程)</strong>
+            <span className={`engine-badge ${askcos?.available ? "ready" : "not-ready"}`}>
+              {askcos?.available ? "已就绪" : "演示候选（未启动）"}
+            </span>
+          </div>
+          <p className="engine-option-desc">
+            由 MIT 开发的多步骤路线规则检索平台，部署于本地或远程 Docker 服务（{askcos?.metadata?.url || "100.106.169.46:9100"}）。
+          </p>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function AppModal({
   modal,
   onClose,
@@ -1323,6 +1373,7 @@ function AppModal({
             {modal.kind === "backend" && "计算后端状态"}
             {modal.kind === "jobs" && "Gaussian 队列"}
             {modal.kind === "routes" && "路线候选"}
+            {modal.kind === "engine-select" && "选择合成路线预测引擎"}
           </strong>
           <button onClick={onClose}>关闭</button>
         </div>
@@ -1346,6 +1397,15 @@ function AppModal({
                 setResult(result);
                 openModal({ kind: "result", title: "路线操作结果", result });
               }}
+            />
+          )}
+          {modal.kind === "engine-select" && (
+            <EngineSelectorView
+              onSelect={(engine) => {
+                modal.onSelect(engine);
+                onClose();
+              }}
+              backendStatus={modal.backendStatus}
             />
           )}
         </div>
@@ -1379,7 +1439,7 @@ function GaussianJobsView({ jobs, refresh }: { jobs: GaussianJob[]; refresh: () 
 }
 
 function BackendStatus({ status }: { status: ComputeStatus | null }) {
-  const orderedKeys = ["gaussian", "aizynthfinder", "opera", "xtb", "crest", "openbabel", "pyscf", "psi4", "geometric", "goodvibes"];
+  const orderedKeys = ["gaussian", "aizynthfinder", "askcos", "opera", "xtb", "crest", "openbabel", "pyscf", "psi4", "geometric", "goodvibes"];
   const entries = orderedKeys
     .map((key) => [key, status?.[key]] as const)
     .filter(([, item]) => Boolean(item));
@@ -1492,6 +1552,7 @@ function MoleculeTasks({
   jobs,
   onSave,
   refreshJobs,
+  computeStatus,
 }: {
   selected: Extract<SelectedObject, { kind: "molecule" }>;
   workspace: Workspace | null;
@@ -1500,6 +1561,7 @@ function MoleculeTasks({
   jobs: GaussianJob[];
   onSave: (workspace?: Workspace | null) => Promise<void>;
   refreshJobs: () => Promise<void>;
+  computeStatus: ComputeStatus | null;
 }) {
   const { molecule } = selected;
   const [gaussianConfigOpen, setGaussianConfigOpen] = useState(false);
@@ -1516,10 +1578,27 @@ function MoleculeTasks({
   }
 
   async function predictRoute() {
+    openModal({
+      kind: "engine-select",
+      backendStatus: computeStatus,
+      onSelect: (engine) => {
+        void startRoutePrediction(engine);
+      }
+    });
+  }
+
+  async function startRoutePrediction(engine: string) {
     let routeSet: RouteCandidateSet | null = null;
     let nextWorkspace = workspace;
-    const prediction = await runTask(routeTask, async () => {
-      const nextPrediction = await analyzeRoute(molecule.smiles, 3, true);
+    const taskEngineLabel = engine === "askcos" ? "ASKCOS" : "AiZynthFinder";
+    const customRouteTask = {
+      ...routeTask,
+      label: `预测逆合成路线（${taskEngineLabel}）`,
+      engine: engine
+    };
+
+    const prediction = await runTask(customRouteTask, async () => {
+      const nextPrediction = await analyzeRoute(molecule.smiles, 3, engine);
       routeSet = {
         id: `rcs-${Date.now()}`,
         target_smiles: nextPrediction.target_smiles ?? molecule.smiles,
@@ -1538,12 +1617,12 @@ function MoleculeTasks({
         await onSave(nextWorkspace);
       }
       return nextPrediction;
-    }, { openResult: false, title: routeTask.label });
+    }, { openResult: false, title: customRouteTask.label });
     if (!prediction) return;
     if (routeSet && nextWorkspace) {
       openModal({ kind: "routes", sets: [routeSet], workspace: nextWorkspace, selected, onSave });
     } else {
-      openModal({ kind: "result", title: routeTask.label, result: prediction });
+      openModal({ kind: "result", title: customRouteTask.label, result: prediction });
     }
   }
 
