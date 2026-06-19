@@ -149,7 +149,7 @@ WSL 临时文件必须放在：
 - 路线候选中的点式多组分 SMILES（例如 `CO.O`）表示多个分子节点，插入画布时必须按点拆分为 `CO` 和 `O` 两个框并分别连接到产物，不能把整串放进一个分子框。
 - 前端改动后应尽量用浏览器/Playwright 检查真实 UI，而不只看 `npm run build`。
 - 任务面板中常驻的“查看计算队列（Gaussian）”和“查看路线候选”按钮已被移除。计算队列状态与结果已统一收拢到底部任务日志抽屉；路线预测成功后，点击绿色状态的预测路线任务按钮或任务日志中对应的成功记录，均能直接调起带交互操作（“加入当前画布”/“新建路线单元”）的路线候选弹窗，而不是无操作的静态展示。
-- Ketcher 引入的 `ketcher-react/dist/index.css` 含有大量全局样式，与项目自带的通用弹窗样式（如 `.modal-backdrop`、`.modal-header` 等）易发生类名冲突，导致弹窗不居中且 Wasm 交互错位。已将项目中所有 Modal 相关基础类名加前缀升级（如 `.osf-modal-backdrop`）。同时，由于 Grid 布局可能导致高度计算在挂载时为 0，Ketcher 容器（`.osf-ketcher-host`）必须通过 `height: 100%` 与 flex 申明强制高度拉满，以防 Wasm 画布塌缩及无法正常画图。
+- Ketcher 引入的 `ketcher-react/dist/index.css` 含有大量全局样式，与项目自带的通用弹窗样式（如 `.modal-backdrop`、`.modal-header` 等）易发生类名冲突，导致弹窗不居中且 Wasm 交互错位。已将项目中所有 Modal 相关基础类名加前缀升级（如 `.osf-modal-backdrop`）。同时，对嵌入了复杂第三方组件的 Modal 容器，应避免使用 CSS Grid 布局，因为 Grid 布局会将第三方组件在运行时动态生成的 style/div 辅助节点强行作为网格项目进行排位，从而摧毁行高比例。必须统一使用 Flexbox 布局，并通过 `flex: 1` 和 `position: relative` 规范子容器的高度撑满与 Containing Block 定位基准。
 
 化学结果表达经验：
 
@@ -223,7 +223,7 @@ WSL 临时文件必须放在：
 - [done] `AIREADME.md` 已按项目日志结构重写。
 - [done] “查看计算队列（Gaussian）”与“查看路线候选”常驻按钮已从分子/反应面板中移除，Gaussian 队列统一收拢至任务日志。
 - [done] 路线候选弹窗已直接作为逆合成预测成功及后续查看结果的交互式弹窗，支持通过 TaskButton 及 TaskLogDrawer 随时触发。
-- [done] Ketcher 绘图窗口已全局隔离 Modal 类名，防止第三方样式冲突，并重构 Flex 高度布局以解决高度塌陷导致绘图器无法正常画图的问题。
+- [done] Ketcher 绘图窗口已全局隔离 Modal 类名，并将弹窗重构为 Flexbox 布局，彻底解决了由于第三方组件动态插入辅助节点导致的排版错乱、不居中，以及高度塌陷导致绘图器无法正常画图的问题。
 
 当前可运行入口：
 
