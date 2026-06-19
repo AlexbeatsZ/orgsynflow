@@ -1080,13 +1080,13 @@ function KetcherModal({
   }
 
   return (
-    <div className="modal-backdrop">
-      <div className="ketcher-modal">
-        <div className="modal-header">
+    <div className="osf-modal-backdrop">
+      <div className="osf-ketcher-modal">
+        <div className="osf-modal-header">
           <strong>Ketcher 绘图输入</strong>
           <button onClick={onClose}>关闭</button>
         </div>
-        <div className="ketcher-host">
+        <div className="osf-ketcher-host">
           {EditorComponent && structServiceProvider ? (
             <EditorComponent
               staticResourcesUrl="/"
@@ -1104,7 +1104,7 @@ function KetcherModal({
           )}
         </div>
         {error && <div className="error-box">{error}</div>}
-        <div className="modal-footer">
+        <div className="osf-modal-footer">
           <span>应用后会回填到“添加分子”的 SMILES 输入框。</span>
           <button className="primary-button" onClick={apply}>应用结构</button>
         </div>
@@ -1314,9 +1314,9 @@ function AppModal({
   openModal: (modal: ModalState) => void;
 }) {
   return (
-    <div className="modal-backdrop">
-      <div className={modal.kind === "result" ? "result-modal" : "config-modal"}>
-        <div className="modal-header">
+    <div className="osf-modal-backdrop">
+      <div className={modal.kind === "result" ? "osf-result-modal" : "osf-config-modal"}>
+        <div className="osf-modal-header">
           <strong>
             {modal.kind === "result" && modal.title}
             {modal.kind === "task-error" && modal.title}
@@ -1326,7 +1326,7 @@ function AppModal({
           </strong>
           <button onClick={onClose}>关闭</button>
         </div>
-        <div className="modal-body">
+        <div className="osf-modal-body">
           {modal.kind === "result" && <ResultPanel result={modal.result} />}
           {modal.kind === "task-error" && (
             <div className="task-error-content">
@@ -1350,7 +1350,7 @@ function AppModal({
           )}
         </div>
         {modal.kind === "task-error" && (modal.onRetry || modal.onConfigure) && (
-          <div className="modal-footer task-error-actions">
+          <div className="osf-modal-footer task-error-actions">
             {modal.onConfigure && (
               <button className="ghost-button" onClick={() => { onClose(); modal.onConfigure?.(); }}>修改配置</button>
             )}
@@ -1366,7 +1366,7 @@ function AppModal({
 
 function GaussianJobsView({ jobs, refresh }: { jobs: GaussianJob[]; refresh: () => Promise<void> }) {
   return (
-    <div className="job-list modal-job-list">
+    <div className="job-list osf-modal-job-list">
       <button className="ghost-button compact" onClick={() => refresh()}>刷新队列</button>
       {jobs.length ? jobs.map((job) => (
         <div key={job.job_id} className="job-row">
@@ -1738,9 +1738,9 @@ function GaussianConfigModal({
   const config = { job_type: jobType, method, basis, charge, multiplicity };
 
   return (
-    <div className="modal-backdrop">
-      <div className="config-modal gaussian-config-modal">
-        <div className="modal-header">
+    <div className="osf-modal-backdrop">
+      <div className="osf-config-modal gaussian-config-modal">
+        <div className="osf-modal-header">
           <strong>结构优化与频率计算（Gaussian）</strong>
           <button onClick={onClose}>关闭</button>
         </div>
@@ -1788,7 +1788,7 @@ function GaussianConfigModal({
           />
           {generationError && <div className="error-box gaussian-error">{generationError}</div>}
         </div>
-        <div className="modal-footer">
+        <div className="osf-modal-footer">
           <button className="ghost-button" onClick={onClose}>关闭</button>
           <button className="primary-button" disabled={generating || !gjfText.trim()} onClick={() => onSubmit(gjfText, config)}>提交计算</button>
         </div>
