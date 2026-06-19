@@ -126,6 +126,8 @@ export interface ComputeBackendStatus {
   available: boolean;
   executable?: string | null;
   source?: string | null;
+  metadata?: Record<string, any> | null;
 }
 
 export type ComputeStatus = Record<string, ComputeBackendStatus>;
+

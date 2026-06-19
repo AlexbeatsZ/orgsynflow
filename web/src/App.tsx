@@ -446,6 +446,7 @@ export function App() {
               jobs={jobs}
               refreshJobs={refreshJobs}
               persistTaskRecord={persistTaskRecord}
+              computeStatus={computeStatus}
             />
           </aside>
         </div>
@@ -1123,6 +1124,7 @@ function TaskPanel({
   jobs,
   refreshJobs,
   persistTaskRecord,
+  computeStatus,
 }: {
   selected: SelectedObject;
   workspace: Workspace | null;
@@ -1132,6 +1134,7 @@ function TaskPanel({
   jobs: GaussianJob[];
   refreshJobs: () => Promise<void>;
   persistTaskRecord: (cellId: string, key: string, record: CachedResult) => Promise<CachedResult>;
+  computeStatus: ComputeStatus | null;
 }) {
   async function runTask(
     definition: TaskDefinition,
