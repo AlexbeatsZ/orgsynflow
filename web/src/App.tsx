@@ -90,6 +90,11 @@ type ModalState =
   | { kind: "engine-select"; onSelect: (engine: string) => void; backendStatus: ComputeStatus | null }
   | null;
 
+type ExtractedGeometry = {
+  xyz: string;
+  atomCount: number;
+};
+
 type RunTask = (
   definition: TaskDefinition,
   task: () => Promise<unknown>,
@@ -493,6 +498,7 @@ function ResultPanel({ result }: { result: unknown }) {
   const propertyResult = asPropertyResult(result);
   const computeResult = asComputeResult(result);
   const gaussianJob = asGaussianJob(result);
+  const geometry = extractMolecularGeometry(result);
   return (
     <section className="result-panel">
       <div className="result-header">
@@ -500,12 +506,13 @@ function ResultPanel({ result }: { result: unknown }) {
         <span>结果 / 日志</span>
       </div>
       {!result && <p className="muted">选择一个节点或箭头，然后在右侧运行任务。</p>}
+      {geometry && <Molecule3DResultView geometry={geometry} />}
       {routeResult && <RouteResultView result={routeResult} />}
       {propertyResult && <PropertyResultView result={propertyResult} />}
       {computeResult && <ComputeResultView result={computeResult} />}
       {gaussianJob && <GaussianJobView job={gaussianJob} />}
       {Boolean(result) && !routeResult && !propertyResult && !computeResult && !gaussianJob && (
-        <pre>{JSON.stringify(result, null, 2) ?? ""}</pre>
+        <GenericResultView result={result} />
       )}
     </section>
   );
@@ -551,7 +558,7 @@ function TaskLogDrawer({
         }
       }
     }
-    openModal({ kind: "result", title, result: record.payload ?? record });
+    openModal({ kind: "result", title, result: resultForRecord(record) });
   }
 
   return (
@@ -634,38 +641,200 @@ function PropertyResultView({ result }: { result: Record<string, any> }) {
   );
 }
 
+function Molecule3DResultView({ geometry }: { geometry: ExtractedGeometry }) {
+  const viewerRef = useRef<HTMLDivElement>(null);
+  const [ready, setReady] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if ((window as any).$3Dmol) {
+      setReady(true);
+      return;
+    }
+    const existing = document.querySelector<HTMLScriptElement>('script[data-osf-3dmol="true"]');
+    if (existing) {
+      existing.addEventListener("load", () => setReady(true), { once: true });
+      existing.addEventListener("error", () => setError("3Dmol 渲染插件加载失败。"), { once: true });
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://3dmol.org/build/3Dmol-min.js";
+    script.async = true;
+    script.setAttribute("data-osf-3dmol", "true");
+    script.onload = () => setReady(true);
+    script.onerror = () => setError("3Dmol 渲染插件加载失败。");
+    document.body.appendChild(script);
+  }, []);
+
+  useEffect(() => {
+    if (!ready || !viewerRef.current || !(window as any).$3Dmol) return;
+    const viewer = (window as any).$3Dmol.createViewer(viewerRef.current, { backgroundColor: "#f8fafc" });
+    viewer.addModel(geometry.xyz, "xyz");
+    viewer.setStyle({}, { stick: { radius: 0.15 }, sphere: { scale: 0.25 } });
+    viewer.zoomTo();
+    viewer.render();
+    return () => {
+      viewer.clear();
+    };
+  }, [ready, geometry.xyz]);
+
+  return (
+    <div className="result-block molecule-3d-result">
+      <div className="result-summary">
+        <strong>三维结构</strong>
+        <span>{geometry.atomCount} atoms</span>
+      </div>
+      <div className="result-3d-viewer-container">
+        <div ref={viewerRef} className="result-3d-viewer" />
+        {!ready && !error && <div className="result-3d-placeholder">正在加载 3D 结构...</div>}
+        {error && <div className="result-3d-placeholder error">{error}</div>}
+      </div>
+      <p className="result-hint">鼠标拖拽旋转，滚轮缩放，右键拖拽平移。</p>
+    </div>
+  );
+}
+
 function ComputeResultView({ result }: { result: Record<string, any> }) {
+  const data = isPlainObject(result.data) ? result.data : {};
+  const metricEntries = Object.entries(data)
+    .filter(([key]) => !isVerboseResultKey(key))
+    .map(([key, value]) => [humanizeKey(key), formatResultValue(value)] as const);
+  const highlights = extractLogHighlights([result.stdout, result.stderr].filter(Boolean).join("\n"));
   return (
     <div className="structured-result">
       <div className="result-summary">
         <strong>{result.source ?? "计算结果"}</strong>
-        <span>{result.status}</span>
+        <span>{statusLabel(result.status)}</span>
+      </div>
+      <div className="result-status-line">
+        <span className={`status-dot ${result.status === "failed" ? "missing" : "ready"}`} />
+        <strong>{result.status === "failed" ? "计算失败" : "计算完成"}</strong>
+        {typeof data.returncode !== "undefined" && <small>return code {String(data.returncode)}</small>}
       </div>
       {result.work_dir && <code>{result.work_dir}</code>}
-      {result.data && (
+      {metricEntries.length > 0 && (
         <div className="metric-grid">
-          {Object.entries(result.data).map(([key, value]) => (
-            <div key={key}><span>{key}</span><strong>{String(value ?? "-")}</strong></div>
+          {metricEntries.map(([key, value]) => (
+            <div key={key}><span>{key}</span><strong>{value}</strong></div>
           ))}
         </div>
       )}
-      {result.reason && <p>{result.reason}</p>}
-      {(result.stdout || result.stderr) && <pre>{[result.stdout, result.stderr].filter(Boolean).join("\n\n")}</pre>}
+      {result.reason && <div className="warning-box">{String(result.reason)}</div>}
+      {highlights.length > 0 && <LogHighlights items={highlights} />}
+      <RawLogDetails
+        logs={[
+          ["标准输出", result.stdout],
+          ["错误输出", result.stderr],
+        ]}
+        raw={result}
+      />
     </div>
   );
 }
 
 function GaussianJobView({ job }: { job: GaussianJob }) {
+  const payload = job as any;
+  const result = isPlainObject(payload.result) ? payload.result : null;
+  const parsed = isPlainObject(result?.parsed_result) ? result?.parsed_result : null;
+  const metrics = [
+    ["状态", statusLabel(job.status)],
+    ["作业 ID", job.job_id],
+    ["最终能量", parsed?.final_energy_hartree],
+    ["Gibbs 自由能", parsed?.gibbs_free_energy_hartree],
+    ["虚频数量", parsed?.imaginary_frequency_count],
+    ["HOMO", parsed?.homo_ev],
+    ["LUMO", parsed?.lumo_ev],
+  ].filter(([, value]) => value !== undefined && value !== null && value !== "");
+  const highlights = extractLogHighlights([result?.stdout, result?.stderr, job.error].filter(Boolean).join("\n"));
   return (
     <div className="structured-result">
       <div className="result-summary">
         <strong>{job.job_id}</strong>
-        <span>{job.status}</span>
+        <span>{statusLabel(job.status)}</span>
+      </div>
+      <div className="metric-grid">
+        {metrics.map(([key, value]) => (
+          <div key={String(key)}><span>{String(key)}</span><strong>{formatResultValue(value)}</strong></div>
+        ))}
       </div>
       {job.work_dir && <code>{job.work_dir}</code>}
-      {job.error && <p>{job.error}</p>}
-      {Boolean(job.result) && <pre>{JSON.stringify(job.result, null, 2) ?? ""}</pre>}
+      {result?.input_path && <code>{String(result.input_path)}</code>}
+      {result?.log_path && <code>{String(result.log_path)}</code>}
+      {Array.isArray(parsed?.warnings) && parsed.warnings.length > 0 && (
+        <div className="result-block">
+          <strong>解析警告</strong>
+          {parsed.warnings.map((warning: string) => <p key={warning}>{warning}</p>)}
+        </div>
+      )}
+      {job.error && <div className="warning-box">{job.error}</div>}
+      {highlights.length > 0 && <LogHighlights items={highlights} />}
+      <RawLogDetails
+        logs={[
+          ["标准输出", result?.stdout],
+          ["错误输出", result?.stderr],
+        ]}
+        raw={job}
+      />
     </div>
+  );
+}
+
+function GenericResultView({ result }: { result: unknown }) {
+  const summary = summarizeUnknownResult(result);
+  return (
+    <div className="structured-result">
+      {summary.metrics.length > 0 && (
+        <div className="metric-grid">
+          {summary.metrics.map(([key, value]) => (
+            <div key={key}><span>{key}</span><strong>{value}</strong></div>
+          ))}
+        </div>
+      )}
+      {summary.messages.map((message) => <p key={message}>{message}</p>)}
+      {summary.sections.map((section) => (
+        <div className="result-block" key={section.title}>
+          <strong>{section.title}</strong>
+          <div className="metric-grid">
+            {section.items.map(([key, value]) => (
+              <div key={key}><span>{key}</span><strong>{value}</strong></div>
+            ))}
+          </div>
+        </div>
+      ))}
+      <RawLogDetails raw={result} />
+    </div>
+  );
+}
+
+function LogHighlights({ items }: { items: string[] }) {
+  return (
+    <div className="result-block log-highlights">
+      <strong>日志摘要</strong>
+      {items.map((item) => <p key={item}>{item}</p>)}
+    </div>
+  );
+}
+
+function RawLogDetails({ logs = [], raw }: { logs?: Array<[string, unknown]>; raw?: unknown }) {
+  const visibleLogs = logs.filter(([, value]) => typeof value === "string" && value.trim().length > 0) as Array<[string, string]>;
+  if (visibleLogs.length === 0 && raw === undefined) return null;
+  return (
+    <details className="raw-log-details">
+      <summary>原始日志 / 原始数据</summary>
+      {visibleLogs.map(([title, value]) => (
+        <div key={title} className="raw-log-block">
+          <strong>{title}</strong>
+          <pre>{trimLongText(value)}</pre>
+        </div>
+      ))}
+      {raw !== undefined && (
+        <div className="raw-log-block">
+          <strong>完整 JSON</strong>
+          <pre>{trimLongText(JSON.stringify(raw, null, 2) ?? "")}</pre>
+        </div>
+      )}
+    </details>
   );
 }
 
@@ -1213,7 +1382,7 @@ function TaskPanel({
           onConfigure: options?.onConfigure,
         });
       } else if (options?.openResult !== false) {
-        openModal({ kind: "result", title: options?.title ?? "任务结果", result: nextResult });
+        openModal({ kind: "result", title: options?.title ?? "任务结果", result: resultForRecord(completedRecord) });
       }
       return nextResult;
     } catch (error) {
@@ -1414,7 +1583,7 @@ function AppModal({
           {modal.kind === "task-error" && (
             <div className="task-error-content">
               <div className="error-box">{modal.record.error ?? "计算失败，未返回具体错误。"}</div>
-              {Boolean(modal.record.payload) && <ResultPanel result={modal.record.payload} />}
+              {Boolean(modal.record.payload) && <ResultPanel result={resultForRecord(modal.record)} />}
             </div>
           )}
           {modal.kind === "backend" && <BackendStatus status={modal.status} />}
@@ -1541,7 +1710,7 @@ function TaskButton({
       onViewResult();
       return;
     }
-    openModal({ kind: "result", title: definition.label, result: record.payload ?? record });
+    openModal({ kind: "result", title: definition.label, result: resultForRecord(record) });
   }
 
   return (
@@ -1705,7 +1874,7 @@ function MoleculeTasks({
           } else {
             const record = recordFor(routeTask);
             if (record) {
-              openModal({ kind: "result", title: routeTask.label, result: record.payload ?? record });
+              openModal({ kind: "result", title: routeTask.label, result: resultForRecord(record) });
             }
           }
         }}
@@ -2995,6 +3164,239 @@ function errorMessage(error: unknown): string {
 function formatTaskTime(value: string): string {
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? value : date.toLocaleString("zh-CN", { hour12: false });
+}
+
+function resultForRecord(record: CachedResult): unknown {
+  if (record.payload && typeof record.payload === "object") {
+    return {
+      ...(record.payload as Record<string, unknown>),
+      _task_config: record.config,
+      _task_meta: {
+        task_id: record.task_id,
+        task_label: record.task_label,
+        engine: record.engine,
+        object_label: record.object_label,
+      },
+    };
+  }
+  return record.payload ?? record;
+}
+
+function isPlainObject(value: unknown): value is Record<string, any> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function extractMolecularGeometry(value: unknown): ExtractedGeometry | null {
+  const candidates = collectGeometryCandidates(value);
+  for (const candidate of candidates) {
+    const xyz = candidate.includes("\n") ? normalizeGeometryText(candidate) : "";
+    if (!xyz) continue;
+    const atomCount = countXyzAtoms(xyz);
+    if (atomCount > 0) return { xyz, atomCount };
+  }
+  return null;
+}
+
+function collectGeometryCandidates(value: unknown, depth = 0): string[] {
+  if (depth > 5 || value == null) return [];
+  if (typeof value === "string") {
+    if (looksLikeXyz(value) || looksLikeGaussianInput(value)) return [value];
+    return [];
+  }
+  if (Array.isArray(value)) return value.flatMap((item) => collectGeometryCandidates(item, depth + 1));
+  if (!isPlainObject(value)) return [];
+
+  const directKeys = ["input_xyz", "xyz", "coordinates", "gjf_text", "gjf", "input"];
+  const direct = directKeys
+    .map((key) => value[key])
+    .filter((item): item is string => typeof item === "string" && (looksLikeXyz(item) || looksLikeGaussianInput(item)));
+  const nested = Object.entries(value)
+    .filter(([key]) => !["stdout", "stderr", "reason"].includes(key))
+    .flatMap(([, item]) => collectGeometryCandidates(item, depth + 1));
+  return [...direct, ...nested];
+}
+
+function normalizeGeometryText(text: string): string {
+  if (looksLikeXyz(text)) return normalizeXyz(text);
+  if (looksLikeGaussianInput(text)) return gaussianInputToXyz(text);
+  return "";
+}
+
+function looksLikeXyz(text: string): boolean {
+  const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  if (lines.length < 2) return false;
+  if (/^\d+$/.test(lines[0])) return lines.slice(2).some(isAtomCoordinateLine);
+  return lines.some(isAtomCoordinateLine);
+}
+
+function looksLikeGaussianInput(text: string): boolean {
+  return /^\s*-?\d+\s+\d+\s*$/m.test(text) && text.split(/\r?\n/).some(isAtomCoordinateLine);
+}
+
+function normalizeXyz(text: string): string {
+  const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  const atomLines = /^\d+$/.test(lines[0]) ? lines.slice(2).filter(isAtomCoordinateLine) : lines.filter(isAtomCoordinateLine);
+  if (atomLines.length === 0) return "";
+  return [String(atomLines.length), "OrgSynFlow geometry", ...atomLines.map(normalizeAtomLine)].join("\n");
+}
+
+function gaussianInputToXyz(text: string): string {
+  const lines = text.split(/\r?\n/);
+  const chargeIndex = lines.findIndex((line) => /^\s*-?\d+\s+\d+\s*$/.test(line));
+  if (chargeIndex < 0) return "";
+  const atomLines: string[] = [];
+  for (const line of lines.slice(chargeIndex + 1)) {
+    if (!line.trim()) break;
+    if (isAtomCoordinateLine(line)) atomLines.push(normalizeAtomLine(line));
+  }
+  if (atomLines.length === 0) return "";
+  return [String(atomLines.length), "OrgSynFlow Gaussian input geometry", ...atomLines].join("\n");
+}
+
+function isAtomCoordinateLine(line: string): boolean {
+  return /^\s*([A-Z][a-z]?|\d+)\s+[-+]?\d*\.?\d+(?:[Ee][-+]?\d+)?\s+[-+]?\d*\.?\d+(?:[Ee][-+]?\d+)?\s+[-+]?\d*\.?\d+(?:[Ee][-+]?\d+)?/.test(line);
+}
+
+function normalizeAtomLine(line: string): string {
+  const parts = line.trim().split(/\s+/);
+  return `${parts[0]} ${parts[1]} ${parts[2]} ${parts[3]}`;
+}
+
+function countXyzAtoms(xyz: string): number {
+  const first = xyz.split(/\r?\n/)[0]?.trim();
+  const parsed = Number.parseInt(first, 10);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function extractLogHighlights(text: string): string[] {
+  if (!text.trim()) return [];
+  const items: string[] = [];
+  const totalEnergy = lastRegex(text, /TOTAL ENERGY\s+(-?\d+\.\d+)/gi);
+  if (totalEnergy) items.push(`总能量: ${totalEnergy} Hartree`);
+  const scfEnergy = lastRegex(text, /SCF Done:\s+E\([^)]+\)\s+=\s+(-?\d+\.\d+)/gi);
+  if (scfEnergy) items.push(`SCF 最终能量: ${scfEnergy} Hartree`);
+  const gibbs = lastRegex(text, /Sum of electronic and thermal Free Energies=\s+(-?\d+\.\d+)/gi);
+  if (gibbs) items.push(`Gibbs 自由能: ${gibbs} Hartree`);
+  const gap = lastRegex(text, /HOMO-LUMO GAP\s+(-?\d+\.\d+)/gi);
+  if (gap) items.push(`HOMO-LUMO gap: ${gap}`);
+  const frequencies = [...text.matchAll(/Frequencies --\s+([^\n]+)/g)]
+    .flatMap((match) => match[1].trim().split(/\s+/).map(Number))
+    .filter((value) => Number.isFinite(value));
+  if (frequencies.length > 0) {
+    const imaginary = frequencies.filter((value) => value < 0);
+    items.push(`频率: ${frequencies.length} 个，虚频 ${imaginary.length} 个`);
+  }
+  if (/Normal termination/i.test(text)) items.push("Gaussian 正常结束。");
+  if (/ERROR|FAILED|abnormal termination/i.test(text)) items.push("日志中检测到错误或异常终止，需要检查原始日志。");
+  return [...new Set(items)].slice(0, 8);
+}
+
+function lastRegex(text: string, pattern: RegExp): string | null {
+  const matches = [...text.matchAll(pattern)];
+  return matches.length ? matches[matches.length - 1][1] : null;
+}
+
+function summarizeUnknownResult(result: unknown): {
+  metrics: Array<[string, string]>;
+  messages: string[];
+  sections: Array<{ title: string; items: Array<[string, string]> }>;
+} {
+  if (!isPlainObject(result)) return { metrics: [], messages: [String(result)], sections: [] };
+  const metrics: Array<[string, string]> = [];
+  const messages: string[] = [];
+  const sections: Array<{ title: string; items: Array<[string, string]> }> = [];
+  for (const [key, value] of Object.entries(result)) {
+    if (isVerboseResultKey(key) || key.startsWith("_")) continue;
+    if (value === null || value === undefined) continue;
+    if (typeof value === "string" && value.length < 260) {
+      if (["status", "method", "confidence", "applicability_domain", "note", "summary", "reaction_type"].includes(key)) {
+        messages.push(`${humanizeKey(key)}: ${value}`);
+      } else {
+        metrics.push([humanizeKey(key), value]);
+      }
+      continue;
+    }
+    if (typeof value === "number" || typeof value === "boolean") {
+      metrics.push([humanizeKey(key), formatResultValue(value)]);
+      continue;
+    }
+    if (Array.isArray(value)) {
+      if (value.every((item) => typeof item === "string" || typeof item === "number")) {
+        messages.push(`${humanizeKey(key)}: ${value.join(", ")}`);
+      } else {
+        metrics.push([humanizeKey(key), `${value.length} 项`]);
+      }
+      continue;
+    }
+    if (isPlainObject(value)) {
+      const items = Object.entries(value)
+        .filter(([childKey, childValue]) => !isVerboseResultKey(childKey) && !isPlainObject(childValue) && !Array.isArray(childValue))
+        .slice(0, 12)
+        .map(([childKey, childValue]) => [humanizeKey(childKey), formatResultValue(childValue)] as [string, string]);
+      if (items.length > 0) sections.push({ title: humanizeKey(key), items });
+    }
+  }
+  return { metrics: metrics.slice(0, 16), messages: messages.slice(0, 12), sections: sections.slice(0, 6) };
+}
+
+function isVerboseResultKey(key: string): boolean {
+  return ["stdout", "stderr", "raw", "raw_log", "log", "logs", "input_xyz", "gjf_text", "gjf", "features"].includes(key);
+}
+
+function humanizeKey(key: string): string {
+  const labels: Record<string, string> = {
+    available: "可用",
+    status: "状态",
+    source: "来源",
+    work_dir: "工作目录",
+    returncode: "返回码",
+    total_energy_hartree: "总能量 (Hartree)",
+    final_energy_hartree: "最终能量 (Hartree)",
+    gibbs_free_energy_hartree: "Gibbs 自由能 (Hartree)",
+    imaginary_frequency_count: "虚频数量",
+    homo_ev: "HOMO (eV)",
+    lumo_ev: "LUMO (eV)",
+    method: "方法",
+    confidence: "置信度",
+    applicability_domain: "适用域",
+    note: "说明",
+    reaction_type: "反应类型",
+    reaction_smiles: "Reaction SMILES",
+    mapped_reaction_smiles: "映射反应",
+    valid: "有效",
+    balanced: "元素守恒",
+  };
+  return labels[key] ?? key.replace(/_/g, " ");
+}
+
+function statusLabel(status: unknown): string {
+  const text = String(status ?? "");
+  const labels: Record<string, string> = {
+    available: "完成",
+    succeeded: "成功",
+    failed: "失败",
+    running: "运行中",
+    queued: "排队中",
+    unavailable: "不可用",
+  };
+  return labels[text] ?? text;
+}
+
+function formatResultValue(value: unknown): string {
+  if (value === null || value === undefined || value === "") return "-";
+  if (typeof value === "number") {
+    if (Math.abs(value) >= 1000 || (Math.abs(value) > 0 && Math.abs(value) < 0.001)) return value.toExponential(4);
+    return Number.isInteger(value) ? String(value) : value.toFixed(6).replace(/0+$/, "").replace(/\.$/, "");
+  }
+  if (typeof value === "boolean") return value ? "是" : "否";
+  if (Array.isArray(value)) return `${value.length} 项`;
+  if (isPlainObject(value)) return "结构化数据";
+  return String(value);
+}
+
+function trimLongText(text: string, limit = 12000): string {
+  if (text.length <= limit) return text;
+  return `${text.slice(0, limit)}\n\n... 已截断，完整内容仍在任务缓存/日志文件中。`;
 }
 
 function asRoutePredictionResult(value: unknown): {

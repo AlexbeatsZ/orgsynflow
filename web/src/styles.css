@@ -901,12 +901,103 @@ button {
   color: #17202a;
 }
 
+.result-status-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.result-status-line small {
+  color: #64748b;
+}
+
 .structured-result code {
   display: block;
   padding: 8px;
   background: #f1f5f9;
   border-radius: 6px;
   overflow-wrap: anywhere;
+}
+
+.warning-box {
+  padding: 10px;
+  color: #7c2d12;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.log-highlights {
+  padding: 10px;
+  background: #f8fafc;
+  border: 1px solid #dbeafe;
+  border-radius: 6px;
+}
+
+.raw-log-details {
+  padding: 8px 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+}
+
+.raw-log-details summary {
+  cursor: pointer;
+  color: #1746a2;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.raw-log-block {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.raw-log-block strong {
+  font-size: 12px;
+}
+
+.result-3d-viewer-container {
+  position: relative;
+  width: 100%;
+  height: 320px;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.result-3d-viewer {
+  width: 100%;
+  height: 100%;
+}
+
+.result-3d-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  font-size: 13px;
+  background: #f8fafc;
+}
+
+.result-3d-placeholder.error {
+  color: #991b1b;
+}
+
+.result-hint {
+  color: #64748b;
+  font-size: 12px;
 }
 
 .metric-grid {
@@ -1018,7 +1109,7 @@ button {
 }
 
 .osf-modal-body .result-panel pre {
-  max-height: 520px;
+  max-height: 42vh;
 }
 
 .osf-modal-body .backend-status {
@@ -1374,4 +1465,3 @@ button {
   white-space: normal;
   overflow-wrap: anywhere;
 }
-

@@ -171,6 +171,7 @@ WSL 临时文件必须放在：
 - Windows 调 WSL CLI 时必须显式设置 `encoding="utf-8", errors="replace"`，否则 CREST/xTB 输出里的 UTF-8 字符可能被 GBK 解码线程打断，导致 `stdout` 为 `None` 或测试崩溃。
 - TS 相关功能只能说“计划/候选/未验证/验证等级”，不能宣称自动找到正确过渡态。
 - 产率输出必须带 `method`、`confidence`、`applicability_domain`、`note`。
+- 结果弹窗不应默认展示大段原始 stdout/stderr/JSON。前端应优先展示结构化摘要、关键数值、警告和路径；原始日志放在可展开的“原始日志 / 原始数据”中。包含 XYZ/GJF 坐标的结果必须先渲染可交互 3D 分子视图。
 
 服务和启动经验：
 
@@ -238,6 +239,7 @@ WSL 临时文件必须放在：
 - [done] 过渡态任务已合并为单一“计算过渡态（Gaussian）”入口；点击后打开参数化窗口，包含 TS 搜索建议、方法/基组/电荷/多重度/作业类型、相对位移/旋转滑块、3D 构象预览和 GJF 预览。
 - [done] 反应/路线箭头已改为智能正交路由，支持四侧中心自动端点选择、横竖折线、避开其它 SMILES 块，以及按路径长度/弯折数/前段长度排序。
 - [done] 完成公开模型/权重审计并写入 `docs/public-model-weights-audit.md`：确认 AiZynthFinder/OPERA/RXNMapper/DRFP 当前状态，记录 ASKCOS、RXNFP、Yield-BERT、Chemprop 的可用性与限制。
+- [done] 结果展示已从直接铺原始 log/JSON 改为摘要化展示：xTB/CREST/Gaussian 提取状态、关键指标、日志摘要和警告，原始日志折叠；xTB/CREST payload 会返回 `data.input_xyz`，前端对 XYZ/GJF 坐标渲染 3Dmol 可交互分子结构。
 
 当前可运行入口：
 
@@ -287,6 +289,7 @@ WSL 临时文件必须放在：
 - 桌面开关脚本：已验证可启动、关闭、重新启动 8765/5173。
 - 2026-06-20 本次验证：`uv run pytest -q` 为 36 passed；`cd web; npm run build` 成功（仅 Vite 大 chunk warning）；API `/compute/status` 返回 AiZynthFinder、RXNMapper、DRFP 均可用；API `/route/predict` 对 aspirin 返回 `used_fallback=false`；浏览器确认前端 `http://127.0.0.1:5173/` 可打开、任务日志默认展开、路线只有一个点式反应物节点和一条带 `marker-end` 的箭头、选中反应后只有一个 TS 按钮、TS 窗口含 6 个移动/旋转滑块和 3D canvas。
 - 2026-06-20 正交箭头验证：`cd web; npm run build` 成功；浏览器刷新 `http://127.0.0.1:5173/` 后示例反应边 SVG path 为 `M 310,344L 402,344L 402,336.5L 430,336.5`，所有 segment 均为水平/垂直，且保留 `marker-end` 箭头。
+- 2026-06-20 结果展示验证：`cd web; npm run build` 成功；`/compute/xtb` 对 `O` 返回 `data.input_xyz`，可供结果弹窗 3D 渲染；`uv run pytest -q tests/test_route_layout.py tests/test_v5_yield.py` 为 3 passed。全量 `uv run pytest -q` 与 `tests/test_v6_api_service.py` 在本次环境中超时且无输出，需后续单独诊断测试收集/环境探测卡点。
 
 ## 4. New Issues
 

@@ -190,11 +190,21 @@ def compute_backend_status() -> dict[str, object]:
 
 
 def run_xtb_for_smiles(smiles: str, timeout_seconds: int = 300) -> dict[str, object]:
-    return run_xtb_job(_xyz_from_smiles(smiles), timeout_seconds=timeout_seconds).as_dict()
+    xyz = _xyz_from_smiles(smiles)
+    result = run_xtb_job(xyz, timeout_seconds=timeout_seconds).as_dict()
+    data = result.get("data")
+    if isinstance(data, dict):
+        data["input_xyz"] = xyz
+    return result
 
 
 def run_crest_for_smiles(smiles: str, timeout_seconds: int = 1800) -> dict[str, object]:
-    return run_crest_job(_xyz_from_smiles(smiles), timeout_seconds=timeout_seconds).as_dict()
+    xyz = _xyz_from_smiles(smiles)
+    result = run_crest_job(xyz, timeout_seconds=timeout_seconds).as_dict()
+    data = result.get("data")
+    if isinstance(data, dict):
+        data["input_xyz"] = xyz
+    return result
 
 
 def parse_gaussian_text(text: str) -> dict[str, object]:
