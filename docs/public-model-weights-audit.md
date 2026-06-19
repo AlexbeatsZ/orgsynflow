@@ -60,7 +60,24 @@ chemprop missing
 
 The usable official public artifacts are already configured for AiZynthFinder, OPERA, and RXNMapper. No additional generic yield checkpoint was installed. The official `rxn_yields` instructions target a separate Python 3.6 / RDKit 2020.03.3 environment, and its authors explicitly describe limitations in USPTO yield applicability. Installing it into the current chemistry environment would risk dependency regressions without producing a defensible general yield model.
 
-The 2026-06-20 recheck could not execute because the Ubuntu WSL subsystem stopped responding even to `wsl -l -v` and read-only file commands. Existing installation evidence above is retained, but file and inference smoke tests must be repeated after WSL itself is restarted.
+The Ubuntu WSL subsystem stopped responding during the 2026-06-20 recheck. After the user authorized a global WSL interruption, `WslService` was restarted with administrator privileges and all smoke tests completed successfully.
+
+AiZynthFinder artifact SHA-256 values after recovery:
+
+```text
+bd0a3cb74cd7068de474c8fb789a00a66bc42c75636d66510ccac585ebe928f8  uspto_model.onnx
+ad29aa32bdfcbe37065045546493806cf04899c55386c438905d83fb14bb6320  uspto_filter_model.onnx
+1bf0690352d9e9212d7dbe8b35649caf74f73ef0b30edefdfdac37fce38085be  uspto_ringbreaker_model.onnx
+a4f1945e90cfa195538320833d68aed38f14e2fcc2f8afb5d958bc920edcafbe  uspto_templates.csv.gz
+5616a056454b10a2f044e69e027422128986856ebd958541a3bf9f837e3a0d14  uspto_ringbreaker_templates.csv.gz
+99d39a6f807c3e815487500bafc2b4a9dc66a31af189e3b1776874fb0d4a188d  zinc_stock.hdf5
+```
+
+End-to-end verification:
+
+- AiZynthFinder returned two real aspirin routes with `used_fallback=false`.
+- RXNMapper 0.4.3 mapped `CCO>>CC=O` with confidence `0.998663`.
+- OPERA returned five ethanol QSAR values and applicability-domain flags through the project API.
 
 ## Engineering Decision
 

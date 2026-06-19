@@ -243,7 +243,7 @@ WSL 临时文件必须放在：
 - [done] 完成公开模型/权重审计并写入 `docs/public-model-weights-audit.md`：确认 AiZynthFinder/OPERA/RXNMapper/DRFP 当前状态，记录 ASKCOS、RXNFP、Yield-BERT、Chemprop 的可用性与限制。
 - [done] 结果展示已从直接铺原始 log/JSON 改为摘要化展示：xTB/CREST/Gaussian 提取状态、关键指标、日志摘要和警告，原始日志折叠；xTB/CREST payload 会返回 `data.input_xyz`，前端对 XYZ/GJF 坐标渲染 3Dmol 可交互分子结构。
 - [done] “计算过渡态参数配置 (GaussView 辅助)”窗口已接入统一 `osf-config-modal` 基类，恢复不透明白色背景、阴影、裁剪和正确定位。
-- [blocked] 本轮公开权重复核受 Ubuntu WSL 子系统无响应阻塞：连 `wsl -l -v` 和只读 `ls` 都会挂起；已清理本轮产生的非 Docker WSL 客户端并重启 API，未重复下载已记录存在的 AiZynthFinder 大文件，也未破坏现有化学环境。恢复 WSL 服务后需重新跑 AiZynthFinder/RXNMapper smoke test。
+- [done] 用户授权后通过管理员权限重启 `WslService`，Ubuntu WSL 已恢复；AiZynthFinder 官方公开数据、RXNMapper 和 OPERA 均完成文件/运行时/真实推理复核。AiZynthFinder 对 aspirin 返回 2 条真实路线且 `used_fallback=false`；RXNMapper 对 `CCO>>CC=O` 的映射置信度为 `0.998663`；OPERA 对乙醇返回 5 项 QSAR 预测及适用域。
 
 当前可运行入口：
 
@@ -295,6 +295,7 @@ WSL 临时文件必须放在：
 - 2026-06-20 正交箭头验证：`cd web; npm run build` 成功；浏览器刷新 `http://127.0.0.1:5173/` 后示例反应边 SVG path 为 `M 310,344L 402,344L 402,336.5L 430,336.5`，所有 segment 均为水平/垂直，且保留 `marker-end` 箭头。
 - 2026-06-20 结果展示验证：`cd web; npm run build` 成功；`/compute/xtb` 对 `O` 返回 `data.input_xyz`，可供结果弹窗 3D 渲染；`uv run pytest -q tests/test_route_layout.py tests/test_v5_yield.py` 为 3 passed。全量 `uv run pytest -q` 与 `tests/test_v6_api_service.py` 在本次环境中超时且无输出，需后续单独诊断测试收集/环境探测卡点。
 - 2026-06-20 TS 白色背景回归：修复前浏览器计算样式为 `background=rgba(0,0,0,0)`、`overflow=visible`、`position=static`；改用 `osf-config-modal ts-config-modal` 后为 `background=rgb(255,255,255)`、`overflow=hidden`、`position=relative`，并恢复 modal 阴影，1000×648 视口内截图确认白色内容层完整覆盖。
+- 2026-06-20 公开权重恢复验证：重启 `WslService` 后，`/compute/status` 中 AiZynthFinder、OPERA、RXNMapper、DRFP 及 WSL 计算后端全部 available；`/route/predict` 对 aspirin 返回 `Loaded 2 route(s) from AiZynthFinder via WSL.`、`used_fallback=false`；RXNMapper 映射 `CCO>>CC=O` 得到 `[CH3:1][CH2:2][OH:3]>>[CH3:1][CH:2]=[O:3]`、confidence `0.998663`；OPERA 对 CCO 返回 melting point `-114`、boiling point `78`、LogP `-0.31`、water solubility `1.26`、vapor pressure `1.77`，对应 AD 均为 `1`。
 
 ## 4. New Issues
 
