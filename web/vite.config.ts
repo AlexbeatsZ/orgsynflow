@@ -8,6 +8,7 @@ export default defineConfig({
     global: "globalThis",
   },
   optimizeDeps: {
+    exclude: ["ketcher-standalone", "ketcher-react", "ketcher-core"],
     esbuildOptions: {
       define: {
         "process.env": "{}",

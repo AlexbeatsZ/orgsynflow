@@ -184,6 +184,8 @@ def compute_backend_status() -> dict[str, object]:
         "psi4": _command_status("Psi4", _find_command(("psi4", "psi4.exe"))),
         "geometric": _command_status("geomeTRIC", _find_command(("geometric-optimize", "geometric-optimize.exe"))),
         "ase": _python_package_status("ASE", "ase"),
+        "rxnmapper": _adapter_runtime_status("rxnmapper"),
+        "drfp": _adapter_runtime_status("drfp"),
     }
 
 
@@ -258,6 +260,19 @@ def _command_status(name: str, executable: str | None) -> dict[str, object]:
         "executable": executable,
         "source": _executable_source(executable),
     }
+
+
+def _adapter_runtime_status(name: str) -> dict[str, object]:
+    for status in list_adapter_statuses():
+        if status.name == name:
+            return {
+                "name": status.display_name,
+                "available": status.available,
+                "executable": status.metadata.get("executable"),
+                "source": status.source if status.available else None,
+                "metadata": status.metadata,
+            }
+    return {"name": name, "available": False, "executable": None, "source": None}
 
 
 def _python_package_status(name: str, package: str) -> dict[str, object]:

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import shutil
+import subprocess
 
 from adapters.base import AdapterCapability, AdapterStatus
 from adapters.aizynth_adapter import find_aizynthcli
@@ -50,19 +51,12 @@ def list_adapter_statuses() -> list[AdapterStatus]:
             source="CREST CLI",
             detected_executable=find_crest_executable(),
         ),
-        _python_package_status(
-            name="rxnmapper",
-            display_name="RXNMapper",
-            module_name="rxnmapper",
-            capability=AdapterCapability("reaction_mapping", "为 reaction SMILES 生成原子映射并辅助反应中心识别。"),
-            source="Python import",
-        ),
-        _python_package_status(
+        _rxnmapper_status(),
+        _python_package_or_wsl_status(
             name="drfp",
             display_name="DRFP",
             module_name="drfp",
             capability=AdapterCapability("reaction_features", "生成反应差分指纹，供产率或分类模型使用。"),
-            source="Python import",
         ),
     ]
 
@@ -196,6 +190,45 @@ def _python_package_status(
     )
 
 
+def _python_package_or_wsl_status(
+    name: str,
+    display_name: str,
+    module_name: str,
+    capability: AdapterCapability,
+) -> AdapterStatus:
+    local = _python_package_status(name, display_name, module_name, capability, "Python import")
+    if local.available:
+        return local
+    wsl = shutil.which("wsl")
+    python_exe = "/home/meta/.local/opt/miniforge3/envs/orgsynflow-chem/bin/python"
+    if wsl:
+        try:
+            completed = subprocess.run(
+                [wsl, "-e", python_exe, "-c", f"import {module_name}"],
+                check=False,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=20,
+            )
+            if completed.returncode == 0:
+                return AdapterStatus(
+                    name=name,
+                    display_name=display_name,
+                    available=True,
+                    status="available",
+                    reason=None,
+                    capabilities=[capability],
+                    source="Python import via WSL",
+                    confidence="wsl_probe",
+                    metadata={"executable": f"wsl:{python_exe}"},
+                )
+        except Exception:
+            pass
+    return local
+
+
 def _askcos_status() -> AdapterStatus:
     url = get_askcos_url()
     available = check_askcos_available(url)
@@ -211,4 +244,70 @@ def _askcos_status() -> AdapterStatus:
         source="ASKCOS API",
         confidence="http_ping",
         metadata={"url": url},
+    )
+
+
+def _rxnmapper_status() -> AdapterStatus:
+    import subprocess
+
+    local_available = False
+    try:
+        __import__("rxnmapper")
+        local_available = True
+    except Exception:
+        pass
+
+    if local_available:
+        return AdapterStatus(
+            name="rxnmapper",
+            display_name="RXNMapper",
+            available=True,
+            status="available",
+            reason=None,
+            capabilities=[AdapterCapability("reaction_mapping", "为 reaction SMILES 生成原子映射并辅助反应中心识别。")],
+            source="Python import (本地)",
+            confidence="runtime_import",
+        )
+
+    # 2. Try WSL
+    wsl = shutil.which("wsl")
+    wsl_available = False
+    if wsl:
+        python_exe = "/home/meta/.local/opt/miniforge3/envs/orgsynflow-chem/bin/python"
+        try:
+            completed = subprocess.run(
+                [wsl, "-e", python_exe, "-c", "import rxnmapper"],
+                check=False,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=20,
+            )
+            wsl_available = (completed.returncode == 0)
+        except Exception:
+            pass
+
+    if wsl_available:
+        return AdapterStatus(
+            name="rxnmapper",
+            display_name="RXNMapper",
+            available=True,
+            status="available",
+            reason=None,
+            capabilities=[AdapterCapability("reaction_mapping", "为 reaction SMILES 生成原子映射并辅助反应中心识别。")],
+            source="RXNMapper via WSL",
+            confidence="wsl_probe",
+            metadata={"executable": "wsl:/home/meta/.local/opt/miniforge3/envs/orgsynflow-chem/bin/python"},
+        )
+
+    return AdapterStatus(
+        name="rxnmapper",
+        display_name="RXNMapper",
+        available=False,
+        status="unavailable",
+        reason="未在本地 Python 或 WSL chem 环境中检测到 rxnmapper。",
+        capabilities=[AdapterCapability("reaction_mapping", "为 reaction SMILES 生成原子映射并辅助反应中心识别。")],
+        source="Python import / WSL",
+        confidence="runtime_import",
     )

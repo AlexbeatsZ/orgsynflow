@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException
 
@@ -129,9 +131,45 @@ class SemiempiricalRunRequest(BaseModel):
     timeout_seconds: int | None = None
 
 
+class CoordinatesRequest(BaseModel):
+    smiles: str
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok", "version": "V6"}
+
+
+@app.post("/chem/molecule-coordinates")
+def molecule_coordinates(request: CoordinatesRequest) -> dict[str, object]:
+    reactants_side = request.smiles.split(">>")[0]
+    components = re.split(r"\s+\+\s+|\.", reactants_side)
+    results = []
+    for comp in components:
+        comp = comp.strip()
+        if not comp:
+            continue
+        try:
+            from core.gaussian import coordinates_from_smiles
+            coord_str = coordinates_from_smiles(comp)
+            atoms = []
+            for line in coord_str.splitlines():
+                parts = line.split()
+                if len(parts) == 4:
+                    atoms.append({
+                        "element": parts[0],
+                        "x": float(parts[1]),
+                        "y": float(parts[2]),
+                        "z": float(parts[3]),
+                    })
+            results.append({
+                "smiles": comp,
+                "atoms": atoms
+            })
+        except Exception as exc:
+            raise HTTPException(status_code=400, detail=str(exc))
+    return {"components": results}
+
 
 
 

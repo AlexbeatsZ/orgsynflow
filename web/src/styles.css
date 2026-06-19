@@ -1267,3 +1267,111 @@ button {
   line-height: 1.5;
 }
 
+
+/* Transition State Config Modal */
+.ts-config-modal {
+  width: min(1000px, 96vw);
+  max-height: min(90vh, 850px);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.ts-config-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  overflow: auto;
+  padding: 12px 0;
+}
+
+.ts-config-left {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.ts-config-right {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+}
+
+.ts-3d-viewer-container {
+  position: relative;
+  width: 100%;
+  height: 350px;
+  background-color: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.ts-3d-viewer {
+  width: 100%;
+  height: 100%;
+}
+
+.ts-3d-viewer-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.ts-slider-group {
+  display: grid;
+  grid-template-columns: 140px 1fr 60px;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.ts-slider-group label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #334155;
+}
+
+.ts-slider-group input[type="range"] {
+  width: 100%;
+  accent-color: #2563eb;
+}
+
+.ts-slider-group span {
+  text-align: right;
+  font-size: 13px;
+  font-family: monospace;
+  color: #475569;
+}
+
+.ts-plan-summary {
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid #d9e1eb;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.ts-plan-summary strong {
+  color: #17202a;
+}
+
+.ts-plan-summary small,
+.ts-plan-summary p {
+  margin: 0;
+  color: #52627a;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.ts-plan-summary code {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+

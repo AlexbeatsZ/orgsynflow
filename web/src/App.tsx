@@ -13,6 +13,7 @@ import {
   type Edge,
   type Node,
   type NodeProps,
+  MarkerType,
 } from "@xyflow/react";
 import {
   Atom,
@@ -56,6 +57,7 @@ import {
   submitGaussianJob,
   updateTaskResult,
   validateReaction,
+  getMoleculeCoordinates,
 } from "./api";
 import type {
   CachedResult,
@@ -114,19 +116,35 @@ const examples = {
   target: "CC(=O)Oc1ccccc1C(=O)O",
 };
 
+type MoleculeCoordinates = {
+  smiles: string;
+  atoms: Array<{ element: string; x: number; y: number; z: number }>;
+};
+
+type TransitionStatePlanResult = {
+  reaction_smiles: string;
+  status: string;
+  validation_level: string;
+  gaussian_scan_route: string;
+  gaussian_ts_route: string;
+  gaussian_irc_route: string;
+  suggested_steps: string[];
+  warnings: string[];
+};
+
 const moleculeHandles = [
-  { id: "top", position: Position.Top, style: { left: "50%" } },
-  { id: "top-a", position: Position.Top, style: { left: "34%" } },
-  { id: "top-b", position: Position.Top, style: { left: "66%" } },
-  { id: "right", position: Position.Right, style: { top: "50%" } },
-  { id: "right-a", position: Position.Right, style: { top: "30%" } },
-  { id: "right-b", position: Position.Right, style: { top: "70%" } },
-  { id: "bottom", position: Position.Bottom, style: { left: "50%" } },
-  { id: "bottom-a", position: Position.Bottom, style: { left: "34%" } },
-  { id: "bottom-b", position: Position.Bottom, style: { left: "66%" } },
-  { id: "left", position: Position.Left, style: { top: "50%" } },
-  { id: "left-a", position: Position.Left, style: { top: "30%" } },
-  { id: "left-b", position: Position.Left, style: { top: "70%" } },
+  { id: "top", position: Position.Top, style: { left: "50%", top: "-8px" } },
+  { id: "top-a", position: Position.Top, style: { left: "34%", top: "-8px" } },
+  { id: "top-b", position: Position.Top, style: { left: "66%", top: "-8px" } },
+  { id: "right", position: Position.Right, style: { top: "50%", right: "-8px" } },
+  { id: "right-a", position: Position.Right, style: { top: "30%", right: "-8px" } },
+  { id: "right-b", position: Position.Right, style: { top: "70%", right: "-8px" } },
+  { id: "bottom", position: Position.Bottom, style: { left: "50%", bottom: "-8px" } },
+  { id: "bottom-a", position: Position.Bottom, style: { left: "34%", bottom: "-8px" } },
+  { id: "bottom-b", position: Position.Bottom, style: { left: "66%", bottom: "-8px" } },
+  { id: "left", position: Position.Left, style: { top: "50%", left: "-8px" } },
+  { id: "left-a", position: Position.Left, style: { top: "30%", left: "-8px" } },
+  { id: "left-b", position: Position.Left, style: { top: "70%", left: "-8px" } },
 ];
 
 export function App() {
@@ -498,7 +516,7 @@ function TaskLogDrawer({
   workspace: Workspace | null;
   onSave: (workspace?: Workspace | null) => Promise<void>;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const records = Object.entries(cell.results ?? {})
     .map(([key, record]) => ({ key, record }))
     .sort((left, right) => String(right.record.updated_at).localeCompare(String(left.record.updated_at)));
@@ -985,8 +1003,9 @@ function EditorStrip({ cell, onUpdate }: { cell: WorkspaceCell; onUpdate: (cell:
     for (const line of lines) {
       if (line.includes(">>")) {
         const reactionId = `rxn-${Date.now()}-${reactions.length}`;
-        reactions.push({ id: reactionId, label: `Step ${reactions.length + 1}`, reaction_smiles: line });
-        for (const smiles of moleculesFromReaction(line)) {
+        const reactionSmiles = normalizeReactionSmiles(line);
+        reactions.push({ id: reactionId, label: `Step ${reactions.length + 1}`, reaction_smiles: reactionSmiles });
+        for (const smiles of moleculesFromReaction(reactionSmiles)) {
           molecules.push(createMoleculeObject(smiles, molecules.length));
         }
       } else {
@@ -1442,7 +1461,7 @@ function GaussianJobsView({ jobs, refresh }: { jobs: GaussianJob[]; refresh: () 
 }
 
 function BackendStatus({ status }: { status: ComputeStatus | null }) {
-  const orderedKeys = ["gaussian", "aizynthfinder", "askcos", "opera", "xtb", "crest", "openbabel", "pyscf", "psi4", "geometric", "goodvibes"];
+  const orderedKeys = ["gaussian", "aizynthfinder", "askcos", "opera", "rxnmapper", "drfp", "xtb", "crest", "openbabel", "pyscf", "psi4", "geometric", "goodvibes"];
   const entries = orderedKeys
     .map((key) => [key, status?.[key]] as const)
     .filter(([, item]) => Boolean(item));
@@ -1721,15 +1740,12 @@ function ReactionTasks({
   const mappingTask = makeTaskDefinition(selected, "reaction-mapping", "映射反应原子（RXNMapper）", "RXNMapper");
   const yieldTask = makeTaskDefinition(selected, "reaction-yield", "估算反应产率", undefined);
   const featuresTask = makeTaskDefinition(selected, "reaction-features", "计算反应特征", undefined);
-  const tsPlanTask = makeTaskDefinition(selected, "transition-state-plan", "规划过渡态", undefined);
-  const tsInputTask = makeTaskDefinition(selected, "transition-state-input", "生成过渡态输入（Gaussian）", "Gaussian");
   const tsComputeTask = makeTaskDefinition(selected, "transition-state-compute", "计算过渡态（Gaussian）", "Gaussian");
+  const [tsConfigOpen, setTsConfigOpen] = useState(false);
 
   function recordFor(definition: TaskDefinition) {
     return selected.cell.results?.[taskResultKey(definition)];
   }
-
-  const tsGjf = `# opt=(ts,calcfc,noeigentest) freq\n\nOrgSynFlow TS candidate - unverified\n\n0 1\n\n`;
 
   return (
     <div className="task-group">
@@ -1740,32 +1756,322 @@ function ReactionTasks({
       <TaskButton definition={mappingTask} record={recordFor(mappingTask)} onRun={() => void runTask(mappingTask, () => mapReaction(reaction.reaction_smiles), { title: mappingTask.label })} openModal={openModal} />
       <TaskButton definition={yieldTask} record={recordFor(yieldTask)} onRun={() => void runTask(yieldTask, () => estimateYield(reaction.reaction_smiles, reaction.template), { title: yieldTask.label })} openModal={openModal} />
       <TaskButton definition={featuresTask} record={recordFor(featuresTask)} onRun={() => void runTask(featuresTask, () => reactionFeatures(reaction.reaction_smiles), { title: featuresTask.label })} openModal={openModal} />
-      <TaskButton definition={tsPlanTask} record={recordFor(tsPlanTask)} onRun={() => void runTask(tsPlanTask, () => planTs(reaction.reaction_smiles), { title: tsPlanTask.label })} openModal={openModal} />
-      <TaskButton
-        definition={tsInputTask}
-        record={recordFor(tsInputTask)}
-        onRun={() => void runTask(tsInputTask, async () => ({
-          plan: await planTs(reaction.reaction_smiles),
-          gjf: tsGjf,
-          validation_level: "未验证",
-        }), { title: tsInputTask.label })}
-        openModal={openModal}
-      />
       <TaskButton
         definition={tsComputeTask}
         record={recordFor(tsComputeTask)}
-        onRun={() => void runTask(
-          tsComputeTask,
-          () => submitGaussianJob(tsGjf, workspace?.id, selected.cell.id, reaction.id),
-          {
-            openResult: false,
-            title: tsComputeTask.label,
-            config: { gjf_text: tsGjf },
-            statusFromResult: (result) => gaussianTaskStatus((result as GaussianJob).status),
-          },
-        ).then(() => refreshJobs())}
+        onRun={() => setTsConfigOpen(true)}
+        onRetry={() => setTsConfigOpen(true)}
+        onConfigure={() => setTsConfigOpen(true)}
         openModal={openModal}
       />
+      {tsConfigOpen && (
+        <TransitionStateConfigModal
+          reactionSmiles={reaction.reaction_smiles}
+          reactionId={reaction.id}
+          cellId={selected.cell.id}
+          workspaceId={workspace?.id}
+          onClose={() => setTsConfigOpen(false)}
+          runTask={runTask}
+          refreshJobs={refreshJobs}
+          definition={tsComputeTask}
+        />
+      )}
+    </div>
+  );
+}
+
+interface TransitionStateConfigModalProps {
+  reactionSmiles: string;
+  reactionId: string;
+  cellId: string;
+  workspaceId?: string;
+  onClose: () => void;
+  runTask: RunTask;
+  refreshJobs: () => Promise<void>;
+  definition: TaskDefinition;
+}
+
+function TransitionStateConfigModal({
+  reactionSmiles,
+  reactionId,
+  cellId,
+  workspaceId,
+  onClose,
+  runTask,
+  refreshJobs,
+  definition,
+}: TransitionStateConfigModalProps) {
+  const [method, setMethod] = useState("B3LYP");
+  const [basis, setBasis] = useState("6-31G(d)");
+  const [charge, setCharge] = useState(0);
+  const [multiplicity, setMultiplicity] = useState(1);
+  const [jobType, setJobType] = useState("opt=(ts,calcfc,noeigentest) freq");
+  const [components, setComponents] = useState<any[]>([]);
+  const [plan, setPlan] = useState<TransitionStatePlanResult | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [mol3dReady, setMol3dReady] = useState(false);
+  const [error, setError] = useState("");
+
+  const [distanceX, setDistanceX] = useState(3.0);
+  const [distanceY, setDistanceY] = useState(0.0);
+  const [distanceZ, setDistanceZ] = useState(0.0);
+  const [rotationX, setRotationX] = useState(0);
+  const [rotationY, setRotationY] = useState(0);
+  const [rotationZ, setRotationZ] = useState(0);
+
+  const viewerRef = useRef<HTMLDivElement>(null);
+  const [viewer, setViewer] = useState<any>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if ((window as any).$3Dmol) {
+      setMol3dReady(true);
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://3dmol.org/build/3Dmol-min.js";
+    script.async = true;
+    script.onload = () => setMol3dReady(true);
+    script.onerror = () => setError("3Dmol 渲染插件加载失败；请检查网络后重试。");
+    document.body.appendChild(script);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([
+      getMoleculeCoordinates(reactionSmiles),
+      fetchTsPlan(reactionSmiles),
+    ])
+      .then(([res, nextPlan]) => {
+        if (!cancelled) {
+          setComponents(res.components);
+          setPlan(nextPlan);
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setError(errorMessage(err));
+          setLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [reactionSmiles]);
+
+  useEffect(() => {
+    if (loading || !mol3dReady || components.length === 0 || !viewerRef.current || !(window as any).$3Dmol) return;
+    const v = (window as any).$3Dmol.createViewer(viewerRef.current, { backgroundColor: "#f8fafc" });
+    setViewer(v);
+    return () => {
+      v.clear();
+    };
+  }, [loading, mol3dReady, components]);
+
+  const getCombinedXyz = useCallback(() => {
+    if (components.length === 0) return "";
+    let combinedAtoms: MoleculeCoordinates["atoms"] = [];
+
+    const comp0 = components[0];
+    combinedAtoms = combinedAtoms.concat(comp0.atoms);
+
+    let c0 = { x: 0, y: 0, z: 0 };
+    if (comp0.atoms.length > 0) {
+      comp0.atoms.forEach((a: any) => { c0.x += a.x; c0.y += a.y; c0.z += a.z; });
+      c0.x /= comp0.atoms.length;
+      c0.y /= comp0.atoms.length;
+      c0.z /= comp0.atoms.length;
+    }
+
+    for (let i = 1; i < components.length; i++) {
+      const comp = components[i];
+      if (comp.atoms.length === 0) continue;
+
+      let c = { x: 0, y: 0, z: 0 };
+      comp.atoms.forEach((a: any) => { c.x += a.x; c.y += a.y; c.z += a.z; });
+      c.x /= comp.atoms.length;
+      c.y /= comp.atoms.length;
+      c.z /= comp.atoms.length;
+
+      const radX = (rotationX * Math.PI) / 180;
+      const radY = (rotationY * Math.PI) / 180;
+      const radZ = (rotationZ * Math.PI) / 180;
+
+      const cosX = Math.cos(radX), sinX = Math.sin(radX);
+      const cosY = Math.cos(radY), sinY = Math.sin(radY);
+      const cosZ = Math.cos(radZ), sinZ = Math.sin(radZ);
+
+      const rotated = comp.atoms.map((a: any) => {
+        let x = a.x - c.x;
+        let y = a.y - c.y;
+        let z = a.z - c.z;
+
+        let y1 = y * cosX - z * sinX;
+        let z1 = y * sinX + z * cosX;
+        y = y1; z = z1;
+
+        let x2 = x * cosY + z * sinY;
+        let z2 = -x * sinY + z * cosY;
+        x = x2; z = z2;
+
+        let x3 = x * cosZ - y * sinZ;
+        let y3 = x * sinZ + y * cosZ;
+        x = x3; y = y3;
+
+        return {
+          element: a.element,
+          x: x + c0.x + distanceX,
+          y: y + c0.y + distanceY,
+          z: z + c0.z + distanceZ,
+        };
+      });
+      combinedAtoms = combinedAtoms.concat(rotated);
+    }
+
+    return combinedAtoms.map(a => `${a.element.padEnd(2)} ${a.x.toFixed(6).padStart(12)} ${a.y.toFixed(6).padStart(12)} ${a.z.toFixed(6).padStart(12)}`).join("\n");
+  }, [components, distanceX, distanceY, distanceZ, rotationX, rotationY, rotationZ]);
+
+  useEffect(() => {
+    if (!viewer) return;
+    const xyz = getCombinedXyz();
+    if (!xyz) return;
+    viewer.clear();
+    viewer.addModel(xyz, "xyz");
+    viewer.setStyle({}, { stick: { radius: 0.15 }, sphere: { scale: 0.25 } });
+    viewer.zoomTo();
+    viewer.render();
+  }, [viewer, getCombinedXyz]);
+
+  const gjfText = useMemo(() => {
+    const coords = getCombinedXyz();
+    return `%nprocshared=4\n%mem=4GB\n# ${jobType} ${method}/${basis}\n\nOrgSynFlow TS Search Job\n\n${charge} ${multiplicity}\n${coords}\n\n`;
+  }, [jobType, method, basis, charge, multiplicity, getCombinedXyz]);
+
+  async function handleSubmit() {
+    onClose();
+    await runTask(
+      definition,
+      () => submitGaussianJob(gjfText, workspaceId, cellId, reactionId),
+      {
+        openResult: false,
+        title: definition.label,
+        config: { gjf_text: gjfText, method, basis, job_type: jobType, charge, multiplicity },
+        statusFromResult: (result) => gaussianTaskStatus((result as GaussianJob).status),
+      }
+    );
+    await refreshJobs();
+  }
+
+  return (
+    <div className="osf-modal-backdrop">
+      <div className="osf-modal-window ts-config-modal">
+        <div className="osf-modal-header">
+          <strong>计算过渡态参数配置 (GaussView 辅助)</strong>
+          <button className="close-button" onClick={onClose}>×</button>
+        </div>
+        <div className="osf-modal-body config-form">
+          {loading ? (
+            <p className="muted">正在生成 3D 初始坐标...</p>
+          ) : error ? (
+            <p className="error-box">{error}</p>
+          ) : (
+            <div className="ts-config-grid">
+              <div className="ts-config-left">
+                <h4>1. 量子化学参数</h4>
+                <div className="form-row">
+                  <label>方法 (Method)</label>
+                  <select value={method} onChange={(e) => setMethod(e.target.value)}>
+                    <option value="B3LYP">B3LYP (DFT)</option>
+                    <option value="HF">HF (Ab Initio)</option>
+                    <option value="PM6">PM6 (Semi-empirical)</option>
+                    <option value="AM1">AM1 (Semi-empirical)</option>
+                  </select>
+                </div>
+                <div className="form-row">
+                  <label>基组 (Basis Set)</label>
+                  <select value={basis} onChange={(e) => setBasis(e.target.value)}>
+                    <option value="6-31G(d)">6-31G(d)</option>
+                    <option value="6-31+G(d,p)">6-31+G(d,p)</option>
+                    <option value="3-21G">3-21G</option>
+                    <option value="STO-3G">STO-3G</option>
+                  </select>
+                </div>
+                <div className="form-row">
+                  <label>电荷 (Charge)</label>
+                  <input type="number" value={charge} onChange={(e) => setCharge(parseInt(e.target.value) || 0)} />
+                </div>
+                <div className="form-row">
+                  <label>多重度 (Multiplicity)</label>
+                  <input type="number" min={1} value={multiplicity} onChange={(e) => setMultiplicity(parseInt(e.target.value) || 1)} />
+                </div>
+                <div className="form-row">
+                  <label>作业类型 (Job Type)</label>
+                  <input type="text" value={jobType} onChange={(e) => setJobType(e.target.value)} />
+                </div>
+
+                {plan && (
+                  <div className="ts-plan-summary">
+                    <strong>TS 搜索建议</strong>
+                    <small>{plan.validation_level} · {plan.status}</small>
+                    <code>{plan.gaussian_ts_route}</code>
+                    {plan.warnings.slice(0, 2).map((warning) => <p key={warning}>{warning}</p>)}
+                  </div>
+                )}
+
+                <h4>2. 可视化调整分子相对位置</h4>
+                <div className="ts-slider-group">
+                  <label>X 轴间距 (Å)</label>
+                  <input type="range" min={1.5} max={8.0} step={0.1} value={distanceX} onChange={(e) => setDistanceX(parseFloat(e.target.value))} />
+                  <span>{distanceX.toFixed(2)} Å</span>
+                </div>
+                <div className="ts-slider-group">
+                  <label>Y 轴偏移 (Å)</label>
+                  <input type="range" min={-5.0} max={5.0} step={0.1} value={distanceY} onChange={(e) => setDistanceY(parseFloat(e.target.value))} />
+                  <span>{distanceY.toFixed(2)} Å</span>
+                </div>
+                <div className="ts-slider-group">
+                  <label>Z 轴偏移 (Å)</label>
+                  <input type="range" min={-5.0} max={5.0} step={0.1} value={distanceZ} onChange={(e) => setDistanceZ(parseFloat(e.target.value))} />
+                  <span>{distanceZ.toFixed(2)} Å</span>
+                </div>
+                <div className="ts-slider-group">
+                  <label>绕 X 轴旋转 (°)</label>
+                  <input type="range" min={0} max={360} step={5} value={rotationX} onChange={(e) => setRotationX(parseInt(e.target.value))} />
+                  <span>{rotationX}°</span>
+                </div>
+                <div className="ts-slider-group">
+                  <label>绕 Y 轴旋转 (°)</label>
+                  <input type="range" min={0} max={360} step={5} value={rotationY} onChange={(e) => setRotationY(parseInt(e.target.value))} />
+                  <span>{rotationY}°</span>
+                </div>
+                <div className="ts-slider-group">
+                  <label>绕 Z 轴旋转 (°)</label>
+                  <input type="range" min={0} max={360} step={5} value={rotationZ} onChange={(e) => setRotationZ(parseInt(e.target.value))} />
+                  <span>{rotationZ}°</span>
+                </div>
+              </div>
+              <div className="ts-config-right">
+                <h4>3D 构象预览 (类似 GaussView)</h4>
+                <div className="ts-3d-viewer-container">
+                  <div ref={viewerRef} className="ts-3d-viewer" />
+                  {!mol3dReady && (
+                    <div className="ts-3d-viewer-placeholder">正在加载 3D 渲染插件...</div>
+                  )}
+                </div>
+                <h4>Gaussian 输入预览 (GJF)</h4>
+                <pre style={{ maxHeight: "200px", overflow: "auto", fontSize: "11px", background: "#0f172a", color: "#38bdf8", padding: "10px", borderRadius: "6px" }}>
+                  {gjfText}
+                </pre>
+              </div>
+            </div>
+          )}
+        </div>
+        <div className="osf-modal-footer">
+          <button className="secondary-button" onClick={onClose}>取消</button>
+          <button className="primary-button" disabled={loading || !!error} onClick={handleSubmit}>提交 Gaussian 计算</button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -1910,6 +2216,12 @@ function toNodes(cell: WorkspaceCell): Node[] {
   }));
 }
 
+function smilesComponentsContains(nodeSmiles: string, targetSmiles: string): boolean {
+  const nodeParts = nodeSmiles.split(".").map(s => s.trim()).filter(Boolean);
+  const targetParts = targetSmiles.split(".").map(s => s.trim()).filter(Boolean);
+  return targetParts.every(p => nodeParts.includes(p));
+}
+
 function toEdges(cell: WorkspaceCell): Edge[] {
   if (cell.canvas?.edges?.length) {
     const nodeMap = new Map(toNodes(cell).map((node) => [node.id, node]));
@@ -1920,22 +2232,20 @@ function toEdges(cell: WorkspaceCell): Edge[] {
   const edges: Edge[] = [];
   reactions.forEach((reaction, reactionIndex) => {
     const [left, right] = reaction.reaction_smiles.split(">>");
-    const reactantSmiles = left?.split(".").filter(Boolean) ?? [];
-    const productSmiles = right?.split(".").filter(Boolean) ?? [];
-    const target = molecules.find((molecule) => productSmiles.includes(molecule.smiles));
-    if (!target) return;
-    reactantSmiles.forEach((smiles, index) => {
-      const source = molecules.find((molecule) => molecule.smiles === smiles);
-      if (!source) return;
-      edges.push(makeCanvasEdge({
-        id: `${reaction.id}-${index}`,
-        source: source.id,
-        target: target.id,
-        sourceHandle: "right",
-        targetHandle: "left",
-        label: reaction.label || `Step ${reactionIndex + 1}`,
-      }));
-    });
+    if (!left || !right) return;
+    const sourceSmiles = normalizeReactionSide(left);
+    const targetSmiles = normalizeReactionSide(right);
+    const target = molecules.find((molecule) => smilesComponentsContains(molecule.smiles, targetSmiles));
+    const source = molecules.find((molecule) => smilesComponentsContains(molecule.smiles, sourceSmiles));
+    if (!target || !source) return;
+    edges.push(makeCanvasEdge({
+      id: `${reaction.id}-0`,
+      source: source.id,
+      target: target.id,
+      sourceHandle: "right",
+      targetHandle: "left",
+      label: reaction.label || `Step ${reactionIndex + 1}`,
+    }));
   });
   return edges;
 }
@@ -1957,6 +2267,18 @@ function objectsFromCanvas(cell: WorkspaceCell, nodes: Node[], edges: Edge[]) {
   return { ...cell.objects, molecules, reactions: [...reactionsById.values()] };
 }
 
+async function fetchTsPlan(reactionSmiles: string): Promise<TransitionStatePlanResult | null> {
+  try {
+    const result = await planTs(reactionSmiles);
+    if (result && typeof result === "object" && "validation_level" in result) {
+      return result as TransitionStatePlanResult;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
 function normalizeEdge(edge: Edge, nodeMap?: Map<string, Node>): Edge {
   const sourceNode = nodeMap?.get(edge.source);
   const targetNode = nodeMap?.get(edge.target);
@@ -1972,7 +2294,12 @@ function normalizeEdge(edge: Edge, nodeMap?: Map<string, Node>): Edge {
     className: edge.className ?? "canvas-edge",
     interactionWidth: edge.interactionWidth ?? 18,
     style: { stroke: "#0f172a", strokeWidth: 3, ...(edge.style ?? {}) },
-    markerEnd: undefined,
+    markerEnd: {
+      type: MarkerType.ArrowClosed,
+      width: 15,
+      height: 15,
+      color: "#0f172a",
+    },
     sourceHandle: handles.sourceHandle,
     targetHandle: handles.targetHandle,
   };
@@ -1989,7 +2316,12 @@ function makeCanvasEdge(edge: Partial<Edge> & { source: string; target: string }
     label: edge.label,
     className: "canvas-edge",
     interactionWidth: 18,
-    markerEnd: undefined,
+    markerEnd: {
+      type: MarkerType.ArrowClosed,
+      width: 15,
+      height: 15,
+      color: "#0f172a",
+    },
     style: { stroke: "#0f172a", strokeWidth: 3, ...(edge.style ?? {}) },
   };
 }
@@ -2034,78 +2366,169 @@ function createMoleculeObject(smiles: string, index: number): MoleculeObject {
   return { id, label: smiles, smiles };
 }
 
+function normalizeReactionSmiles(reactionSmiles: string): string {
+  const sides = reactionSmiles.split(">>");
+  if (sides.length !== 2) return reactionSmiles.trim();
+  return sides.map(normalizeReactionSide).join(">>");
+}
+
+function normalizeReactionSide(side: string): string {
+  return splitReactionSide(side)
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .join(".");
+}
+
+function splitReactionSide(side: string): string[] {
+  const parts: string[] = [];
+  let buffer = "";
+  let bracketDepth = 0;
+  for (const char of side) {
+    if (char === "[") bracketDepth += 1;
+    if (char === "]") bracketDepth = Math.max(0, bracketDepth - 1);
+    if (char === "+" && bracketDepth === 0) {
+      parts.push(buffer);
+      buffer = "";
+      continue;
+    }
+    buffer += char;
+  }
+  parts.push(buffer);
+  return parts;
+}
+
 function addRouteCandidateToCell(cell: WorkspaceCell, route: RouteCandidate, anchorMolecule: MoleculeObject | null): WorkspaceCell {
   const stamp = Date.now();
   const existingNodes = toNodes(cell);
   const existingEdges = toEdges(cell);
   const baseX = 80 + existingNodes.length * 36;
   const baseY = 80 + existingNodes.length * 20;
-  const idMap = new Map<string, string[]>();
-  const routeMolecules: MoleculeObject[] = [];
+
+  // 1. Find overall target
+  const targetMol = route.molecules.find((m) => m.id === route.target_id);
+  if (!targetMol) return cell;
+
+  const targetNodeId = `route-${stamp}-${route.id}-target`;
+
   const routeNodes: Node[] = [];
-  route.molecules.forEach((molecule, index) => {
-    const components = splitSmilesComponents(molecule.smiles);
-    const ids = components.map((smiles, componentIndex) => `route-${stamp}-${route.id}-${molecule.id}-${componentIndex}`);
-    idMap.set(molecule.id, ids);
-    const layoutNode = route.layout?.nodes?.[molecule.id];
-    components.forEach((smiles, componentIndex) => {
-      const id = ids[componentIndex];
-      const label = components.length > 1 ? `${molecule.name || molecule.smiles} ${componentIndex + 1}` : molecule.name || smiles;
-      routeMolecules.push({ id, label, smiles });
-      routeNodes.push({
-        id,
-        type: "molecule",
-        position: {
-          x: baseX + (layoutNode?.x ?? 260 * index),
-          y: baseY + (layoutNode?.y ?? 120 * index) + componentIndex * 170,
-        },
-        data: { label, smiles },
-      });
-    });
-  });
-  const routeReactions: ReactionObject[] = route.steps.map((step, index) => {
-    const product = route.molecules.find((molecule) => molecule.id === step.product_id);
-    const precursors = step.precursor_ids
-      .map((id) => route.molecules.find((molecule) => molecule.id === id)?.smiles)
-      .filter(Boolean);
-    return {
-      id: `rxn-route-${stamp}-${route.id}-${step.id}-${index}`,
-      label: step.template || `Route step ${index + 1}`,
-      reaction_smiles: step.reaction_smiles || `${precursors.join(".")}>>${product?.smiles ?? ""}`,
-      template: step.template ?? undefined,
-    };
-  });
+  const routeMolecules: MoleculeObject[] = [];
+  const routeReactions: ReactionObject[] = [];
   const routeEdges: Edge[] = [];
-  route.steps.forEach((step, stepIndex) => {
-    step.precursor_ids.forEach((precursorId, precursorIndex) => {
-      const sources = idMap.get(precursorId) ?? [];
-      const targets = idMap.get(step.product_id) ?? [];
-      sources.forEach((source, sourceIndex) => {
-        targets.forEach((target, targetIndex) => {
-          const sourceNode = routeNodes.find((node) => node.id === source);
-          const targetNode = routeNodes.find((node) => node.id === target);
-          const handles = sourceNode && targetNode ? smartConnectionHandles(sourceNode, targetNode) : { sourceHandle: "right", targetHandle: "left" };
-          routeEdges.push(makeCanvasEdge({
-            id: `${routeReactions[stepIndex]?.id ?? `route-edge-${stamp}-${stepIndex}`}-${precursorIndex}-${sourceIndex}-${targetIndex}`,
-            source,
-            target,
-            sourceHandle: handles.sourceHandle,
-            targetHandle: handles.targetHandle,
-            label: step.template || `Step ${stepIndex + 1}`,
-          }));
-        });
-      });
+
+  // Add target node
+  const targetLayout = route.layout?.nodes?.[targetMol.id];
+  routeMolecules.push({ id: targetNodeId, label: targetMol.name || targetMol.smiles, smiles: targetMol.smiles });
+  routeNodes.push({
+    id: targetNodeId,
+    type: "molecule",
+    position: {
+      x: baseX + (targetLayout?.x ?? 0),
+      y: baseY + (targetLayout?.y ?? 0),
+    },
+    data: { label: targetMol.name || targetMol.smiles, smiles: targetMol.smiles },
+  });
+
+  // Map step ID to reactants node ID
+  const stepReactantsNodeIdMap = new Map<string, string>();
+
+  // 2. Create reactants nodes for each step
+  route.steps.forEach((step, index) => {
+    const precursors = step.precursor_ids
+      .map((id) => route.molecules.find((m) => m.id === id))
+      .filter(Boolean);
+    if (!precursors.length) return;
+
+    const precursorSmiles = precursors.map((p) => p!.smiles).join(".");
+    const label = precursors.map((p) => p!.name || p!.smiles).join(" + ");
+
+    const reactantsNodeId = `route-${stamp}-${route.id}-step-${step.id}-reactants`;
+    stepReactantsNodeIdMap.set(step.id, reactantsNodeId);
+
+    // Average position
+    let sumX = 0;
+    let sumY = 0;
+    let count = 0;
+    precursors.forEach((p) => {
+      const lay = route.layout?.nodes?.[p!.id];
+      if (lay) {
+        sumX += lay.x;
+        sumY += lay.y;
+        count++;
+      }
+    });
+    const posX = count > 0 ? sumX / count : 260 * (index + 1);
+    const posY = count > 0 ? sumY / count : 120 * (index + 1);
+
+    routeMolecules.push({ id: reactantsNodeId, label, smiles: precursorSmiles });
+    routeNodes.push({
+      id: reactantsNodeId,
+      type: "molecule",
+      position: {
+        x: baseX + posX,
+        y: baseY + posY,
+      },
+      data: { label, smiles: precursorSmiles },
     });
   });
+
+  // 3. Create reactions and edges
+  route.steps.forEach((step, stepIndex) => {
+    const reactantsNodeId = stepReactantsNodeIdMap.get(step.id);
+    if (!reactantsNodeId) return;
+
+    const productMol = route.molecules.find((m) => m.id === step.product_id);
+    if (!productMol) return;
+
+    // Determine the target node for this step
+    let targetNodeIdForStep = "";
+    if (step.product_id === route.target_id) {
+      targetNodeIdForStep = targetNodeId;
+    } else {
+      // Find the step where this product is a precursor
+      const parentStep = route.steps.find((s) => s.precursor_ids.includes(step.product_id));
+      if (parentStep) {
+        targetNodeIdForStep = stepReactantsNodeIdMap.get(parentStep.id) || targetNodeId;
+      } else {
+        targetNodeIdForStep = targetNodeId;
+      }
+    }
+
+    const precursors = step.precursor_ids
+      .map((id) => route.molecules.find((m) => m.id === id))
+      .filter(Boolean);
+    const precursorSmiles = precursors.map((p) => p!.smiles).join(".");
+
+    const rxnId = `rxn-route-${stamp}-${route.id}-${step.id}-${stepIndex}`;
+    routeReactions.push({
+      id: rxnId,
+      label: step.template || `Route step ${stepIndex + 1}`,
+      reaction_smiles: step.reaction_smiles || `${precursorSmiles}>>${productMol.smiles}`,
+      template: step.template ?? undefined,
+    });
+
+    const sourceNode = routeNodes.find((n) => n.id === reactantsNodeId);
+    const targetNode = routeNodes.find((n) => n.id === targetNodeIdForStep);
+    const handles = sourceNode && targetNode ? smartConnectionHandles(sourceNode, targetNode) : { sourceHandle: "right", targetHandle: "left" };
+
+    routeEdges.push(makeCanvasEdge({
+      id: `${rxnId}-edge`,
+      source: reactantsNodeId,
+      target: targetNodeIdForStep,
+      sourceHandle: handles.sourceHandle,
+      targetHandle: handles.targetHandle,
+      label: step.template || `Step ${stepIndex + 1}`,
+    }));
+  });
+
+  // 4. Anchor connection
   if (anchorMolecule) {
-    const routeTarget = idMap.get(route.target_id)?.[0];
-    const routeTargetNode = routeNodes.find((node) => node.id === routeTarget);
-    const anchorNode = existingNodes.find((node) => node.id === anchorMolecule.id);
-    if (routeTarget && routeTargetNode && anchorNode) {
-      const handles = smartConnectionHandles(routeTargetNode, anchorNode);
+    const anchorNode = existingNodes.find((n) => n.id === anchorMolecule.id);
+    const targetNodeObj = routeNodes.find((n) => n.id === targetNodeId);
+    if (targetNodeObj && anchorNode) {
+      const handles = smartConnectionHandles(targetNodeObj, anchorNode);
       routeEdges.push(makeCanvasEdge({
         id: `route-anchor-${stamp}-${route.id}`,
-        source: routeTarget,
+        source: targetNodeId,
         target: anchorMolecule.id,
         sourceHandle: handles.sourceHandle,
         targetHandle: handles.targetHandle,
@@ -2113,6 +2536,7 @@ function addRouteCandidateToCell(cell: WorkspaceCell, route: RouteCandidate, anc
       }));
     }
   }
+
   return {
     ...cell,
     objects: {
@@ -2269,8 +2693,7 @@ function asGaussianJob(value: unknown): GaussianJob | null {
 function moleculesFromReaction(reactionSmiles: string): string[] {
   return reactionSmiles
     .split(">>")
-    .flatMap((side) => side.split("."))
-    .map((item) => item.trim())
+    .map((side) => side.trim())
     .filter(Boolean);
 }
 

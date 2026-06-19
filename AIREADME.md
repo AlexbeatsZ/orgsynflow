@@ -139,14 +139,14 @@ WSL 临时文件必须放在：
 - 分子节点连接位点太少会限制路线/网络表达。当前每个分子节点应提供 8 个连接位点：top-a/top-b/right-a/right-b/bottom-a/bottom-b/left-a/left-b。
 - 不要把 React Flow 的多个连接位点直接显示成蓝点，这会让用户以为必须拖拽锚点且画布很乱。连接位点应作为内部锚点隐藏；用户通过“连接分子”按钮进入连续连线状态，或按住 Shift 临时进入连续连线状态；每次点击分子会从上一个分子自动连到当前分子，并把当前分子作为下一段起点。连接线应使用更粗的深色 smoothstep 箭头，选中态再用蓝色强调。画布需要提供“一键删除全部连线”。
 - 用户对分子块之间的连接线更偏好几何直觉：当 B 在 A 上方时，应从 A 顶部中心连到 B 底部中心并画成一条直线；左右关系也应使用左右中心锚点。React Flow 边应使用 `straight` 类型，旧的 `top-a/right-a/...` 等边 handle 需要归一到中心 `top/right/bottom/left`，避免历史数据继续画出多弯折线。
-- React Flow `markerEnd` 会在分子节点边缘形成黑色楔形，尤其是节点遮挡箭头尖端时。当前关系线不使用箭头 marker；旧边加载时按当前节点中心重新计算最近的上下/左右 handle，而不是保留历史错误端点。Edge label 默认隐藏，只在选中边时显示，避免文字压在线和分子块上。
+- 合成路线/反应关系线必须显示明确箭头。当前 React Flow 边使用 `MarkerType.ArrowClosed`；旧边加载时按当前节点中心重新计算最近的上下/左右 handle，而不是保留历史错误端点。Edge label 默认隐藏，只在选中边时显示，避免文字压在线和分子块上。
 - 计算后端状态不应常驻占用右侧任务面板。右上角只保留紧凑“后端”入口，点击后弹窗查看；Gaussian 队列和路线候选属于当前分子/反应的二级窗口入口，不应与分子任务平级常驻展示。
 - 任务结果应通过独立 modal 展示；中间区域不再常驻“结果/日志”面板，右侧任务面板只承载当前选中对象的操作。点击路线预测后应直接打开候选 modal，窗口内提供查看、加入当前画布和新建路线单元。
 - 计算任务按钮必须绑定到当前单元 `results` 中的稳定任务记录，键格式为“对象类型:对象 ID:任务 ID”。蓝色表示未计算、黄色表示运行中、绿色表示成功、红色表示失败；绿色点击查看结果，红色点击先看错误再重试。任务记录通过单独 API 原子更新，不能为写一个结果而回存整份旧工作区。
 - 结果详情继续使用 modal，但任务日志入口不能一起消失。当前单元的任务日志应放在中间面板底部可折叠抽屉中，收起时保留标题和数量，展开后按更新时间查看结果或错误。
 - Gaussian 结构优化/频率只能有一个主按钮。点击后打开配置窗口并自动生成默认 `Opt + Freq / B3LYP / 6-31G(d) / 0 / 1` 输入；参数与 GJF 均可编辑，窗口只提供重新生成、关闭和提交，不再分“直接提交”和“高级配置”两条流程。
 - 左侧单元卡只显示类型、标题和删除入口；分子/反应数量及反应式预览会挤占空间且信息价值低，不应恢复。
-- 路线候选中的点式多组分 SMILES（例如 `CO.O`）表示多个分子节点，插入画布时必须按点拆分为 `CO` 和 `O` 两个框并分别连接到产物，不能把整串放进一个分子框。
+- 路线候选中同一步的多个前体必须放进同一个反应物块，SMILES 用点号连接，例如 `O=C(O)c1ccccc1O.CC(=O)OC(C)=O` 作为一个节点连接到产物，不能拆成两条平行边。单纯用户手动输入多个独立分子时仍可按多行创建多个节点。
 - 前端改动后应尽量用浏览器/Playwright 检查真实 UI，而不只看 `npm run build`。
 - 任务面板中常驻的“查看计算队列（Gaussian）”和“查看路线候选”按钮已被移除。计算队列状态与结果已统一收拢到底部任务日志抽屉；路线预测成功后，点击绿色状态的预测路线任务按钮或任务日志中对应的成功记录，均能直接调起带交互操作（“加入当前画布”/“新建路线单元”）的路线候选弹窗，而不是无操作的静态展示。
 - Ketcher 引入的 `ketcher-react/dist/index.css` 含有大量全局样式，与项目自带的通用弹窗样式（如 `.modal-backdrop`、`.modal-header` 等）易发生类名冲突，导致弹窗不居中且 Wasm 交互错位。已将项目中所有 Modal 相关基础类名加前缀升级（如 `.osf-modal-backdrop`）。同时，对嵌入了复杂第三方组件的 Modal 容器，应避免使用 CSS Grid 布局，因为 Grid 布局会将第三方组件在运行时动态生成的 style/div 辅助节点强行作为网格项目进行排位，从而摧毁行高比例。必须统一使用 Flexbox 布局，并通过 `flex: 1` 和 `position: relative` 规范子容器的高度撑满与 Containing Block 定位基准。
@@ -220,7 +220,7 @@ WSL 临时文件必须放在：
 - [done] 中间面板底部已恢复可折叠任务日志抽屉；左侧单元卡的数量与反应式预览已删除。
 - [done] 新增单元任务结果原子更新接口；Gaussian 队列状态会轮询回写任务记录，页面刷新后不可恢复的同步任务会标记为失败。
 - [done] 画布关系线已移除 marker 箭头楔形；旧边加载时重新计算最近边中心 handle，edge label 默认隐藏。
-- [done] 路线中的 `CO.O` 等点式前体插入画布时会拆成多个独立分子节点。
+- [done] 路线同一步多个前体插入画布时会合并为一个点式 SMILES 反应物节点，并用单条带箭头反应边连接产物。
 - [done] 单元删除入口已加入。
 - [done] 桌面一键开关脚本已创建并验证。
 - [done] `AIREADME.md` 已按项目日志结构重写。
@@ -230,6 +230,10 @@ WSL 临时文件必须放在：
 - [done] 已在 WSL 中成功部署下载 AiZynthFinder 官方公开的模型和 stock 数据库，并配置了默认 `config.yml` 路径以进行真实的路线预测。
 - [done] 新建了 ASKCOS 逆合成路线预测适配器，支持向 Docker 接口查询，并在离线时优雅 Mock/演示降级。
 - [done] 修改 `/route/predict` API 支持 `engine` 分发参数，并在前端添加了引擎选择弹窗，让用户选择使用哪个引擎进行计算并呈现计算就绪状态。
+- [done] 2026-06-20 检查确认 AiZynthFinder 公开权重已下载到 WSL：`/home/meta/data/aizynthfinder/config.yml`、`uspto_model.onnx`、`uspto_ringbreaker_model.onnx`、`uspto_filter_model.onnx`、`uspto_templates.csv.gz`、`uspto_ringbreaker_templates.csv.gz`、`zinc_stock.hdf5`。API smoke test 对 aspirin 返回 `used_fallback=false`。
+- [done] RXNMapper 和 DRFP 已改为通过 WSL `orgsynflow-chem` fallback 调用和探测，`/compute/status` 中 `rxnmapper`、`drfp` 均显示可用。
+- [done] Phenol acetylation 示例已改为单个点式反应物块 `O=C(O)c1ccccc1O.CC(=O)OC(C)=O` 指向 aspirin，旧的失败/不可用任务缓存已清空。
+- [done] 过渡态任务已合并为单一“计算过渡态（Gaussian）”入口；点击后打开参数化窗口，包含 TS 搜索建议、方法/基组/电荷/多重度/作业类型、相对位移/旋转滑块、3D 构象预览和 GJF 预览。
 
 当前可运行入口：
 
@@ -248,7 +252,7 @@ WSL 临时文件必须放在：
 - [todo] 工作区保存/自动保存策略需要更清楚，避免测试或打开示例时污染 fixture。
 - [todo] AiZynthFinder 真实配置、stock/policy 路径和路线树解析仍可继续强化。
 - [todo] OPERA 输出字段在 UI 中还需要更好地结构化展示。
-- [todo] Gaussian TS 输入目前仍偏草稿，需要把 scan 建议、反应中心、freq/IRC 检查状态更完整地贯穿 UI。
+- [todo] Gaussian TS 输入已有可视化初始配置窗口，但仍需更真实的反应中心约束、scan 坐标生成、freq/IRC 结果回填和验证等级闭环。
 - [done] WSL 计算工具状态和 Gaussian bridge 状态已暴露到 `/compute/status` 和右侧任务面板。
 - [done] xTB/CREST 已接入分子任务按钮，可从当前前端直接运行并把结果送到中间结果面板。
 - [todo] 继续把 PySCF/Psi4/geomeTRIC 接入具体任务按钮，而不只是环境可用。
@@ -270,12 +274,13 @@ WSL 临时文件必须放在：
 - 前端 UI 检查：内置浏览器刷新 `http://127.0.0.1:5173/` 后右侧任务面板显示计算后端状态；选中 CCO 分子后出现 `xTB 优化/能量`、`CREST 构象搜索`；点击 xTB 后结果面板显示 `xTB CLI via WSL` 和 `/tmp/codex/orgsynflow/xtb_jobs/...`。
 - WSL OPERA/AiZynthFinder 检查：`/compute/status` 返回 `opera` 为 `wsl:/home/meta/.local/bin/opera`、`aizynthfinder` 为 `wsl:/home/meta/.local/opt/miniforge3/envs/orgsynflow-chem/bin/aizynthcli`；`/molecule/properties include_opera=true` 对 `CCO` 返回 OPERA `melting_point=-114`、`boiling_point=78`、`logp=-0.31`。
 - 路线候选 UI 检查：内置浏览器选中 CCO 后可见 `RDKit + OPERA QSAR 物性`、`预测逆合成路线`、`提交 Gaussian opt/freq`、`Gaussian 高级配置`；点击路线预测后出现候选卡、fallback 提示、`加入当前画布` 和 `新建路线单元`。
-- 二级窗口/连线 UI 检查：右侧未选中对象时仅显示任务提示，不再出现后端列表、候选卡或队列；顶部有紧凑 `后端` 入口；弹窗内显示后端/路线/队列；画布 `markerCount=0`、默认可见 edge label 数为 0。
+- 二级窗口/连线 UI 检查：右侧未选中对象时仅显示任务提示，不再出现后端列表、候选卡或队列；顶部有紧凑 `后端` 入口；弹窗内显示后端/路线/队列；反应/路线边必须带 arrow marker，默认可见 edge label 数为 0。
 - 路线预测直接弹窗检查：点击 `预测逆合成路线` 后 modal 标题为 `路线候选`，出现 2 个候选卡，并直接显示 `加入当前画布` 与 `新建路线单元`；中间常驻结果面板数量为 0。
-- 点式路线插入回归：临时注入前体 `CO.O` 的路线候选并点击 `加入当前画布`，结果为独立 `CO`、`O` 节点各 1 个，`CO.O` 合并节点 0 个；测试后已原样恢复工作区文件。
+- 点式路线插入回归：同一步多个前体现在应合并为一个点式 SMILES 节点，示例检查确认 `O=C(O)c1ccccc1O.CC(=O)OC(C)=O` 为一个节点、到 aspirin 为一条带箭头边。
 - 连接 UI 检查：内置浏览器添加三个 CCO 后打开 `连接分子`，依次点击三个分子得到 `edgeCount=2`、`visibleHandles=0`，模式保持开启且提示继续选择下一个分子；点击 `删除全部连线` 后 `edgeCount=0`。
 - 直线连接 UI 检查：内置浏览器临时把示例工作区放成上下两个节点，打开 `连接分子` 后点击下方 A 再点击上方 B，生成 `react-flow__edge-straight canvas-edge`，SVG path 为单段 `M 315,317.5L 315,196.5`，`visibleHandles=0`；验证后已恢复示例数据。
 - 桌面开关脚本：已验证可启动、关闭、重新启动 8765/5173。
+- 2026-06-20 本次验证：`uv run pytest -q` 为 36 passed；`cd web; npm run build` 成功（仅 Vite 大 chunk warning）；API `/compute/status` 返回 AiZynthFinder、RXNMapper、DRFP 均可用；API `/route/predict` 对 aspirin 返回 `used_fallback=false`；浏览器确认前端 `http://127.0.0.1:5173/` 可打开、任务日志默认展开、路线只有一个点式反应物节点和一条带 `marker-end` 的箭头、选中反应后只有一个 TS 按钮、TS 窗口含 6 个移动/旋转滑块和 3D canvas。
 
 ## 4. New Issues
 

@@ -96,15 +96,22 @@ def estimate_reaction_yield_layered(reaction_smiles: str | None, template: str |
         "unavailable": ["reaction_smiles"],
         "note": "无法生成反应特征。",
     }
+
+    has_model = False
+    model_method = "chemprop_or_rxn_yields_placeholder"
+    model_reason = "当前未配置训练好的产率模型权重；不会输出伪 ML 产率。"
+    model_yield = None
+
     return {
         "method": "layered_heuristic_plus_optional_features",
         "status": "heuristic_only" if features["status"] != "available" else "features_available",
         "heuristic": heuristic.as_dict(),
         "ml_features": features,
         "trained_model": {
-            "available": False,
-            "method": "chemprop_or_rxn_yields_placeholder",
-            "reason": "当前未配置训练好的产率模型权重；不会输出伪 ML 产率。",
+            "available": has_model,
+            "method": model_method,
+            "reason": model_reason,
+            "predicted_yield": model_yield,
         },
         "confidence": heuristic.confidence,
         "applicability_domain": heuristic.applicability_domain,

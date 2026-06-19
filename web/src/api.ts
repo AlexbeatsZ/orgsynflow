@@ -185,3 +185,13 @@ export async function listJobs(): Promise<GaussianJob[]> {
   const { data } = await http.get("/jobs");
   return data.jobs;
 }
+
+export async function getMoleculeCoordinates(smiles: string): Promise<{
+  components: Array<{
+    smiles: string;
+    atoms: Array<{ element: string; x: number; y: number; z: number }>;
+  }>;
+}> {
+  const { data } = await http.post("/chem/molecule-coordinates", { smiles });
+  return data;
+}
