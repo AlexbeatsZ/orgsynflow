@@ -56,6 +56,12 @@ rxnfp missing
 chemprop missing
 ```
 
+## Installation Boundary
+
+The usable official public artifacts are already configured for AiZynthFinder, OPERA, and RXNMapper. No additional generic yield checkpoint was installed. The official `rxn_yields` instructions target a separate Python 3.6 / RDKit 2020.03.3 environment, and its authors explicitly describe limitations in USPTO yield applicability. Installing it into the current chemistry environment would risk dependency regressions without producing a defensible general yield model.
+
+The 2026-06-20 recheck could not execute because the Ubuntu WSL subsystem stopped responding even to `wsl -l -v` and read-only file commands. Existing installation evidence above is retained, but file and inference smoke tests must be repeated after WSL itself is restarted.
+
 ## Engineering Decision
 
 The route and property modules can rely on public models today: AiZynthFinder for retrosynthesis, OPERA for QSAR properties, and RXNMapper for atom mapping. The yield predictor should remain layered as heuristic plus optional DRFP features until a specific public yield model is installed and its domain is shown in the UI. This avoids presenting a trained-model result where the available public artifacts either require new training/fine-tuning or are too narrow to generalize.

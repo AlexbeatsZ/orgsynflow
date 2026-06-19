@@ -2144,7 +2144,7 @@ function TransitionStateConfigModal({
 
   return (
     <div className="osf-modal-backdrop">
-      <div className="osf-modal-window ts-config-modal">
+      <div className="osf-config-modal ts-config-modal">
         <div className="osf-modal-header">
           <strong>计算过渡态参数配置 (GaussView 辅助)</strong>
           <button className="close-button" onClick={onClose}>×</button>

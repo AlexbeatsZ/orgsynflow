@@ -151,12 +151,14 @@ WSL 临时文件必须放在：
 - 前端改动后应尽量用浏览器/Playwright 检查真实 UI，而不只看 `npm run build`。
 - 任务面板中常驻的“查看计算队列（Gaussian）”和“查看路线候选”按钮已被移除。计算队列状态与结果已统一收拢到底部任务日志抽屉；路线预测成功后，点击绿色状态的预测路线任务按钮或任务日志中对应的成功记录，均能直接调起带交互操作（“加入当前画布”/“新建路线单元”）的路线候选弹窗，而不是无操作的静态展示。
 - Ketcher 引入的 `ketcher-react/dist/index.css` 含有大量全局样式，与项目自带的通用弹窗样式（如 `.modal-backdrop`、`.modal-header` 等）易发生类名冲突，导致弹窗不居中且 Wasm 交互错位。已将项目中所有 Modal 相关基础类名加前缀升级（如 `.osf-modal-backdrop`）。同时，对嵌入了复杂第三方组件的 Modal 容器，应避免使用 CSS Grid 布局，因为 Grid 布局会将第三方组件在运行时动态生成的 style/div 辅助节点强行作为网格项目进行排位，从而摧毁行高比例。必须统一使用 Flexbox 布局，并通过 `flex: 1` 和 `position: relative` 规范子容器的高度撑满与 Containing Block 定位基准。
+- TS 参数窗口曾使用未定义的 `osf-modal-window` 类，导致计算样式背景为完全透明，同时缺少阴影、裁剪和相对定位。TS 窗口应复用 `osf-config-modal` 基类，再由 `ts-config-modal` 覆盖尺寸和网格布局；不要新增没有基础视觉契约的 modal 类名。
 
 化学结果表达经验：
 
 - 不要把 heuristic/demo 逻辑包装成真实模型结果。
 - AiZynthFinder、OPERA、RXNMapper、DRFP/RXNFP、xTB、CREST、GoodVibes、cclib 都是可选工具；不可用时应返回明确 unavailable/disabled/fallback，而不是抛未处理异常。
 - 公开权重审计结论记录在 `docs/public-model-weights-audit.md`：AiZynthFinder、OPERA、RXNMapper 是当前可直接依赖的公开模型/权重；ASKCOS 公开模型和数据但部署重且模型/数据为 CC BY-NC-SA；DRFP 不需要权重；RXNFP 有公开预训练反应 BERT 但不是通用产率预测器；没有找到可负责任直接接入的官方通用 organic reaction yield 权重，产率模块应继续明确显示 heuristic/features/no trained model。
+- `rxn4chemistry/rxn_yields` 官方安装说明仍基于 Python 3.6 与 RDKit 2020.03.3，且官方 README 明确说明 USPTO 产率分布随质量尺度变化、限制模型适用性。不能把它直接安装进当前 `orgsynflow-chem` 环境或包装成通用产率模型；如后续评估，应使用独立隔离环境并在 UI 展示反应族、数据集和适用域。
 - 计算后端调研：xTB 官方仓库是 `grimme-lab/xtb`；CREST 官方仓库/文档是 `crest-lab/crest` 和 `crest-lab.github.io/crest-docs`；cclib 可解析多类量化输出；GoodVibes 可从 Gaussian/ORCA/NWChem/Q-Chem/xTB/ASE 结果计算准谐热化学校正；PySCF、Psi4、geomeTRIC、ASE 可作为开源量化/优化/工作流后端候选。
 - Gaussian 是商业闭源软件，不能从 GitHub 或公开源直接安装；WSL 集成需要用户提供合法 Gaussian 安装包和 license/环境变量信息。
 - 本机 Windows 已安装 Gaussian 16W：`C:\Users\Meta\AppData\Local\Programs\g16w\g16.exe`。WSL 可通过 `/mnt/c/Users/Meta/AppData/Local/Programs/g16w/g16.exe` 调用该 Windows 可执行文件；`core.gaussian_runner.find_gaussian_executable()` 已加固为先查 PATH，再查 `GAUSS_EXEDIR`，最后扫描 WSL 挂载的 Windows Gaussian 常见路径。
@@ -240,6 +242,8 @@ WSL 临时文件必须放在：
 - [done] 反应/路线箭头已改为智能正交路由，支持四侧中心自动端点选择、横竖折线、避开其它 SMILES 块，以及按路径长度/弯折数/前段长度排序。
 - [done] 完成公开模型/权重审计并写入 `docs/public-model-weights-audit.md`：确认 AiZynthFinder/OPERA/RXNMapper/DRFP 当前状态，记录 ASKCOS、RXNFP、Yield-BERT、Chemprop 的可用性与限制。
 - [done] 结果展示已从直接铺原始 log/JSON 改为摘要化展示：xTB/CREST/Gaussian 提取状态、关键指标、日志摘要和警告，原始日志折叠；xTB/CREST payload 会返回 `data.input_xyz`，前端对 XYZ/GJF 坐标渲染 3Dmol 可交互分子结构。
+- [done] “计算过渡态参数配置 (GaussView 辅助)”窗口已接入统一 `osf-config-modal` 基类，恢复不透明白色背景、阴影、裁剪和正确定位。
+- [blocked] 本轮公开权重复核受 Ubuntu WSL 子系统无响应阻塞：连 `wsl -l -v` 和只读 `ls` 都会挂起；已清理本轮产生的非 Docker WSL 客户端并重启 API，未重复下载已记录存在的 AiZynthFinder 大文件，也未破坏现有化学环境。恢复 WSL 服务后需重新跑 AiZynthFinder/RXNMapper smoke test。
 
 当前可运行入口：
 
@@ -290,6 +294,7 @@ WSL 临时文件必须放在：
 - 2026-06-20 本次验证：`uv run pytest -q` 为 36 passed；`cd web; npm run build` 成功（仅 Vite 大 chunk warning）；API `/compute/status` 返回 AiZynthFinder、RXNMapper、DRFP 均可用；API `/route/predict` 对 aspirin 返回 `used_fallback=false`；浏览器确认前端 `http://127.0.0.1:5173/` 可打开、任务日志默认展开、路线只有一个点式反应物节点和一条带 `marker-end` 的箭头、选中反应后只有一个 TS 按钮、TS 窗口含 6 个移动/旋转滑块和 3D canvas。
 - 2026-06-20 正交箭头验证：`cd web; npm run build` 成功；浏览器刷新 `http://127.0.0.1:5173/` 后示例反应边 SVG path 为 `M 310,344L 402,344L 402,336.5L 430,336.5`，所有 segment 均为水平/垂直，且保留 `marker-end` 箭头。
 - 2026-06-20 结果展示验证：`cd web; npm run build` 成功；`/compute/xtb` 对 `O` 返回 `data.input_xyz`，可供结果弹窗 3D 渲染；`uv run pytest -q tests/test_route_layout.py tests/test_v5_yield.py` 为 3 passed。全量 `uv run pytest -q` 与 `tests/test_v6_api_service.py` 在本次环境中超时且无输出，需后续单独诊断测试收集/环境探测卡点。
+- 2026-06-20 TS 白色背景回归：修复前浏览器计算样式为 `background=rgba(0,0,0,0)`、`overflow=visible`、`position=static`；改用 `osf-config-modal ts-config-modal` 后为 `background=rgb(255,255,255)`、`overflow=hidden`、`position=relative`，并恢复 modal 阴影，1000×648 视口内截图确认白色内容层完整覆盖。
 
 ## 4. New Issues
 
