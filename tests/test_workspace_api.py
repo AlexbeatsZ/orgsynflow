@@ -59,8 +59,12 @@ def test_molecule_svg_and_gaussian_job_submission() -> None:
     formula_svg = client.post("/chem/render/molecule-svg", json={"smiles": "CO2.H2O"}).json()
     assert formula_svg["available"] is True
     assert "<svg" in formula_svg["svg"]
-    assert "formula notation" in formula_svg["svg"]
-    assert "baseline-shift=\"sub\"" in formula_svg["svg"]
+    assert "component structures: CO2, H2O" in formula_svg["svg"]
+    assert "formula notation" not in formula_svg["svg"]
+
+    unresolved_formula_svg = client.post("/chem/render/molecule-svg", json={"smiles": "CuSO4.5H2O"}).json()
+    assert unresolved_formula_svg["available"] is True
+    assert "formula notation" in unresolved_formula_svg["svg"]
 
     job = client.post(
         "/jobs/gaussian",

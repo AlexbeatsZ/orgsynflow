@@ -114,19 +114,22 @@ def summarize_molecule(smiles: str) -> MoleculeSummary:
 
 
 def molecule_svg(smiles: str, size: tuple[int, int] = (320, 220)) -> str | None:
+    cleaned = smiles.strip()
     modules = rdkit_modules()
     if not modules:
-        return formula_svg(smiles, size=size)
+        return formula_svg(cleaned, size=size)
 
     Chem = modules[0]
     try:
         from rdkit.Chem.Draw import rdMolDraw2D
     except Exception:
-        return formula_svg(smiles, size=size)
+        return formula_svg(cleaned, size=size)
 
-    cleaned = smiles.strip()
     mol = Chem.MolFromSmiles(cleaned)
     if mol is None:
+        component_svg = component_structure_svg(cleaned, Chem, rdMolDraw2D, size=size)
+        if component_svg is not None:
+            return component_svg
         return formula_svg(cleaned, size=size)
 
     drawer = rdMolDraw2D.MolDraw2DSVG(*size)
@@ -136,6 +139,21 @@ def molecule_svg(smiles: str, size: tuple[int, int] = (320, 220)) -> str | None:
 
 
 _FORMULA_COMPONENT_RE = re.compile(r"^(?:\d+)?(?:[A-Z][a-z]?\d*)+$")
+
+_KNOWN_FORMULA_SMILES: dict[str, tuple[str, bool]] = {
+    "CH4": ("C", True),
+    "CO": ("[C-]#[O+]", False),
+    "CO2": ("O=C=O", False),
+    "H2": ("[H][H]", False),
+    "H2O": ("O", True),
+    "H2S": ("S", True),
+    "HCl": ("Cl", True),
+    "HBr": ("Br", True),
+    "HI": ("I", True),
+    "N2": ("N#N", False),
+    "NH3": ("N", True),
+    "O2": ("O=O", False),
+}
 
 
 def formula_svg(formula: str, size: tuple[int, int] = (320, 220)) -> str | None:
@@ -162,9 +180,60 @@ def formula_svg(formula: str, size: tuple[int, int] = (320, 220)) -> str | None:
     )
 
 
+def component_structure_svg(
+    formula: str,
+    Chem: Any,
+    rdMolDraw2D: Any,
+    size: tuple[int, int] = (320, 220),
+) -> str | None:
+    components = _formula_components(formula)
+    if len(components) < 2:
+        return None
+
+    mols = []
+    labels = []
+    for label, core_formula in components:
+        mapped = _KNOWN_FORMULA_SMILES.get(core_formula)
+        if mapped is None:
+            return None
+        mapped_smiles, explicit_hydrogens = mapped
+        mol = Chem.MolFromSmiles(mapped_smiles)
+        if mol is None:
+            return None
+        if explicit_hydrogens:
+            mol = Chem.AddHs(mol)
+        mols.append(mol)
+        labels.append(label)
+
+    width, height = size
+    columns = min(len(mols), 3)
+    sub_width = max(120, int(width / columns))
+    sub_height = max(120, height - 34)
+    drawer = rdMolDraw2D.MolDraw2DSVG(width, height, sub_width, sub_height)
+    drawer.DrawMolecules(mols, legends=labels)
+    drawer.FinishDrawing()
+    return _inject_svg_desc(drawer.GetDrawingText(), f"component structures: {', '.join(labels)}")
+
+
 def _is_formula_like(value: str) -> bool:
     parts = re.split(r"[.·•]", value)
     return bool(parts) and all(_FORMULA_COMPONENT_RE.fullmatch(part) for part in parts)
+
+
+def _formula_components(value: str) -> list[tuple[str, str]]:
+    components: list[tuple[str, str]] = []
+    for raw_part in re.split(r"[.·•]", value):
+        part = raw_part.strip()
+        match = re.fullmatch(r"(\d+)?((?:[A-Z][a-z]?\d*)+)", part)
+        if match is None:
+            return []
+        components.append((part, match.group(2)))
+    return components
+
+
+def _inject_svg_desc(svg: str, desc: str) -> str:
+    escaped = html.escape(desc)
+    return re.sub(r"(<svg\b[^>]*>)", rf"\1<desc>{escaped}</desc>", svg, count=1)
 
 
 def _formula_tspans(value: str, subscript_size: int) -> list[str]:

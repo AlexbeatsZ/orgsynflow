@@ -132,7 +132,7 @@ WSL 临时文件必须放在：
 - 曾经出现过画布显示巨大 `Ethanol` 的问题，原因是 React Flow 默认 label 节点把分子 label/title 当内容渲染。已改为自定义 molecule node，并通过后端 RDKit SVG 接口渲染结构图。
 - 曾经出现 `CCO` 看起来重复的问题，原因是节点 data 同时拼了 label 和 smiles。已改为节点底部只显示一行 SMILES。
 - 单元删除按钮曾经嵌套在整张单元卡的 `<button>` 内，导致非法 DOM 和浏览器警告。已改为单元卡用可点击 `div`，删除按钮独立。
-- `CO2.H2O`、`CuSO4.5H2O` 这类公式/水合物点式不是 RDKit SMILES。结构渲染接口应先尝试 RDKit；失败但输入像化学式时，降级返回公式 SVG，前端也要把 `svg: null` 作为失败态，避免节点一直显示“渲染中...”。
+- `CO2.H2O` 这类点式组合不是 RDKit SMILES，但其中 `CO2`、`H2O` 等常见小分子式可以安全映射为结构。结构渲染接口应先尝试 RDKit；失败后按点号拆组分，能受控映射的组分画成多结构 SVG；像 `CuSO4.5H2O` 这种暂时不能可靠推断结构的输入再降级为公式 SVG。前端也要把 `svg: null` 作为失败态，避免节点一直显示“渲染中...”。
 - 前端改动后应尽量用浏览器/Playwright 检查真实 UI，而不只看 `npm run build`。
 
 化学结果表达经验：
@@ -170,7 +170,7 @@ WSL 临时文件必须放在：
 - [done] 白色可隐藏单元栏已实现。
 - [done] 通用化学单元已替代 UI 层面的分子/反应/路线固定分型。
 - [done] 分子节点已改为结构图渲染，不再显示巨大标题。
-- [done] `CO2.H2O` 等公式/水合物点式已支持公式 SVG 降级显示，不再卡在结构渲染加载态。
+- [done] `CO2.H2O` 等点式小分子组合已支持多组分结构图显示；无法可靠推断结构的公式/水合物点式再降级为公式 SVG，不再卡在结构渲染加载态。
 - [done] 单元删除入口已加入。
 - [done] 桌面一键开关脚本已创建并验证。
 - [done] `AIREADME.md` 已按项目日志结构重写。
@@ -200,5 +200,5 @@ WSL 临时文件必须放在：
 
 - `uv run pytest -q`：34 passed。
 - 前端构建命令：`cd web; npm run build`。
-- `CO2.H2O` UI 回归检查：本机 Chrome + Playwright 打开 `http://127.0.0.1:5173/`，添加节点后确认公式 SVG 已显示；截图在 `%LOCALAPPDATA%\Temp\codex\orgsynflow\co2-h2o-ui-check.png`。
+- `CO2.H2O` UI 回归检查：本机 Chrome + Playwright 打开 `http://127.0.0.1:5173/`，添加节点后确认多组分结构 SVG 已显示；截图在 `%LOCALAPPDATA%\Temp\codex\orgsynflow\co2-h2o-component-structures-ui-check.png`。
 - 桌面开关脚本：已验证可启动、关闭、重新启动 8765/5173。
