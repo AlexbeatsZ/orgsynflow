@@ -3,7 +3,9 @@ from __future__ import annotations
 import shutil
 
 from adapters.base import AdapterCapability, AdapterStatus
+from adapters.aizynth_adapter import find_aizynthcli
 from adapters.goodvibes_adapter import find_goodvibes_executable
+from adapters.opera_adapter import find_opera_executable
 from adapters.xtb_adapter import find_crest_executable, find_xtb_executable
 from core.gaussian_runner import find_gaussian_executable
 from core.molecule import has_rdkit
@@ -28,6 +30,7 @@ def list_adapter_statuses() -> list[AdapterStatus]:
             executable_names=("opera", "OPERA", "OPERA.exe"),
             capability=AdapterCapability("property_prediction", "预测熔点、沸点、LogP、水溶解度等 QSAR 物性。"),
             source="OPERA CLI",
+            detected_executable=find_opera_executable(),
         ),
         _executable_status(
             name="xtb",
@@ -85,13 +88,13 @@ def _rdkit_status() -> AdapterStatus:
 
 
 def _aizynth_status() -> AdapterStatus:
-    executable = shutil.which("aizynthcli")
+    executable = find_aizynthcli()
     return AdapterStatus(
         name="aizynthfinder",
         display_name="AiZynthFinder",
         available=executable is not None,
         status="available" if executable else "unavailable",
-        reason=None if executable else "未在 PATH 中检测到 aizynthcli；路线预测会回退到内置 demo。",
+        reason=None if executable else "未在 PATH/WSL chem 中检测到 aizynthcli；路线预测会回退到内置 demo。",
         capabilities=[
             AdapterCapability("retrosynthesis", "从目标分子预测逆合成路线并尝试分解到库存原料。"),
         ],

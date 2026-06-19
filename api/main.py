@@ -205,14 +205,6 @@ def analyze(request: AnalyzeRequest) -> dict[str, object]:
 
 @app.post("/route/predict")
 def route_predict(request: RoutePredictRequest) -> dict[str, object]:
-    if not request.aizynth_config:
-        return {
-            "available": False,
-            "status": "disabled",
-            "reason": "未配置 AiZynthFinder config，路线预测按钮应禁用；可改用手动画布录入路线。",
-            "target_smiles": request.smiles,
-            "candidates": [],
-        }
     result = analyze_target(
         request.smiles,
         use_aizynth=True,
@@ -222,8 +214,9 @@ def route_predict(request: RoutePredictRequest) -> dict[str, object]:
         aizynth_policy=request.aizynth_policy,
     )
     return {
-        "available": True,
+        "available": not bool(result.get("used_fallback")),
         "status": result["status"],
+        "used_fallback": result.get("used_fallback", False),
         "target_smiles": request.smiles,
         "candidates": result["routes"],
         "route_scores": result["route_scores"],

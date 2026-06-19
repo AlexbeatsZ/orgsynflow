@@ -621,6 +621,88 @@ button {
   font-size: 12px;
 }
 
+.route-candidate-list {
+  display: grid;
+  gap: 10px;
+}
+
+.route-candidate-set,
+.route-candidate-card,
+.structured-result,
+.result-block {
+  display: grid;
+  gap: 8px;
+}
+
+.route-candidate-set {
+  padding: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.route-candidate-head,
+.result-summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+}
+
+.route-candidate-head span,
+.result-summary span {
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: #e0f2fe;
+  color: #075985;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.route-candidate-set p,
+.structured-result p {
+  margin: 0;
+  color: #475569;
+  font-size: 12px;
+}
+
+.route-candidate-card {
+  padding: 8px;
+  background: white;
+  border-radius: 6px;
+}
+
+.route-candidate-card > button {
+  padding: 0;
+  background: transparent;
+  color: #1746a2;
+  border: 0;
+  text-align: left;
+  font-weight: 700;
+}
+
+.route-candidate-card span,
+.route-result-card span,
+.route-result-card small {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.route-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.route-actions button {
+  border: 0;
+  border-radius: 6px;
+  padding: 6px 8px;
+  background: #edf3ff;
+  color: #1746a2;
+  font-size: 12px;
+}
+
 .result-panel {
   border: 1px solid #d9e1eb;
   border-radius: 8px;
@@ -640,6 +722,55 @@ button {
   border-radius: 6px;
   font-size: 12px;
   color: #17202a;
+}
+
+.structured-result code {
+  display: block;
+  padding: 8px;
+  background: #f1f5f9;
+  border-radius: 6px;
+  overflow-wrap: anywhere;
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.metric-grid div {
+  min-width: 0;
+  padding: 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+}
+
+.metric-grid span {
+  display: block;
+  color: #64748b;
+  font-size: 11px;
+}
+
+.metric-grid strong {
+  display: block;
+  margin-top: 2px;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+}
+
+.route-result-list {
+  display: grid;
+  gap: 8px;
+}
+
+.route-result-card {
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
 }
 
 .empty-state {
@@ -671,6 +802,44 @@ button {
   grid-template-rows: auto 1fr auto auto;
   overflow: hidden;
   box-shadow: 0 24px 70px rgba(15, 23, 42, 0.36);
+}
+
+.config-modal {
+  width: min(560px, 94vw);
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.36);
+}
+
+.config-form {
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.config-form label {
+  display: grid;
+  gap: 6px;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.config-form input,
+.config-form select {
+  min-height: 36px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+
+.config-form code {
+  padding: 8px;
+  background: #f1f5f9;
+  border-radius: 6px;
+  font-weight: 400;
+  overflow-wrap: anywhere;
 }
 
 .modal-header,

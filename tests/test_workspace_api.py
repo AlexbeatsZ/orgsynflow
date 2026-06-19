@@ -75,11 +75,12 @@ def test_molecule_svg_and_gaussian_job_submission() -> None:
     assert "jobs" in client.get("/jobs").json()
 
 
-def test_route_predict_requires_real_aizynth_config() -> None:
+def test_route_predict_returns_visible_fallback_candidates_without_config() -> None:
     client = TestClient(app)
 
     response = client.post("/route/predict", json={"smiles": "CCO", "max_routes": 2}).json()
 
     assert response["available"] is False
-    assert response["status"] == "disabled"
-    assert response["candidates"] == []
+    assert response["used_fallback"] is True
+    assert response["candidates"]
+    assert "routes" not in response

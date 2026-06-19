@@ -55,7 +55,7 @@ export interface ReactionObject {
 export interface RouteObject {
   id: string;
   label: string;
-  route: unknown;
+  route: RouteCandidate;
 }
 
 export interface RouteCandidateSet {
@@ -63,7 +63,33 @@ export interface RouteCandidateSet {
   target_smiles: string;
   status: string;
   created_at: string;
-  candidates: unknown[];
+  candidates: RouteCandidate[];
+  route_scores?: Record<string, unknown>;
+  feasibility?: Record<string, unknown>;
+  used_fallback?: boolean;
+}
+
+export interface RouteCandidate {
+  id: string;
+  title: string;
+  target_id: string;
+  source: string;
+  depth: number;
+  precursor_count: number;
+  stock_count: number;
+  molecules: Array<{ id: string; name: string; smiles: string; in_stock?: boolean }>;
+  steps: Array<{
+    id: string;
+    product_id: string;
+    precursor_ids: string[];
+    reaction_smiles?: string | null;
+    policy_score?: number | null;
+    template?: string | null;
+  }>;
+  layout?: {
+    nodes: Record<string, { id: string; label: string; x: number; y: number; in_stock: boolean }>;
+    edges: Array<{ source_id: string; target_id: string; label: string }>;
+  };
 }
 
 export interface CachedResult {

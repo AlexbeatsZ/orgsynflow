@@ -14,7 +14,8 @@ from adapters.xtb_adapter import (
     run_xtb_job,
 )
 from adapters.registry import list_adapter_statuses
-from adapters.aizynth_adapter import predict_routes_with_fallback
+from adapters.aizynth_adapter import find_aizynthcli, predict_routes_with_fallback
+from adapters.opera_adapter import find_opera_executable
 from core.gaussian import coordinates_from_smiles, generate_gaussian_input, parse_gaussian_log
 from core.gaussian_runner import find_gaussian_executable, run_gaussian_job
 from core.kinetics import analyze_energy_profile
@@ -26,6 +27,7 @@ from core.reaction_explain import explain_reaction
 from core.reaction_mapping import map_reaction
 from core.report import render_report
 from core.route import Route, load_demo_routes
+from core.route_layout import layout_route
 from core.scoring import score_route
 from core.transition_state import plan_transition_state_search
 from core.yield_predictor import estimate_reaction_yield, estimate_reaction_yield_layered, score_route_feasibility
@@ -76,9 +78,11 @@ def analyze_target(
         )
         routes = result.routes
         status = _zh_status(result.status)
+        used_fallback = result.used_fallback
     else:
         routes = fallback_routes[:max_routes]
         status = "已加载内置演示路线。"
+        used_fallback = True
 
     target = summarize_molecule(smiles)
     route_scores = {route.id: score_route(route) for route in routes}
@@ -87,6 +91,7 @@ def analyze_target(
 
     return {
         "status": status,
+        "used_fallback": used_fallback,
         "target": target.as_display_dict(),
         "routes": [_route_to_dict(route) for route in routes],
         "route_scores": {key: value.as_dict() for key, value in route_scores.items()},
@@ -156,6 +161,8 @@ def gaussian_status() -> dict[str, object]:
 def compute_backend_status() -> dict[str, object]:
     return {
         "gaussian": gaussian_status(),
+        "aizynthfinder": _command_status("AiZynthFinder", find_aizynthcli()),
+        "opera": _command_status("OPERA", find_opera_executable()),
         "xtb": _command_status("xTB", find_xtb_executable()),
         "crest": _command_status("CREST", find_crest_executable()),
         "openbabel": _command_status("Open Babel", _find_command(("obabel", "obabel.exe"))),
@@ -204,12 +211,22 @@ def _route_to_dict(route: Route) -> dict[str, object]:
         "stock_count": route.stock_count,
         "molecules": [molecule.__dict__ for molecule in route.molecules],
         "steps": [step.__dict__ for step in route.steps],
+        "layout": _route_layout_to_dict(route),
+    }
+
+
+def _route_layout_to_dict(route: Route) -> dict[str, object]:
+    graph = layout_route(route)
+    return {
+        "nodes": {key: node.__dict__ for key, node in graph.nodes.items()},
+        "edges": [edge.__dict__ for edge in graph.edges],
     }
 
 
 def _zh_status(status: str) -> str:
     replacements = {
         "AiZynthFinder CLI not found; using bundled demo routes.": "未找到 AiZynthFinder CLI，已回退到内置演示路线。",
+        "AiZynthFinder CLI found but no config/model stock was configured; using bundled demo routes.": "已检测到 AiZynthFinder，但尚未配置 policy/stock/config，当前显示内置演示候选路线。",
         "using bundled demo routes": "已回退到内置演示路线",
     }
     return replacements.get(status, status)

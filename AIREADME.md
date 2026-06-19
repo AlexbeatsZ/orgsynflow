@@ -151,7 +151,11 @@ WSL 临时文件必须放在：
 - WSL `orgsynflow-chem` 计算工具链当前可用：xTB 6.7.1、CREST 3.0.2、Open Babel 3.1.0、ASE 3.28.0、geomeTRIC 1.1.1、PySCF 2.13.1、Psi4 1.10.1、cclib、GoodVibes、RDKit。
 - Windows 后端服务如果直接找不到 xTB/CREST/Open Babel/Psi4/geomeTRIC，可以桥接 WSL `orgsynflow-chem` 的固定路径：`wsl:/home/meta/.local/opt/miniforge3/envs/orgsynflow-chem/bin/<tool>`。`adapters/xtb_adapter.py` 已支持通过 stdin 把 XYZ 写入 WSL `/tmp/codex/orgsynflow/...` 再运行 CLI，避免 Windows/WSL 路径转换和编码问题。
 - 计算后端状态统一由 `/compute/status` 暴露，包含 Gaussian、xTB、CREST、Open Babel、GoodVibes、PySCF、Psi4、geomeTRIC、ASE 的 `available/executable/source`。前端右侧任务面板会显示这些状态。
+- WSL 中 OPERA 2.9 已安装在 `/home/meta/.local/opt/OPERA2.9`，可通过 `/home/meta/.local/bin/opera` 运行。Windows 后端需要通过 `wsl:/home/meta/.local/bin/opera` bridge 调用，否则“RDKit + OPERA”会退化为 unavailable。
+- WSL `orgsynflow-chem` 中已安装 AiZynthFinder CLI：`/home/meta/.local/opt/miniforge3/envs/orgsynflow-chem/bin/aizynthcli`。但 CLI 需要真实 `--config`/policy/stock/model 文件；若未配置，路线预测应返回明确的 demo fallback 候选，不能显示空成功态或假装真实预测。
 - 分子任务面板已有 xTB 和 CREST 按钮。当前实现会用 RDKit 从 SMILES 生成 3D XYZ，再调用 `/compute/xtb` 或 `/compute/crest`；结果和 stdout/stderr 返回到中间结果面板。
+- Gaussian opt/freq 默认动作应直接生成 gjf 并提交队列；需要修改方法/基组/电荷/多重度时再打开“Gaussian 高级配置”弹窗。不要让用户先点“生成 gjf”再点“提交作业”作为主路径。
+- 路线预测结果要作为可查看候选集，而不是只显示 status。候选集应能从右侧卡片查看详情、插入当前画布并连接到被点击预测的分子，或新建一个路线单元承载整条路线。
 - Windows 调 WSL CLI 时必须显式设置 `encoding="utf-8", errors="replace"`，否则 CREST/xTB 输出里的 UTF-8 字符可能被 GBK 解码线程打断，导致 `stdout` 为 `None` 或测试崩溃。
 - TS 相关功能只能说“计划/候选/未验证/验证等级”，不能宣称自动找到正确过渡态。
 - 产率输出必须带 `method`、`confidence`、`applicability_domain`、`note`。
@@ -193,6 +197,9 @@ WSL 临时文件必须放在：
 - [done] 连接线已改为按节点相对位置自动选择上下/左右中心锚点，并使用直线边，避免上下连接时出现歪斜和多段弯折。
 - [done] WSL 已可复用 Windows Gaussian 16W；项目 Gaussian runner 能在 Windows 与 WSL 路径下发现该可执行文件。
 - [done] WSL `orgsynflow-chem` 已安装/确认 xTB、CREST、Open Babel、ASE、geomeTRIC、PySCF、Psi4、cclib、GoodVibes 等计算工具。
+- [done] Windows 后端已桥接 WSL OPERA 和 WSL AiZynthFinder CLI，并在 `/compute/status` 暴露 OPERA/AiZynthFinder 状态。
+- [done] 路线预测 UI 已改为可查看候选卡，候选可加入当前画布或新建路线单元；无 AiZynthFinder config 时显示明确 demo fallback。
+- [done] Gaussian 分子任务已改为默认直接提交 opt/freq，高级配置弹窗提供 job type、method、basis、charge、multiplicity 和 gjf 预览。
 - [done] 单元删除入口已加入。
 - [done] 桌面一键开关脚本已创建并验证。
 - [done] `AIREADME.md` 已按项目日志结构重写。
@@ -232,6 +239,8 @@ WSL 临时文件必须放在：
 - WSL 量化 smoke test：PySCF H2/STO-3G energy `-1.11675931`；Psi4 H2/STO-3G energy `-1.11678332`；Gaussian16W H2O HF/STO-3G 正常结束。
 - 计算 API smoke test：`/compute/status` 返回 Gaussian Windows bridge 和 WSL xTB/CREST/Open Babel/PySCF/Psi4/geomeTRIC/GoodVibes/ASE；`/compute/xtb` 对 `O` 返回 `total_energy_hartree=-5.06897994546`；`/compute/crest` 对 `O` 正常 returncode 0。
 - 前端 UI 检查：内置浏览器刷新 `http://127.0.0.1:5173/` 后右侧任务面板显示计算后端状态；选中 CCO 分子后出现 `xTB 优化/能量`、`CREST 构象搜索`；点击 xTB 后结果面板显示 `xTB CLI via WSL` 和 `/tmp/codex/orgsynflow/xtb_jobs/...`。
+- WSL OPERA/AiZynthFinder 检查：`/compute/status` 返回 `opera` 为 `wsl:/home/meta/.local/bin/opera`、`aizynthfinder` 为 `wsl:/home/meta/.local/opt/miniforge3/envs/orgsynflow-chem/bin/aizynthcli`；`/molecule/properties include_opera=true` 对 `CCO` 返回 OPERA `melting_point=-114`、`boiling_point=78`、`logp=-0.31`。
+- 路线候选 UI 检查：内置浏览器选中 CCO 后可见 `RDKit + OPERA QSAR 物性`、`预测逆合成路线`、`提交 Gaussian opt/freq`、`Gaussian 高级配置`；点击路线预测后出现候选卡、fallback 提示、`加入当前画布` 和 `新建路线单元`。
 - 连接 UI 检查：内置浏览器添加三个 CCO 后打开 `连接分子`，依次点击三个分子得到 `edgeCount=2`、`visibleHandles=0`，模式保持开启且提示继续选择下一个分子；点击 `删除全部连线` 后 `edgeCount=0`。
 - 直线连接 UI 检查：内置浏览器临时把示例工作区放成上下两个节点，打开 `连接分子` 后点击下方 A 再点击上方 B，生成 `react-flow__edge-straight canvas-edge`，SVG path 为单段 `M 315,317.5L 315,196.5`，`visibleHandles=0`；验证后已恢复示例数据。
 - 桌面开关脚本：已验证可启动、关闭、重新启动 8765/5173。

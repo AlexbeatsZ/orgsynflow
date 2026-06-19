@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { CellType, ComputeStatus, GaussianJob, Workspace, WorkspaceCell, WorkspaceSummary } from "./types";
+import type { CellType, ComputeStatus, GaussianJob, RouteCandidate, Workspace, WorkspaceCell, WorkspaceSummary } from "./types";
 
 const http = axios.create({ baseURL: "/api" });
 
@@ -52,7 +52,15 @@ export async function calculateDescriptors(smiles: string): Promise<unknown> {
   return data;
 }
 
-export async function analyzeRoute(smiles: string, maxRoutes: number, useAizynth: boolean): Promise<unknown> {
+export async function analyzeRoute(smiles: string, maxRoutes: number, useAizynth: boolean): Promise<{
+  available: boolean;
+  status: string;
+  used_fallback?: boolean;
+  target_smiles: string;
+  candidates: RouteCandidate[];
+  route_scores?: Record<string, unknown>;
+  feasibility?: Record<string, unknown>;
+}> {
   const { data } = await http.post("/route/predict", {
     smiles,
     max_routes: maxRoutes,
@@ -100,10 +108,21 @@ export async function reactionFeatures(reactionSmiles: string): Promise<unknown>
   return data;
 }
 
-export async function makeGaussianInput(smiles: string, jobType = "opt freq"): Promise<string> {
+export async function makeGaussianInput(
+  smiles: string,
+  jobType = "opt freq",
+  method = "B3LYP",
+  basis = "6-31G(d)",
+  charge = 0,
+  multiplicity = 1,
+): Promise<string> {
   const { data } = await http.post("/gaussian/input", {
     smiles,
     job_type: jobType,
+    method,
+    basis,
+    charge,
+    multiplicity,
   });
   return data.gjf;
 }

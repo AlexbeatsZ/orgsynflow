@@ -57,6 +57,8 @@ import type {
   GaussianJob,
   MoleculeObject,
   ReactionObject,
+  RouteCandidate,
+  RouteCandidateSet,
   Workspace,
   WorkspaceCell,
   WorkspaceSummary,
@@ -323,14 +325,112 @@ export function App() {
 }
 
 function ResultPanel({ result }: { result: unknown }) {
+  const routeResult = asRoutePredictionResult(result);
+  const propertyResult = asPropertyResult(result);
+  const computeResult = asComputeResult(result);
+  const gaussianJob = asGaussianJob(result);
   return (
     <section className="result-panel">
       <div className="result-header">
         <BookOpen size={16} />
         <span>结果 / 日志</span>
       </div>
-      <pre>{result ? JSON.stringify(result, null, 2) : "选择一个节点或箭头，然后在右侧运行任务。"}</pre>
+      {!result && <p className="muted">选择一个节点或箭头，然后在右侧运行任务。</p>}
+      {routeResult && <RouteResultView result={routeResult} />}
+      {propertyResult && <PropertyResultView result={propertyResult} />}
+      {computeResult && <ComputeResultView result={computeResult} />}
+      {gaussianJob && <GaussianJobView job={gaussianJob} />}
+      {Boolean(result) && !routeResult && !propertyResult && !computeResult && !gaussianJob && (
+        <pre>{JSON.stringify(result, null, 2) ?? ""}</pre>
+      )}
     </section>
+  );
+}
+
+function RouteResultView({ result }: { result: ReturnType<typeof asRoutePredictionResult> & {} }) {
+  return (
+    <div className="structured-result">
+      <div className="result-summary">
+        <strong>{result.target_smiles}</strong>
+        <span>{result.used_fallback ? "演示候选" : "AiZynthFinder"}</span>
+      </div>
+      <p>{result.status}</p>
+      <div className="route-result-list">
+        {result.candidates.map((route, index) => (
+          <div className="route-result-card" key={route.id}>
+            <strong>{index + 1}. {route.title}</strong>
+            <span>{route.depth} 步 · {route.precursor_count} 个前体 · 库存 {route.stock_count}</span>
+            <small>{route.molecules.map((item) => item.smiles).join("  +  ")}</small>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PropertyResultView({ result }: { result: Record<string, any> }) {
+  const rdkit = result.rdkit ?? {};
+  const opera = result.opera ?? null;
+  return (
+    <div className="structured-result">
+      <div className="result-summary">
+        <strong>{rdkit.SMILES ?? "分子性质"}</strong>
+        <span>{opera?.status === "available" ? "RDKit + OPERA" : "RDKit"}</span>
+      </div>
+      <div className="metric-grid">
+        {["Formula", "MolWt", "LogP", "TPSA", "HBD", "HBA"].map((key) => (
+          rdkit[key] !== undefined && <div key={key}><span>{key}</span><strong>{String(rdkit[key])}</strong></div>
+        ))}
+      </div>
+      {opera && (
+        <div className="result-block">
+          <strong>OPERA QSAR</strong>
+          <p>{opera.status === "available" ? opera.source : opera.reason ?? opera.status}</p>
+          {opera.properties && (
+            <div className="metric-grid">
+              {Object.entries(opera.properties).map(([key, value]) => (
+                <div key={key}><span>{key}</span><strong>{String(value ?? "-")}</strong></div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ComputeResultView({ result }: { result: Record<string, any> }) {
+  return (
+    <div className="structured-result">
+      <div className="result-summary">
+        <strong>{result.source ?? "计算结果"}</strong>
+        <span>{result.status}</span>
+      </div>
+      {result.work_dir && <code>{result.work_dir}</code>}
+      {result.data && (
+        <div className="metric-grid">
+          {Object.entries(result.data).map(([key, value]) => (
+            <div key={key}><span>{key}</span><strong>{String(value ?? "-")}</strong></div>
+          ))}
+        </div>
+      )}
+      {result.reason && <p>{result.reason}</p>}
+      {(result.stdout || result.stderr) && <pre>{[result.stdout, result.stderr].filter(Boolean).join("\n\n")}</pre>}
+    </div>
+  );
+}
+
+function GaussianJobView({ job }: { job: GaussianJob }) {
+  return (
+    <div className="structured-result">
+      <div className="result-summary">
+        <strong>{job.job_id}</strong>
+        <span>{job.status}</span>
+      </div>
+      {job.work_dir && <code>{job.work_dir}</code>}
+      {job.error && <p>{job.error}</p>}
+      {Boolean(job.result) && <pre>{JSON.stringify(job.result, null, 2) ?? ""}</pre>}
+    </div>
   );
 }
 
@@ -888,17 +988,13 @@ function TaskPanel({
         />
       )}
       {workspace?.route_candidate_sets?.length ? (
-        <>
-          <div className="panel-title jobs-title">路线候选集</div>
-          <div className="job-list">
-            {workspace.route_candidate_sets.slice(-4).reverse().map((set) => (
-              <div key={set.id} className="job-row">
-                <span>{set.target_smiles}</span>
-                <strong>{set.status}</strong>
-              </div>
-            ))}
-          </div>
-        </>
+        <RouteCandidateSets
+          sets={workspace.route_candidate_sets}
+          workspace={workspace}
+          selected={selected}
+          onSave={onSave}
+          setResult={setResult}
+        />
       ) : null}
       <div className="panel-title jobs-title">Gaussian 队列</div>
       <div className="job-list">
@@ -913,8 +1009,73 @@ function TaskPanel({
   );
 }
 
+function RouteCandidateSets({
+  sets,
+  workspace,
+  selected,
+  onSave,
+  setResult,
+}: {
+  sets: RouteCandidateSet[];
+  workspace: Workspace;
+  selected: SelectedObject;
+  onSave: (workspace?: Workspace | null) => Promise<void>;
+  setResult: (result: unknown) => void;
+}) {
+  const activeCell = selected?.kind ? selected.cell : workspace.cells[0];
+  const anchorMolecule = selected?.kind === "molecule" ? selected.molecule : null;
+
+  async function addRouteToCurrentCell(route: RouteCandidate) {
+    if (!activeCell) return;
+    const updatedCell = addRouteCandidateToCell(activeCell, route, anchorMolecule);
+    await onSave({
+      ...workspace,
+      cells: workspace.cells.map((cell) => (cell.id === updatedCell.id ? updatedCell : cell)),
+    });
+    setResult({ action: "route_inserted_into_current_cell", route });
+  }
+
+  async function createRouteCell(route: RouteCandidate) {
+    const routeCell = createRouteCellFromCandidate(route);
+    await onSave({
+      ...workspace,
+      cells: [...workspace.cells, routeCell],
+    });
+    setResult({ action: "route_cell_created", route });
+  }
+
+  return (
+    <>
+      <div className="panel-title jobs-title">路线候选集</div>
+      <div className="route-candidate-list">
+        {sets.slice(-4).reverse().map((set) => (
+          <div key={set.id} className="route-candidate-set">
+            <div className="route-candidate-head">
+              <strong>{set.target_smiles}</strong>
+              <span>{set.used_fallback ? "演示" : "预测"}</span>
+            </div>
+            <p>{set.status}</p>
+            {set.candidates.slice(0, 3).map((route, index) => (
+              <div key={route.id} className="route-candidate-card">
+                <button onClick={() => setResult({ ...set, selected_route: route })}>
+                  {index + 1}. {route.title}
+                </button>
+                <span>{route.depth} 步 · 前体 {route.precursor_count} · 库存 {route.stock_count}</span>
+                <div className="route-actions">
+                  <button onClick={() => addRouteToCurrentCell(route)}>加入当前画布</button>
+                  <button onClick={() => createRouteCell(route)}>新建路线单元</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
 function BackendStatus({ status }: { status: ComputeStatus | null }) {
-  const orderedKeys = ["gaussian", "xtb", "crest", "openbabel", "pyscf", "psi4", "geometric", "goodvibes"];
+  const orderedKeys = ["gaussian", "aizynthfinder", "opera", "xtb", "crest", "openbabel", "pyscf", "psi4", "geometric", "goodvibes"];
   const entries = orderedKeys
     .map((key) => [key, status?.[key]] as const)
     .filter(([, item]) => Boolean(item));
@@ -977,11 +1138,12 @@ function MoleculeTasks({
   refreshJobs: () => Promise<void>;
 }) {
   const { molecule } = selected;
+  const [gaussianConfigOpen, setGaussianConfigOpen] = useState(false);
   return (
     <div className="task-group">
       <h3>{molecule.label}</h3>
       <code>{molecule.smiles}</code>
-      <button onClick={() => runTask(() => predictProperties(molecule.smiles, true))}>性质 + OPERA</button>
+      <button onClick={() => runTask(() => predictProperties(molecule.smiles, true))}>RDKit + OPERA QSAR 物性</button>
       <button onClick={() => runTask(() => calculateDescriptors(molecule.smiles))}>描述符</button>
       <button onClick={() => runTask(() => runXtb(molecule.smiles, 300))}>xTB 优化/能量</button>
       <button onClick={() => runTask(() => runCrest(molecule.smiles, 1800))}>CREST 构象搜索</button>
@@ -990,8 +1152,11 @@ function MoleculeTasks({
           runTask(async () => {
             const prediction = (await analyzeRoute(molecule.smiles, 3, true)) as {
               status?: string;
+              used_fallback?: boolean;
               target_smiles?: string;
-              candidates?: unknown[];
+              candidates?: RouteCandidate[];
+              route_scores?: Record<string, unknown>;
+              feasibility?: Record<string, unknown>;
             };
             if (workspace) {
               await onSave({
@@ -1004,6 +1169,9 @@ function MoleculeTasks({
                     status: prediction.status ?? "unknown",
                     created_at: new Date().toISOString(),
                     candidates: prediction.candidates ?? [],
+                    route_scores: prediction.route_scores,
+                    feasibility: prediction.feasibility,
+                    used_fallback: prediction.used_fallback,
                   },
                 ],
               });
@@ -1012,18 +1180,7 @@ function MoleculeTasks({
           })
         }
       >
-        预测路线并缓存候选集
-      </button>
-      <button
-        onClick={() =>
-          runTask(async () => {
-            const gjf = await makeGaussianInput(molecule.smiles);
-            setResult({ gjf });
-            return { gjf };
-          })
-        }
-      >
-        生成 opt/freq gjf
+        预测逆合成路线
       </button>
       <button
         onClick={() =>
@@ -1036,8 +1193,31 @@ function MoleculeTasks({
           })
         }
       >
-        提交 Gaussian 作业
+        提交 Gaussian opt/freq
       </button>
+      <button onClick={() => setGaussianConfigOpen(true)}>Gaussian 高级配置</button>
+      {gaussianConfigOpen && (
+        <GaussianConfigModal
+          smiles={molecule.smiles}
+          onClose={() => setGaussianConfigOpen(false)}
+          onSubmit={(jobType, method, basis, charge, multiplicity) =>
+            runTask(async () => {
+              const gjf = await makeGaussianInput(molecule.smiles, jobType, method, basis, charge, multiplicity);
+              const job = await submitGaussianJob(gjf, workspace?.id, selected.cell.id, molecule.id);
+              await refreshJobs();
+              await onSave(workspace);
+              setGaussianConfigOpen(false);
+              return job;
+            })
+          }
+          onPreview={(jobType, method, basis, charge, multiplicity) =>
+            runTask(async () => {
+              const gjf = await makeGaussianInput(molecule.smiles, jobType, method, basis, charge, multiplicity);
+              return { gjf };
+            })
+          }
+        />
+      )}
     </div>
   );
 }
@@ -1090,6 +1270,70 @@ function ReactionTasks({
       >
         提交 TS Gaussian 作业
       </button>
+    </div>
+  );
+}
+
+function GaussianConfigModal({
+  smiles,
+  onClose,
+  onSubmit,
+  onPreview,
+}: {
+  smiles: string;
+  onClose: () => void;
+  onSubmit: (jobType: string, method: string, basis: string, charge: number, multiplicity: number) => void;
+  onPreview: (jobType: string, method: string, basis: string, charge: number, multiplicity: number) => void;
+}) {
+  const [jobType, setJobType] = useState("opt freq");
+  const [method, setMethod] = useState("B3LYP");
+  const [basis, setBasis] = useState("6-31G(d)");
+  const [charge, setCharge] = useState(0);
+  const [multiplicity, setMultiplicity] = useState(1);
+
+  return (
+    <div className="modal-backdrop">
+      <div className="config-modal">
+        <div className="modal-header">
+          <strong>Gaussian 配置</strong>
+          <button onClick={onClose}>关闭</button>
+        </div>
+        <div className="config-form">
+          <label>
+            结构
+            <code>{smiles}</code>
+          </label>
+          <label>
+            任务
+            <select value={jobType} onChange={(event) => setJobType(event.target.value)}>
+              <option value="opt freq">opt + freq</option>
+              <option value="opt">opt</option>
+              <option value="freq">freq</option>
+              <option value="sp">single point</option>
+            </select>
+          </label>
+          <label>
+            方法
+            <input value={method} onChange={(event) => setMethod(event.target.value)} />
+          </label>
+          <label>
+            基组
+            <input value={basis} onChange={(event) => setBasis(event.target.value)} />
+          </label>
+          <label>
+            电荷
+            <input type="number" value={charge} onChange={(event) => setCharge(Number(event.target.value))} />
+          </label>
+          <label>
+            自旋多重度
+            <input type="number" min={1} value={multiplicity} onChange={(event) => setMultiplicity(Number(event.target.value))} />
+          </label>
+        </div>
+        <div className="modal-footer">
+          <button onClick={() => onPreview(jobType, method, basis, charge, multiplicity)}>预览 gjf</button>
+          <button className="primary-button" onClick={() => onSubmit(jobType, method, basis, charge, multiplicity)}>提交计算</button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -1225,6 +1469,140 @@ function createMoleculeObject(smiles: string, index: number): MoleculeObject {
     ? `mol-${crypto.randomUUID()}`
     : `mol-${Date.now()}-${index}-${Math.random().toString(16).slice(2)}`;
   return { id, label: smiles, smiles };
+}
+
+function addRouteCandidateToCell(cell: WorkspaceCell, route: RouteCandidate, anchorMolecule: MoleculeObject | null): WorkspaceCell {
+  const stamp = Date.now();
+  const idMap = new Map(route.molecules.map((molecule) => [molecule.id, `route-${stamp}-${route.id}-${molecule.id}`]));
+  const routeMolecules: MoleculeObject[] = route.molecules.map((molecule) => ({
+    id: idMap.get(molecule.id) ?? `route-${stamp}-${molecule.id}`,
+    label: molecule.name || molecule.smiles,
+    smiles: molecule.smiles,
+  }));
+  const routeReactions: ReactionObject[] = route.steps.map((step, index) => {
+    const product = route.molecules.find((molecule) => molecule.id === step.product_id);
+    const precursors = step.precursor_ids
+      .map((id) => route.molecules.find((molecule) => molecule.id === id)?.smiles)
+      .filter(Boolean);
+    return {
+      id: `rxn-route-${stamp}-${route.id}-${step.id}-${index}`,
+      label: step.template || `Route step ${index + 1}`,
+      reaction_smiles: step.reaction_smiles || `${precursors.join(".")}>>${product?.smiles ?? ""}`,
+      template: step.template ?? undefined,
+    };
+  });
+  const existingNodes = toNodes(cell);
+  const existingEdges = toEdges(cell);
+  const baseX = 80 + existingNodes.length * 36;
+  const baseY = 80 + existingNodes.length * 20;
+  const routeNodes: Node[] = route.molecules.map((molecule, index) => {
+    const layoutNode = route.layout?.nodes?.[molecule.id];
+    return {
+      id: idMap.get(molecule.id) ?? `route-${stamp}-${index}`,
+      type: "molecule",
+      position: {
+        x: baseX + (layoutNode?.x ?? 260 * index),
+        y: baseY + (layoutNode?.y ?? 120 * index),
+      },
+      data: { label: molecule.name || molecule.smiles, smiles: molecule.smiles },
+    };
+  });
+  const routeEdges: Edge[] = [];
+  route.steps.forEach((step, stepIndex) => {
+    step.precursor_ids.forEach((precursorId, precursorIndex) => {
+      const source = idMap.get(precursorId);
+      const target = idMap.get(step.product_id);
+      if (!source || !target) return;
+      const sourceNode = routeNodes.find((node) => node.id === source);
+      const targetNode = routeNodes.find((node) => node.id === target);
+      const handles = sourceNode && targetNode ? smartConnectionHandles(sourceNode, targetNode) : { sourceHandle: "right", targetHandle: "left" };
+      routeEdges.push(makeCanvasEdge({
+        id: `${routeReactions[stepIndex]?.id ?? `route-edge-${stamp}-${stepIndex}`}-${precursorIndex}`,
+        source,
+        target,
+        sourceHandle: handles.sourceHandle,
+        targetHandle: handles.targetHandle,
+        label: step.template || `Step ${stepIndex + 1}`,
+      }));
+    });
+  });
+  if (anchorMolecule) {
+    const routeTarget = idMap.get(route.target_id);
+    const routeTargetNode = routeNodes.find((node) => node.id === routeTarget);
+    const anchorNode = existingNodes.find((node) => node.id === anchorMolecule.id);
+    if (routeTarget && routeTargetNode && anchorNode) {
+      const handles = smartConnectionHandles(routeTargetNode, anchorNode);
+      routeEdges.push(makeCanvasEdge({
+        id: `route-anchor-${stamp}-${route.id}`,
+        source: routeTarget,
+        target: anchorMolecule.id,
+        sourceHandle: handles.sourceHandle,
+        targetHandle: handles.targetHandle,
+        label: "route target",
+      }));
+    }
+  }
+  return {
+    ...cell,
+    objects: {
+      ...cell.objects,
+      molecules: [...(cell.objects.molecules ?? []), ...routeMolecules],
+      reactions: [...(cell.objects.reactions ?? []), ...routeReactions],
+      routes: [...(cell.objects.routes ?? []), { id: `route-${stamp}-${route.id}`, label: route.title, route }],
+    },
+    canvas: {
+      nodes: [...existingNodes, ...routeNodes],
+      edges: [...existingEdges, ...routeEdges],
+    },
+  };
+}
+
+function createRouteCellFromCandidate(route: RouteCandidate): WorkspaceCell {
+  const now = new Date().toISOString();
+  const id = `cell-route-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const emptyCell: WorkspaceCell = {
+    id,
+    type: "route",
+    title: route.title || "Predicted route",
+    created_at: now,
+    updated_at: now,
+    canvas: { nodes: [], edges: [] },
+    objects: { molecules: [], reactions: [], routes: [{ id: route.id, label: route.title, route }] },
+    results: {},
+  };
+  return addRouteCandidateToCell(emptyCell, route, null);
+}
+
+function asRoutePredictionResult(value: unknown): {
+  status: string;
+  used_fallback?: boolean;
+  target_smiles: string;
+  candidates: RouteCandidate[];
+} | null {
+  if (!value || typeof value !== "object") return null;
+  const result = value as any;
+  if (!Array.isArray(result.candidates) || !result.target_smiles) return null;
+  return result;
+}
+
+function asPropertyResult(value: unknown): Record<string, any> | null {
+  if (!value || typeof value !== "object") return null;
+  const result = value as Record<string, any>;
+  return result.rdkit ? result : null;
+}
+
+function asComputeResult(value: unknown): Record<string, any> | null {
+  if (!value || typeof value !== "object") return null;
+  const result = value as Record<string, any>;
+  return typeof result.status === "string" && typeof result.source === "string" && ("work_dir" in result || "stdout" in result || "data" in result)
+    ? result
+    : null;
+}
+
+function asGaussianJob(value: unknown): GaussianJob | null {
+  if (!value || typeof value !== "object") return null;
+  const result = value as GaussianJob;
+  return result.job_id && result.status ? result : null;
 }
 
 function moleculesFromReaction(reactionSmiles: string): string[] {

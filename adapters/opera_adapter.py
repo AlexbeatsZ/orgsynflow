@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import shutil
+import shlex
 import subprocess
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -9,6 +10,8 @@ from pathlib import Path
 from typing import Any
 
 from core.temp_paths import orgsynflow_temp_dir
+
+WSL_OPERA = "/home/meta/.local/bin/opera"
 
 
 @dataclass(frozen=True)
@@ -36,6 +39,8 @@ def find_opera_executable() -> str | None:
         found = shutil.which(name)
         if found:
             return found
+    if _wsl_file_is_executable(WSL_OPERA):
+        return f"wsl:{WSL_OPERA}"
     return None
 
 
@@ -54,6 +59,9 @@ def predict_with_opera(smiles: str, timeout_seconds: int = 120) -> OperaPredicti
     input_path = work_dir / "input.smi"
     output_path = work_dir / "opera_output.csv"
     input_path.write_text(f"{smiles}\tquery\n", encoding="utf-8")
+
+    if executable.startswith("wsl:"):
+        return _predict_with_wsl_opera(executable.removeprefix("wsl:"), smiles, timeout_seconds)
 
     commands = [
         [
@@ -154,3 +162,92 @@ def _latest_csv(work_dir: Path) -> Path | None:
 def _default_job_dir() -> Path:
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     return orgsynflow_temp_dir("opera_jobs", stamp)
+
+
+def _predict_with_wsl_opera(executable: str, smiles: str, timeout_seconds: int) -> OperaPrediction:
+    wsl_work_dir = f"/tmp/codex/orgsynflow/opera_jobs/{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    script = "\n".join(
+        [
+            "set -u",
+            f"work_dir={shlex.quote(wsl_work_dir)}",
+            "rm -rf \"$work_dir\"",
+            "mkdir -p \"$work_dir\"",
+            "cat > \"$work_dir/input.smi\"",
+            "cd \"$work_dir\"",
+            f"{shlex.quote(executable)} --SMI input.smi -o opera_output.csv -e MP BP logP WS VP -v 0 -c",
+        ]
+    )
+    try:
+        completed = subprocess.run(
+            ["wsl", "-e", "bash", "-lc", script],
+            input=f"{smiles}\tquery\n",
+            check=False,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=timeout_seconds,
+        )
+    except Exception as exc:
+        return OperaPrediction(
+            available=True,
+            status="failed",
+            source="OPERA CLI via WSL",
+            reason=str(exc),
+        )
+
+    if completed.returncode != 0:
+        return OperaPrediction(
+            available=True,
+            status="failed",
+            source="OPERA CLI via WSL",
+            reason=(completed.stderr or completed.stdout or "OPERA WSL run failed.").strip(),
+        )
+
+    copy_dir = _default_job_dir()
+    copy_dir.mkdir(parents=True, exist_ok=True)
+    csv_path = copy_dir / "opera_output.csv"
+    fetch = subprocess.run(
+        ["wsl", "-e", "cat", f"{wsl_work_dir}/opera_output.csv"],
+        check=False,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=10,
+    )
+    if fetch.returncode != 0 or not fetch.stdout.strip():
+        return OperaPrediction(
+            available=True,
+            status="failed",
+            source="OPERA CLI via WSL",
+            reason=(fetch.stderr or "OPERA completed but no CSV output was readable.").strip(),
+        )
+    csv_path.write_text(fetch.stdout, encoding="utf-8")
+    parsed = _parse_opera_csv(csv_path)
+    return OperaPrediction(
+        available=True,
+        status="available",
+        source="OPERA CLI via WSL",
+        properties=parsed["properties"],
+        applicability_domain=parsed["applicability_domain"],
+    )
+
+
+def _wsl_file_is_executable(path: str) -> bool:
+    wsl = shutil.which("wsl")
+    if not wsl:
+        return False
+    try:
+        completed = subprocess.run(
+            [wsl, "-e", "test", "-x", path],
+            check=False,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=5,
+        )
+    except Exception:
+        return False
+    return completed.returncode == 0
