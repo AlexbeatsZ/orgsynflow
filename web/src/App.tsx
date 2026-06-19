@@ -61,6 +61,17 @@ const examples = {
   target: "CC(=O)Oc1ccccc1C(=O)O",
 };
 
+const moleculeHandles = [
+  { id: "top-a", position: Position.Top, style: { left: "34%" } },
+  { id: "top-b", position: Position.Top, style: { left: "66%" } },
+  { id: "right-a", position: Position.Right, style: { top: "30%" } },
+  { id: "right-b", position: Position.Right, style: { top: "70%" } },
+  { id: "bottom-a", position: Position.Bottom, style: { left: "34%" } },
+  { id: "bottom-b", position: Position.Bottom, style: { left: "66%" } },
+  { id: "left-a", position: Position.Left, style: { top: "30%" } },
+  { id: "left-b", position: Position.Left, style: { top: "70%" } },
+];
+
 export function App() {
   const [summaries, setSummaries] = useState<WorkspaceSummary[]>([]);
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
@@ -450,14 +461,22 @@ function MoleculeNode({ data }: NodeProps) {
 
   return (
     <div className="molecule-node">
-      <Handle id="left-source" type="source" position={Position.Left} className="molecule-handle molecule-handle-source" />
+      {moleculeHandles.map((handle) => (
+        <Handle
+          key={handle.id}
+          id={handle.id}
+          type="source"
+          position={handle.position}
+          className="molecule-handle molecule-handle-source"
+          style={handle.style}
+        />
+      ))}
       <div className="molecule-drawing">
         {svg ? <div dangerouslySetInnerHTML={{ __html: svg }} /> : <span className={failed ? "formula-fallback" : ""}>{failed ? displayFormulaLike(smiles) : "渲染中..."}</span>}
       </div>
       <div className="molecule-caption" title={label === smiles ? smiles : `${label} · ${smiles}`}>
         {smiles}
       </div>
-      <Handle id="right-source" type="source" position={Position.Right} className="molecule-handle molecule-handle-source" />
     </div>
   );
 }
@@ -478,12 +497,10 @@ function EditorStrip({ cell, onUpdate }: { cell: WorkspaceCell; onUpdate: (cell:
         const reactionId = `rxn-${Date.now()}-${reactions.length}`;
         reactions.push({ id: reactionId, label: `Step ${reactions.length + 1}`, reaction_smiles: line });
         for (const smiles of moleculesFromReaction(line)) {
-          if (!molecules.some((item) => item.smiles === smiles)) {
-            molecules.push({ id: `mol-${Date.now()}-${molecules.length}`, label: smiles, smiles });
-          }
+          molecules.push(createMoleculeObject(smiles, molecules.length));
         }
-      } else if (!molecules.some((item) => item.smiles === line)) {
-        molecules.push({ id: `mol-${Date.now()}-${molecules.length}`, label: line, smiles: line });
+      } else {
+        molecules.push(createMoleculeObject(line, molecules.length));
       }
     }
     onUpdate({
@@ -894,8 +911,8 @@ function toEdges(cell: WorkspaceCell): Edge[] {
         id: `${reaction.id}-${index}`,
         source: source.id,
         target: target.id,
-        sourceHandle: "right-source",
-        targetHandle: "left-source",
+        sourceHandle: "right-a",
+        targetHandle: "left-a",
         label: reaction.label || `Step ${reactionIndex + 1}`,
         markerEnd: { type: MarkerType.ArrowClosed },
       });
@@ -925,9 +942,23 @@ function normalizeEdge(edge: Edge): Edge {
   return {
     ...edge,
     markerEnd: edge.markerEnd ?? { type: MarkerType.ArrowClosed },
-    sourceHandle: edge.sourceHandle ?? "right-source",
-    targetHandle: edge.targetHandle ?? "left-source",
+    sourceHandle: normalizeMoleculeHandleId(edge.sourceHandle, "right-a"),
+    targetHandle: normalizeMoleculeHandleId(edge.targetHandle, "left-a"),
   };
+}
+
+function normalizeMoleculeHandleId(handleId: string | null | undefined, fallback: string): string {
+  if (!handleId) return fallback;
+  if (handleId === "right-source") return "right-a";
+  if (handleId === "left-source") return "left-a";
+  return moleculeHandles.some((handle) => handle.id === handleId) ? handleId : fallback;
+}
+
+function createMoleculeObject(smiles: string, index: number): MoleculeObject {
+  const id = typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? `mol-${crypto.randomUUID()}`
+    : `mol-${Date.now()}-${index}-${Math.random().toString(16).slice(2)}`;
+  return { id, label: smiles, smiles };
 }
 
 function moleculesFromReaction(reactionSmiles: string): string[] {

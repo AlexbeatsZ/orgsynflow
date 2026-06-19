@@ -135,12 +135,16 @@ WSL 临时文件必须放在：
 - `CO2.H2O` 这类点式组合不是 RDKit SMILES，但其中 `CO2`、`H2O` 等常见小分子式可以安全映射为结构。结构渲染接口应先尝试 RDKit；失败后按点号拆组分，能受控映射的组分画成多结构 SVG；像 `CuSO4.5H2O` 这种暂时不能可靠推断结构的输入再降级为公式 SVG。前端也要把 `svg: null` 作为失败态，避免节点一直显示“渲染中...”。
 - 结果/日志面板不应占据主布局底部全宽；应嵌入中间工作面板内，并使用浅色背景配深色文字，和工作区面板一致。
 - React Flow 手动画出的边不要被误当作第一条反应；只有由 reaction 对象生成的边才打开反应任务。手动画布边应能选中后删除，且禁止自连接这类不可见/无意义边。
+- 化学画布应允许同一个 SMILES/结构出现多个独立节点，不能按 `smiles` 去重；重复试剂、等价底物、不同位置的同一分子都需要独立对象。
+- 分子节点连接位点太少会限制路线/网络表达。当前每个分子节点应提供 8 个连接位点：top-a/top-b/right-a/right-b/bottom-a/bottom-b/left-a/left-b。
 - 前端改动后应尽量用浏览器/Playwright 检查真实 UI，而不只看 `npm run build`。
 
 化学结果表达经验：
 
 - 不要把 heuristic/demo 逻辑包装成真实模型结果。
 - AiZynthFinder、OPERA、RXNMapper、DRFP/RXNFP、xTB、CREST、GoodVibes、cclib 都是可选工具；不可用时应返回明确 unavailable/disabled/fallback，而不是抛未处理异常。
+- 计算后端调研：xTB 官方仓库是 `grimme-lab/xtb`；CREST 官方仓库/文档是 `crest-lab/crest` 和 `crest-lab.github.io/crest-docs`；cclib 可解析多类量化输出；GoodVibes 可从 Gaussian/ORCA/NWChem/Q-Chem/xTB/ASE 结果计算准谐热化学校正；PySCF、Psi4、geomeTRIC、ASE 可作为开源量化/优化/工作流后端候选。
+- Gaussian 是商业闭源软件，不能从 GitHub 或公开源直接安装；WSL 集成需要用户提供合法 Gaussian 安装包和 license/环境变量信息。
 - TS 相关功能只能说“计划/候选/未验证/验证等级”，不能宣称自动找到正确过渡态。
 - 产率输出必须带 `method`、`confidence`、`applicability_domain`、`note`。
 
@@ -175,6 +179,8 @@ WSL 临时文件必须放在：
 - [done] `CO2.H2O` 等点式小分子组合已支持多组分结构图显示；无法可靠推断结构的公式/水合物点式再降级为公式 SVG，不再卡在结构渲染加载态。
 - [done] 结果/日志面板已移入中间工作面板并改为浅色显示。
 - [done] 手动画布箭头已支持选中删除，禁止自连接，且不会再误打开无关反应任务。
+- [done] 同一个 SMILES/结构已允许重复加入画布。
+- [done] 分子节点连接位点已扩展为 8 个。
 - [done] 单元删除入口已加入。
 - [done] 桌面一键开关脚本已创建并验证。
 - [done] `AIREADME.md` 已按项目日志结构重写。
@@ -197,6 +203,8 @@ WSL 临时文件必须放在：
 - [todo] AiZynthFinder 真实配置、stock/policy 路径和路线树解析仍可继续强化。
 - [todo] OPERA 输出字段在 UI 中还需要更好地结构化展示。
 - [todo] Gaussian TS 输入目前仍偏草稿，需要把 scan 建议、反应中心、freq/IRC 检查状态更完整地贯穿 UI。
+- [blocked] Gaussian WSL 安装需要用户提供合法安装包路径、license/server 信息，以及确认是否允许修改 WSL 环境变量。
+- [todo] 可在用户确认后安装/接入 WSL 计算工具链：xTB、CREST、Open Babel、ASE、PySCF、geomeTRIC、Psi4，并把工具状态暴露到 API/UI。
 - [todo] 产率/动力学/热力学结果还需要聚合到路线级评分：总收率、最高能垒、限速步、主要风险。
 - [todo] README 中部分 React 工作区描述可能滞后于当前“通用化学单元”设计，后续可同步更新。
 
@@ -206,4 +214,6 @@ WSL 临时文件必须放在：
 - 前端构建命令：`cd web; npm run build`。
 - `CO2.H2O` UI 回归检查：本机 Chrome + Playwright 打开 `http://127.0.0.1:5173/`，添加节点后确认多组分结构 SVG 已显示；截图在 `%LOCALAPPDATA%\Temp\codex\orgsynflow\co2-h2o-component-structures-ui-check.png`。
 - 布局/箭头 UI 回归检查：本机 Chrome + Playwright 确认结果面板在 `.detail` 内、浅色显示；手动画布边可创建并通过“删除箭头”删除；819px 视口下中间面板宽度约 280px；截图在 `%LOCALAPPDATA%\Temp\codex\orgsynflow\layout-edge-fix-ui-check.png`。
+- 重复结构/连接位点 UI 回归检查：本机 Chrome + Playwright 输入 `CCO\nCCO` 后新增 2 个 CCO 节点；每个分子节点有 8 个 handle；截图在 `%LOCALAPPDATA%\Temp\codex\orgsynflow\duplicate-molecule-handles-ui-check.png`。
+- WSL 计算环境检查：`orgsynflow-chem` 中 `rdkit/cclib/goodvibes` 可 import；未检测到 `g16/g09/gaussian/xtb/crest/obabel` 命令；`ase/pyscf/geometric/psi4` 尚未安装。
 - 桌面开关脚本：已验证可启动、关闭、重新启动 8765/5173。
