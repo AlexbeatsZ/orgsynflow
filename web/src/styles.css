@@ -1179,3 +1179,26 @@ button {
   border: 1px solid #fecaca;
   border-radius: 8px;
 }
+
+/* Ketcher modal centering and sizing */
+.osf-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.osf-ketcher-modal {
+  background: white;
+  max-width: 90vw;
+  max-height: 90vh;
+  width: 800px;
+  height: 600px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  overflow: hidden;
+}
