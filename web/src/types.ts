@@ -43,6 +43,15 @@ export interface MoleculeObject {
   id: string;
   label: string;
   smiles: string;
+  components?: MoleculeComponent[];
+}
+
+export interface MoleculeComponent {
+  id: string;
+  parent_molecule_id: string;
+  component_index: number;
+  smiles: string;
+  label: string;
 }
 
 export interface ReactionObject {
@@ -130,4 +139,3 @@ export interface ComputeBackendStatus {
 }
 
 export type ComputeStatus = Record<string, ComputeBackendStatus>;
-

@@ -330,6 +330,56 @@ button {
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
 }
 
+.molecule-components {
+  display: flex;
+  width: max-content;
+  max-width: 570px;
+  gap: 6px;
+}
+
+.molecule-node:has(.molecule-components) {
+  width: max-content;
+  max-width: 590px;
+}
+
+.molecule-component {
+  width: 172px;
+  padding: 4px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #fff;
+  color: #17202a;
+  cursor: pointer;
+}
+
+.molecule-component:hover,
+.molecule-component:focus-visible {
+  border-color: #60a5fa;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+.molecule-component.selected {
+  border-color: #2563eb;
+  background: #eff6ff;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.22);
+}
+
+.molecule-component > span {
+  display: block;
+  overflow: hidden;
+  color: #334155;
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.component-context {
+  display: block;
+  color: #64748b;
+}
+
 .molecule-node .molecule-handle {
   width: 1px;
   height: 1px;

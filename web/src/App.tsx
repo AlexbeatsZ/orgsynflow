@@ -66,6 +66,7 @@ import type {
   CellType,
   ComputeStatus,
   GaussianJob,
+  MoleculeComponent,
   MoleculeObject,
   ReactionObject,
   RouteCandidate,
@@ -77,7 +78,7 @@ import type {
 
 type SelectedObject =
   | { kind: "cell"; cell: WorkspaceCell }
-  | { kind: "molecule"; cell: WorkspaceCell; molecule: MoleculeObject }
+  | { kind: "molecule"; cell: WorkspaceCell; molecule: MoleculeObject; component?: MoleculeComponent }
   | { kind: "reaction"; cell: WorkspaceCell; reaction: ReactionObject }
   | null;
 
@@ -855,6 +856,7 @@ function CellDetail({
   const [connectMode, setConnectMode] = useState(false);
   const [shiftConnectMode, setShiftConnectMode] = useState(false);
   const [pendingConnectionNodeId, setPendingConnectionNodeId] = useState<string | null>(null);
+  const [selectedComponentId, setSelectedComponentId] = useState<string | null>(null);
   const [relationSourceId, setRelationSourceId] = useState("");
   const [relationTargetId, setRelationTargetId] = useState("");
   const nodeTypes = useMemo(() => ({ molecule: MoleculeNode }), []);
@@ -870,6 +872,7 @@ function CellDetail({
     setNodes(toNodes(cell));
     setEdges(toEdges(cell));
     setSelectedEdgeId(null);
+    setSelectedComponentId(null);
     setPendingConnectionNodeId(null);
     setRelationSourceId("");
     setRelationTargetId("");
@@ -943,7 +946,7 @@ function CellDetail({
     return true;
   }
 
-  function handleNodeClick(node: Node) {
+  function handleNodeClick(node: Node, componentIndex?: number) {
     if (linkingActive) {
       setSelectedEdgeId(null);
       if (!pendingConnectionNodeId) {
@@ -961,7 +964,13 @@ function CellDetail({
     }
     setSelectedEdgeId(null);
     const molecule = cell.objects.molecules?.find((item) => item.id === node.id);
-    if (molecule) onSelect({ kind: "molecule", cell, molecule });
+    if (!molecule) return;
+    const components = componentsForMolecule(molecule);
+    const component = components.length > 1 && componentIndex !== undefined
+      ? components[componentIndex]
+      : undefined;
+    setSelectedComponentId(component?.id ?? null);
+    onSelect({ kind: "molecule", cell, molecule, component });
   }
 
   function removeEdge(edgeId: string) {
@@ -1072,6 +1081,8 @@ function CellDetail({
             data: {
               ...node.data,
               onActivate: () => handleNodeClick(node),
+              onActivateComponent: (componentIndex: number) => handleNodeClick(node, componentIndex),
+              selectedComponentId,
             },
             className: node.id === pendingConnectionNodeId ? "connection-source-node" : undefined,
           }))}
@@ -1109,35 +1120,16 @@ function MoleculeNode({ data }: NodeProps) {
   const smiles = String(data.smiles ?? "");
   const label = String(data.label ?? smiles);
   const onActivate = typeof data.onActivate === "function" ? data.onActivate : null;
-  const [svg, setSvg] = useState<string | null>(null);
-  const [failed, setFailed] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    setSvg(null);
-    setFailed(false);
-    if (!smiles) return;
-    renderMoleculeSvg(smiles)
-      .then((nextSvg) => {
-        if (!cancelled) {
-          setSvg(nextSvg);
-          setFailed(!nextSvg);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setFailed(true);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [smiles]);
+  const onActivateComponent = typeof data.onActivateComponent === "function" ? data.onActivateComponent : null;
+  const selectedComponentId = String(data.selectedComponentId ?? "");
+  const componentSmiles = splitSmilesComponents(smiles);
 
   return (
     <div
       className="molecule-node"
       onClick={(event) => {
         event.stopPropagation();
-        onActivate?.();
+        if (componentSmiles.length <= 1) onActivate?.();
       }}
     >
       {moleculeHandles.map((handle) => (
@@ -1158,12 +1150,64 @@ function MoleculeNode({ data }: NodeProps) {
           />
         </span>
       ))}
-      <div className="molecule-drawing">
-        {svg ? <div dangerouslySetInnerHTML={{ __html: svg }} /> : <span className={failed ? "formula-fallback" : ""}>{failed ? displayFormulaLike(smiles) : "渲染中..."}</span>}
-      </div>
+      {componentSmiles.length > 1 ? (
+        <div className="molecule-components" aria-label="多分子组分">
+          {componentSmiles.map((component, index) => {
+            const componentId = `${String(data.id ?? "")}:component:${index}`;
+            return (
+              <button
+                type="button"
+                className={`molecule-component nodrag nowheel ${selectedComponentId.endsWith(`:component:${index}`) ? "selected" : ""}`}
+                key={`${component}-${index}`}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onActivateComponent?.(index);
+                }}
+                title={`选择组分 ${index + 1}：${component}`}
+                aria-label={`选择组分 ${index + 1}：${component}`}
+                data-component-id={componentId}
+              >
+                <MoleculeDrawing smiles={component} />
+                <span>{component}</span>
+              </button>
+            );
+          })}
+        </div>
+      ) : (
+        <MoleculeDrawing smiles={smiles} />
+      )}
       <div className="molecule-caption" title={label === smiles ? smiles : `${label} · ${smiles}`}>
         {smiles}
       </div>
+    </div>
+  );
+}
+
+function MoleculeDrawing({ smiles }: { smiles: string }) {
+  const [svg, setSvg] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setSvg(null);
+    setFailed(false);
+    if (!smiles) return;
+    renderMoleculeSvg(smiles)
+      .then((nextSvg) => {
+        if (!cancelled) {
+          setSvg(nextSvg);
+          setFailed(!nextSvg);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setFailed(true);
+      });
+    return () => { cancelled = true; };
+  }, [smiles]);
+
+  return (
+    <div className="molecule-drawing">
+      {svg ? <div dangerouslySetInnerHTML={{ __html: svg }} /> : <span className={failed ? "formula-fallback" : ""}>{failed ? displayFormulaLike(smiles) : "渲染中..."}</span>}
     </div>
   );
 }
@@ -1764,9 +1808,11 @@ function MoleculeTasks({
   refreshJobs: () => Promise<void>;
   computeStatus: ComputeStatus | null;
 }) {
-  const { molecule } = selected;
+  const { molecule, component } = selected;
+  const targetSmiles = component?.smiles ?? molecule.smiles;
+  const targetLabel = component?.label ?? molecule.label;
   const [gaussianConfigOpen, setGaussianConfigOpen] = useState(false);
-  const moleculeRouteSets = workspace?.route_candidate_sets?.filter((set) => set.target_smiles === molecule.smiles) ?? [];
+  const moleculeRouteSets = workspace?.route_candidate_sets?.filter((set) => set.target_smiles === targetSmiles) ?? [];
   const propertiesTask = makeTaskDefinition(selected, "molecule-properties", "计算分子性质（RDKit + OPERA）", "RDKit + OPERA");
   const descriptorsTask = makeTaskDefinition(selected, "molecule-descriptors", "计算分子描述符（RDKit）", "RDKit");
   const xtbTask = makeTaskDefinition(selected, "xtb-geometry-energy", "计算几何优化与能量（xTB）", "xTB");
@@ -1799,10 +1845,10 @@ function MoleculeTasks({
     };
 
     const prediction = await runTask(customRouteTask, async () => {
-      const nextPrediction = await analyzeRoute(molecule.smiles, 3, engine);
+      const nextPrediction = await analyzeRoute(targetSmiles, 3, engine);
       routeSet = {
         id: `rcs-${Date.now()}`,
-        target_smiles: nextPrediction.target_smiles ?? molecule.smiles,
+        target_smiles: nextPrediction.target_smiles ?? targetSmiles,
         status: nextPrediction.status ?? "unknown",
         created_at: new Date().toISOString(),
         candidates: nextPrediction.candidates ?? [],
@@ -1830,7 +1876,7 @@ function MoleculeTasks({
   async function submitGaussian(gjfText: string, config: Record<string, unknown>) {
     const job = await runTask(
       gaussianTask,
-      () => submitGaussianJob(gjfText, workspace?.id, selected.cell.id, molecule.id),
+      () => submitGaussianJob(gjfText, workspace?.id, selected.cell.id, component?.id ?? molecule.id),
       {
         openResult: false,
         title: gaussianTask.label,
@@ -1857,12 +1903,13 @@ function MoleculeTasks({
 
   return (
     <div className="task-group">
-      <h3>{molecule.label}</h3>
-      <code>{molecule.smiles}</code>
-      <TaskButton definition={propertiesTask} record={recordFor(propertiesTask)} onRun={() => void runTask(propertiesTask, () => predictProperties(molecule.smiles, true), { title: propertiesTask.label })} openModal={openModal} />
-      <TaskButton definition={descriptorsTask} record={recordFor(descriptorsTask)} onRun={() => void runTask(descriptorsTask, () => calculateDescriptors(molecule.smiles), { title: descriptorsTask.label })} openModal={openModal} />
-      <TaskButton definition={xtbTask} record={recordFor(xtbTask)} onRun={() => void runTask(xtbTask, () => runXtb(molecule.smiles, 300), { title: xtbTask.label })} openModal={openModal} />
-      <TaskButton definition={crestTask} record={recordFor(crestTask)} onRun={() => void runTask(crestTask, () => runCrest(molecule.smiles, 1800), { title: crestTask.label })} openModal={openModal} />
+      <h3>{targetLabel}</h3>
+      {component && <small className="component-context">来自多分子块：{molecule.label}</small>}
+      <code>{targetSmiles}</code>
+      <TaskButton definition={propertiesTask} record={recordFor(propertiesTask)} onRun={() => void runTask(propertiesTask, () => predictProperties(targetSmiles, true), { title: propertiesTask.label })} openModal={openModal} />
+      <TaskButton definition={descriptorsTask} record={recordFor(descriptorsTask)} onRun={() => void runTask(descriptorsTask, () => calculateDescriptors(targetSmiles), { title: descriptorsTask.label })} openModal={openModal} />
+      <TaskButton definition={xtbTask} record={recordFor(xtbTask)} onRun={() => void runTask(xtbTask, () => runXtb(targetSmiles, 300), { title: xtbTask.label })} openModal={openModal} />
+      <TaskButton definition={crestTask} record={recordFor(crestTask)} onRun={() => void runTask(crestTask, () => runCrest(targetSmiles, 1800), { title: crestTask.label })} openModal={openModal} />
       <TaskButton
         definition={routeTask}
         record={recordFor(routeTask)}
@@ -1889,7 +1936,7 @@ function MoleculeTasks({
       />
       {gaussianConfigOpen && (
         <GaussianConfigModal
-          smiles={molecule.smiles}
+          smiles={targetSmiles}
           onClose={() => setGaussianConfigOpen(false)}
           onSubmit={(gjfText, config) => void submitGaussian(gjfText, config)}
         />
@@ -2392,6 +2439,27 @@ function toNodes(cell: WorkspaceCell): Node[] {
     type: "molecule",
     position: savedNodes.get(molecule.id)?.position ?? { x: 80 + (index % 3) * 260, y: 90 + Math.floor(index / 3) * 170 },
     data: { label: molecule.label, smiles: molecule.smiles },
+  }));
+}
+
+function componentsForMolecule(molecule: MoleculeObject): MoleculeComponent[] {
+  const parts = splitSmilesComponents(molecule.smiles);
+  if (molecule.components?.length === parts.length) {
+    return molecule.components.map((component, index) => ({
+      ...component,
+      id: `${molecule.id}:component:${index}`,
+      parent_molecule_id: molecule.id,
+      component_index: index,
+      smiles: parts[index],
+      label: component.label || `组分 ${index + 1}`,
+    }));
+  }
+  return parts.map((smiles, index) => ({
+    id: `${molecule.id}:component:${index}`,
+    parent_molecule_id: molecule.id,
+    component_index: index,
+    smiles,
+    label: `组分 ${index + 1}`,
   }));
 }
 
@@ -3102,7 +3170,11 @@ function makeTaskDefinition(
   label: string,
   engine?: string,
 ): TaskDefinition {
-  const object = selected.kind === "molecule" ? selected.molecule : selected.kind === "reaction" ? selected.reaction : selected.cell;
+  const object = selected.kind === "molecule"
+    ? selected.component ?? selected.molecule
+    : selected.kind === "reaction"
+      ? selected.reaction
+      : selected.cell;
   return {
     id,
     label,
@@ -3146,7 +3218,11 @@ function bindSelection(selected: SelectedObject, workspace: Workspace | null): S
   if (selected.kind === "cell") return { kind: "cell", cell };
   if (selected.kind === "molecule") {
     const molecule = cell.objects.molecules?.find((item) => item.id === selected.molecule.id);
-    return molecule ? { kind: "molecule", cell, molecule } : null;
+    if (!molecule) return null;
+    const component = selected.component
+      ? componentsForMolecule(molecule).find((item) => item.component_index === selected.component?.component_index)
+      : undefined;
+    return { kind: "molecule", cell, molecule, component };
   }
   const reaction = cell.objects.reactions?.find((item) => item.id === selected.reaction.id);
   return reaction ? { kind: "reaction", cell, reaction } : null;
