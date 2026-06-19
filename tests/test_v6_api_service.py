@@ -45,3 +45,14 @@ def test_api_exposes_gaussian_status() -> None:
 
     assert response.status_code == 200
     assert "available" in response.json()
+
+
+def test_api_exposes_compute_backend_status() -> None:
+    client = TestClient(app)
+
+    response = client.get("/compute/status")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert {"gaussian", "xtb", "crest", "pyscf", "psi4"}.issubset(payload)
+    assert "available" in payload["xtb"]

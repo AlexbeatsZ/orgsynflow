@@ -147,6 +147,10 @@ WSL 临时文件必须放在：
 - Gaussian 是商业闭源软件，不能从 GitHub 或公开源直接安装；WSL 集成需要用户提供合法 Gaussian 安装包和 license/环境变量信息。
 - 本机 Windows 已安装 Gaussian 16W：`C:\Users\Meta\AppData\Local\Programs\g16w\g16.exe`。WSL 可通过 `/mnt/c/Users/Meta/AppData/Local/Programs/g16w/g16.exe` 调用该 Windows 可执行文件；`core.gaussian_runner.find_gaussian_executable()` 已加固为先查 PATH，再查 `GAUSS_EXEDIR`，最后扫描 WSL 挂载的 Windows Gaussian 常见路径。
 - WSL `orgsynflow-chem` 计算工具链当前可用：xTB 6.7.1、CREST 3.0.2、Open Babel 3.1.0、ASE 3.28.0、geomeTRIC 1.1.1、PySCF 2.13.1、Psi4 1.10.1、cclib、GoodVibes、RDKit。
+- Windows 后端服务如果直接找不到 xTB/CREST/Open Babel/Psi4/geomeTRIC，可以桥接 WSL `orgsynflow-chem` 的固定路径：`wsl:/home/meta/.local/opt/miniforge3/envs/orgsynflow-chem/bin/<tool>`。`adapters/xtb_adapter.py` 已支持通过 stdin 把 XYZ 写入 WSL `/tmp/codex/orgsynflow/...` 再运行 CLI，避免 Windows/WSL 路径转换和编码问题。
+- 计算后端状态统一由 `/compute/status` 暴露，包含 Gaussian、xTB、CREST、Open Babel、GoodVibes、PySCF、Psi4、geomeTRIC、ASE 的 `available/executable/source`。前端右侧任务面板会显示这些状态。
+- 分子任务面板已有 xTB 和 CREST 按钮。当前实现会用 RDKit 从 SMILES 生成 3D XYZ，再调用 `/compute/xtb` 或 `/compute/crest`；结果和 stdout/stderr 返回到中间结果面板。
+- Windows 调 WSL CLI 时必须显式设置 `encoding="utf-8", errors="replace"`，否则 CREST/xTB 输出里的 UTF-8 字符可能被 GBK 解码线程打断，导致 `stdout` 为 `None` 或测试崩溃。
 - TS 相关功能只能说“计划/候选/未验证/验证等级”，不能宣称自动找到正确过渡态。
 - 产率输出必须带 `method`、`confidence`、`applicability_domain`、`note`。
 
@@ -207,8 +211,9 @@ WSL 临时文件必须放在：
 - [todo] AiZynthFinder 真实配置、stock/policy 路径和路线树解析仍可继续强化。
 - [todo] OPERA 输出字段在 UI 中还需要更好地结构化展示。
 - [todo] Gaussian TS 输入目前仍偏草稿，需要把 scan 建议、反应中心、freq/IRC 检查状态更完整地贯穿 UI。
-- [todo] 把 WSL 计算工具状态和 Gaussian bridge 状态暴露到 API/UI，便于用户在任务面板直接看到可用后端。
-- [todo] 继续把 xTB/CREST/PySCF/Psi4/geomeTRIC 接入具体任务按钮，而不只是环境可用。
+- [done] WSL 计算工具状态和 Gaussian bridge 状态已暴露到 `/compute/status` 和右侧任务面板。
+- [done] xTB/CREST 已接入分子任务按钮，可从当前前端直接运行并把结果送到中间结果面板。
+- [todo] 继续把 PySCF/Psi4/geomeTRIC 接入具体任务按钮，而不只是环境可用。
 - [todo] 产率/动力学/热力学结果还需要聚合到路线级评分：总收率、最高能垒、限速步、主要风险。
 - [todo] README 中部分 React 工作区描述可能滞后于当前“通用化学单元”设计，后续可同步更新。
 
@@ -221,4 +226,6 @@ WSL 临时文件必须放在：
 - 重复结构/连接位点 UI 回归检查：本机 Chrome + Playwright 输入 `CCO\nCCO` 后新增 2 个 CCO 节点；每个分子节点有 8 个 handle；截图在 `%LOCALAPPDATA%\Temp\codex\orgsynflow\duplicate-molecule-handles-ui-check.png`。
 - WSL 计算环境检查：Windows `g16.exe` 可从 WSL 调用；`core.gaussian_runner.run_gaussian_job()` 在 WSL 下跑水分子 HF/STO-3G smoke test 正常结束，并解析出 final energy/HOMO/LUMO；xTB/CREST/Open Babel/ASE/geomeTRIC/PySCF/Psi4/cclib/GoodVibes/RDKit 可用。
 - WSL 量化 smoke test：PySCF H2/STO-3G energy `-1.11675931`；Psi4 H2/STO-3G energy `-1.11678332`；Gaussian16W H2O HF/STO-3G 正常结束。
+- 计算 API smoke test：`/compute/status` 返回 Gaussian Windows bridge 和 WSL xTB/CREST/Open Babel/PySCF/Psi4/geomeTRIC/GoodVibes/ASE；`/compute/xtb` 对 `O` 返回 `total_energy_hartree=-5.06897994546`；`/compute/crest` 对 `O` 正常 returncode 0。
+- 前端 UI 检查：内置浏览器刷新 `http://127.0.0.1:5173/` 后右侧任务面板显示计算后端状态；选中 CCO 分子后出现 `xTB 优化/能量`、`CREST 构象搜索`；点击 xTB 后结果面板显示 `xTB CLI via WSL` 和 `/tmp/codex/orgsynflow/xtb_jobs/...`。
 - 桌面开关脚本：已验证可启动、关闭、重新启动 8765/5173。

@@ -1,10 +1,21 @@
 from __future__ import annotations
 
+import importlib.util
+import shlex
+import shutil
+import subprocess
 from pathlib import Path
 
+from adapters.xtb_adapter import (
+    WSL_CHEM_BIN,
+    find_crest_executable,
+    find_xtb_executable,
+    run_crest_job,
+    run_xtb_job,
+)
 from adapters.registry import list_adapter_statuses
 from adapters.aizynth_adapter import predict_routes_with_fallback
-from core.gaussian import generate_gaussian_input, parse_gaussian_log
+from core.gaussian import coordinates_from_smiles, generate_gaussian_input, parse_gaussian_log
 from core.gaussian_runner import find_gaussian_executable, run_gaussian_job
 from core.kinetics import analyze_energy_profile
 from core.molecule import summarize_molecule
@@ -138,7 +149,30 @@ def gaussian_status() -> dict[str, object]:
     return {
         "available": executable is not None,
         "executable": executable,
+        "source": _executable_source(executable),
     }
+
+
+def compute_backend_status() -> dict[str, object]:
+    return {
+        "gaussian": gaussian_status(),
+        "xtb": _command_status("xTB", find_xtb_executable()),
+        "crest": _command_status("CREST", find_crest_executable()),
+        "openbabel": _command_status("Open Babel", _find_command(("obabel", "obabel.exe"))),
+        "goodvibes": _python_package_status("GoodVibes", "goodvibes"),
+        "pyscf": _python_package_status("PySCF", "pyscf"),
+        "psi4": _command_status("Psi4", _find_command(("psi4", "psi4.exe"))),
+        "geometric": _command_status("geomeTRIC", _find_command(("geometric-optimize", "geometric-optimize.exe"))),
+        "ase": _python_package_status("ASE", "ase"),
+    }
+
+
+def run_xtb_for_smiles(smiles: str, timeout_seconds: int = 300) -> dict[str, object]:
+    return run_xtb_job(_xyz_from_smiles(smiles), timeout_seconds=timeout_seconds).as_dict()
+
+
+def run_crest_for_smiles(smiles: str, timeout_seconds: int = 1800) -> dict[str, object]:
+    return run_crest_job(_xyz_from_smiles(smiles), timeout_seconds=timeout_seconds).as_dict()
 
 
 def parse_gaussian_text(text: str) -> dict[str, object]:
@@ -179,3 +213,98 @@ def _zh_status(status: str) -> str:
         "using bundled demo routes": "已回退到内置演示路线",
     }
     return replacements.get(status, status)
+
+
+def _xyz_from_smiles(smiles: str) -> str:
+    coordinates = coordinates_from_smiles(smiles)
+    coordinate_lines = [line for line in coordinates.splitlines() if line.strip()]
+    return "\n".join([str(len(coordinate_lines)), smiles, *coordinate_lines, ""])
+
+
+def _command_status(name: str, executable: str | None) -> dict[str, object]:
+    return {
+        "name": name,
+        "available": executable is not None,
+        "executable": executable,
+        "source": _executable_source(executable),
+    }
+
+
+def _python_package_status(name: str, package: str) -> dict[str, object]:
+    available = importlib.util.find_spec(package) is not None
+    source = "python" if available else None
+    executable: str | None = None
+    if not available:
+        wsl_available = _wsl_python_package_available(package)
+        available = wsl_available
+        source = "wsl-python" if wsl_available else None
+        executable = f"wsl:{WSL_CHEM_BIN}/python" if wsl_available else None
+    return {
+        "name": name,
+        "available": available,
+        "executable": executable,
+        "source": source,
+    }
+
+
+def _find_command(names: tuple[str, ...]) -> str | None:
+    for name in names:
+        found = shutil.which(name)
+        if found:
+            return found
+    for name in names:
+        wsl_path = _find_wsl_command(name.removesuffix(".exe"))
+        if wsl_path:
+            return wsl_path
+    return None
+
+
+def _find_wsl_command(name: str) -> str | None:
+    wsl = shutil.which("wsl")
+    if not wsl:
+        return None
+    candidate = f"{WSL_CHEM_BIN}/{name}"
+    try:
+        completed = subprocess.run(
+            [wsl, "-e", "test", "-x", candidate],
+            check=False,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=5,
+        )
+    except Exception:
+        return None
+    return f"wsl:{candidate}" if completed.returncode == 0 else None
+
+
+def _wsl_python_package_available(package: str) -> bool:
+    wsl = shutil.which("wsl")
+    if not wsl:
+        return False
+    snippet = f"import importlib.util; raise SystemExit(0 if importlib.util.find_spec({package!r}) else 1)"
+    script = f"{shlex.quote(f'{WSL_CHEM_BIN}/python')} -c {shlex.quote(snippet)}"
+    try:
+        completed = subprocess.run(
+            [wsl, "-e", "bash", "-lc", script],
+            check=False,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=10,
+        )
+    except Exception:
+        return False
+    return completed.returncode == 0
+
+
+def _executable_source(executable: str | None) -> str | None:
+    if executable is None:
+        return None
+    if executable.startswith("wsl:"):
+        return "wsl"
+    if executable.lower().endswith(".exe") or executable.startswith("/mnt/c/"):
+        return "windows"
+    return "path"

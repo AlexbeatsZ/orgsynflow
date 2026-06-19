@@ -41,7 +41,7 @@ def generate_gaussian_input(
     memory: str = "4GB",
 ) -> str:
     route = f"# {job_type} {method}/{basis}"
-    coordinates = _coordinates_from_smiles(smiles)
+    coordinates = coordinates_from_smiles(smiles)
     return "\n".join(
         [
             f"%nprocshared={nproc}",
@@ -58,7 +58,7 @@ def generate_gaussian_input(
     )
 
 
-def _coordinates_from_smiles(smiles: str) -> str:
+def coordinates_from_smiles(smiles: str) -> str:
     try:
         from rdkit import Chem
         from rdkit.Chem import AllChem
@@ -82,6 +82,10 @@ def _coordinates_from_smiles(smiles: str) -> str:
             f"{atom.GetSymbol():<2} {position.x:>12.6f} {position.y:>12.6f} {position.z:>12.6f}"
         )
     return "\n".join(lines)
+
+
+def _coordinates_from_smiles(smiles: str) -> str:
+    return coordinates_from_smiles(smiles)
 
 
 def parse_gaussian_log(text: str) -> GaussianResult:

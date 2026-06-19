@@ -8,6 +8,7 @@ from services.workbench import (
     analyze_target,
     calculate_molecule_descriptors,
     calculate_reaction_features,
+    compute_backend_status,
     estimate_single_reaction_yield,
     explain_single_reaction,
     gaussian_status,
@@ -16,7 +17,9 @@ from services.workbench import (
     parse_gaussian_text,
     plan_single_transition_state,
     predict_molecule_properties,
+    run_crest_for_smiles,
     run_local_gaussian,
+    run_xtb_for_smiles,
 )
 from core.job_queue import gaussian_job_queue
 from core.molecule import molecule_svg
@@ -114,6 +117,11 @@ class GaussianJobRequest(BaseModel):
     object_id: str | None = None
 
 
+class SemiempiricalRunRequest(BaseModel):
+    smiles: str
+    timeout_seconds: int | None = None
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok", "version": "V6"}
@@ -175,6 +183,11 @@ def validate_reaction(request: ReactionValidationRequest) -> dict[str, object]:
 @app.get("/gaussian/status")
 def gaussian_available() -> dict[str, object]:
     return gaussian_status()
+
+
+@app.get("/compute/status")
+def compute_status() -> dict[str, object]:
+    return compute_backend_status()
 
 
 @app.post("/analyze")
@@ -261,6 +274,16 @@ def gaussian_input(request: GaussianInputRequest) -> dict[str, str]:
 @app.post("/gaussian/run")
 def gaussian_run(request: GaussianInputRequest) -> dict[str, object]:
     return run_local_gaussian(request.model_dump())
+
+
+@app.post("/compute/xtb")
+def compute_xtb(request: SemiempiricalRunRequest) -> dict[str, object]:
+    return run_xtb_for_smiles(request.smiles, timeout_seconds=request.timeout_seconds or 300)
+
+
+@app.post("/compute/crest")
+def compute_crest(request: SemiempiricalRunRequest) -> dict[str, object]:
+    return run_crest_for_smiles(request.smiles, timeout_seconds=request.timeout_seconds or 1800)
 
 
 @app.post("/jobs/gaussian")

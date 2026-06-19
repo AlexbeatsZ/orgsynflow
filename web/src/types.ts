@@ -85,3 +85,12 @@ export interface GaussianJob {
   result?: unknown;
   error?: string;
 }
+
+export interface ComputeBackendStatus {
+  name?: string;
+  available: boolean;
+  executable?: string | null;
+  source?: string | null;
+}
+
+export type ComputeStatus = Record<string, ComputeBackendStatus>;

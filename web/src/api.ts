@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { CellType, GaussianJob, Workspace, WorkspaceCell, WorkspaceSummary } from "./types";
+import type { CellType, ComputeStatus, GaussianJob, Workspace, WorkspaceCell, WorkspaceSummary } from "./types";
 
 const http = axios.create({ baseURL: "/api" });
 
@@ -106,6 +106,27 @@ export async function makeGaussianInput(smiles: string, jobType = "opt freq"): P
     job_type: jobType,
   });
   return data.gjf;
+}
+
+export async function getComputeStatus(): Promise<ComputeStatus> {
+  const { data } = await http.get("/compute/status");
+  return data;
+}
+
+export async function runXtb(smiles: string, timeoutSeconds = 300): Promise<unknown> {
+  const { data } = await http.post("/compute/xtb", {
+    smiles,
+    timeout_seconds: timeoutSeconds,
+  });
+  return data;
+}
+
+export async function runCrest(smiles: string, timeoutSeconds = 1800): Promise<unknown> {
+  const { data } = await http.post("/compute/crest", {
+    smiles,
+    timeout_seconds: timeoutSeconds,
+  });
+  return data;
 }
 
 export async function submitGaussianJob(

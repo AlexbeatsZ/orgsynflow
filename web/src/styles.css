@@ -461,6 +461,51 @@ button {
   margin-bottom: 12px;
 }
 
+.backend-status {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.backend-row {
+  min-height: 30px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: #f8fafc;
+  border-radius: 6px;
+  color: #334155;
+  font-size: 12px;
+}
+
+.backend-row span:nth-child(2) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.backend-row strong {
+  color: #475569;
+  font-weight: 700;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+}
+
+.status-dot.ready {
+  background: #059669;
+}
+
+.status-dot.missing {
+  background: #cbd5e1;
+}
+
 .task-group {
   display: flex;
   flex-direction: column;

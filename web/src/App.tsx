@@ -34,6 +34,7 @@ import {
   createWorkspace,
   estimateYield,
   explainReaction,
+  getComputeStatus,
   getWorkspace,
   listJobs,
   listWorkspaces,
@@ -43,11 +44,22 @@ import {
   predictProperties,
   reactionFeatures,
   renderMoleculeSvg,
+  runCrest,
+  runXtb,
   saveWorkspace,
   submitGaussianJob,
   validateReaction,
 } from "./api";
-import type { CellType, GaussianJob, MoleculeObject, ReactionObject, Workspace, WorkspaceCell, WorkspaceSummary } from "./types";
+import type {
+  CellType,
+  ComputeStatus,
+  GaussianJob,
+  MoleculeObject,
+  ReactionObject,
+  Workspace,
+  WorkspaceCell,
+  WorkspaceSummary,
+} from "./types";
 
 type SelectedObject =
   | { kind: "cell"; cell: WorkspaceCell }
@@ -80,16 +92,23 @@ export function App() {
   const [result, setResult] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
   const [jobs, setJobs] = useState<GaussianJob[]>([]);
+  const [computeStatus, setComputeStatus] = useState<ComputeStatus | null>(null);
   const [workspaceMenuOpen, setWorkspaceMenuOpen] = useState(false);
   const [unitRailOpen, setUnitRailOpen] = useState(true);
 
   useEffect(() => {
     refreshWorkspaces();
     refreshJobs();
+    refreshComputeStatus();
   }, []);
 
   useEffect(() => {
     const timer = window.setInterval(refreshJobs, 5000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setInterval(refreshComputeStatus, 30000);
     return () => window.clearInterval(timer);
   }, []);
 
@@ -105,6 +124,14 @@ export function App() {
 
   async function refreshJobs() {
     setJobs(await listJobs());
+  }
+
+  async function refreshComputeStatus() {
+    try {
+      setComputeStatus(await getComputeStatus());
+    } catch {
+      setComputeStatus(null);
+    }
   }
 
   async function handleNewWorkspace() {
@@ -279,6 +306,7 @@ export function App() {
               setResult={setResult}
               onSave={handleSaveWorkspace}
               jobs={jobs}
+              computeStatus={computeStatus}
               refreshJobs={refreshJobs}
             />
           </aside>
@@ -633,6 +661,7 @@ function TaskPanel({
   setResult,
   onSave,
   jobs,
+  computeStatus,
   refreshJobs,
 }: {
   selected: SelectedObject;
@@ -642,6 +671,7 @@ function TaskPanel({
   setResult: (result: unknown) => void;
   onSave: (workspace?: Workspace | null) => Promise<void>;
   jobs: GaussianJob[];
+  computeStatus: ComputeStatus | null;
   refreshJobs: () => Promise<void>;
 }) {
   async function runTask(task: () => Promise<unknown>) {
@@ -661,6 +691,7 @@ function TaskPanel({
         <Boxes size={16} />
         <span>任务面板</span>
       </div>
+      <BackendStatus status={computeStatus} />
       {busy && <div className="busy"><Loader2 size={16} /> 运行中...</div>}
       {!selected && <p className="muted">选择 notebook 单元、分子节点或反应箭头。</p>}
       {selected?.kind === "cell" && <CellTasks selected={selected} runTask={runTask} setResult={setResult} />}
@@ -709,6 +740,32 @@ function TaskPanel({
   );
 }
 
+function BackendStatus({ status }: { status: ComputeStatus | null }) {
+  const orderedKeys = ["gaussian", "xtb", "crest", "openbabel", "pyscf", "psi4", "geometric", "goodvibes"];
+  const entries = orderedKeys
+    .map((key) => [key, status?.[key]] as const)
+    .filter(([, item]) => Boolean(item));
+  return (
+    <div className="backend-status" aria-label="计算后端状态">
+      {entries.length ? (
+        entries.map(([key, item]) => (
+          <div className="backend-row" key={key} title={item?.executable ?? undefined}>
+            <span className={`status-dot ${item?.available ? "ready" : "missing"}`} />
+            <span>{item?.name ?? key}</span>
+            <strong>{item?.available ? item?.source ?? "ready" : "missing"}</strong>
+          </div>
+        ))
+      ) : (
+        <div className="backend-row">
+          <span className="status-dot missing" />
+          <span>计算后端</span>
+          <strong>checking</strong>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function CellTasks({
   selected,
   runTask,
@@ -753,6 +810,8 @@ function MoleculeTasks({
       <code>{molecule.smiles}</code>
       <button onClick={() => runTask(() => predictProperties(molecule.smiles, true))}>性质 + OPERA</button>
       <button onClick={() => runTask(() => calculateDescriptors(molecule.smiles))}>描述符</button>
+      <button onClick={() => runTask(() => runXtb(molecule.smiles, 300))}>xTB 优化/能量</button>
+      <button onClick={() => runTask(() => runCrest(molecule.smiles, 1800))}>CREST 构象搜索</button>
       <button
         onClick={() =>
           runTask(async () => {
