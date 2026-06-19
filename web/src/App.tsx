@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Background,
+  BaseEdge,
   ConnectionMode,
   Controls,
   Handle,
@@ -11,6 +12,7 @@ import {
   useNodesState,
   type Connection,
   type Edge,
+  type EdgeProps,
   type Node,
   type NodeProps,
   MarkerType,
@@ -131,6 +133,10 @@ type TransitionStatePlanResult = {
   suggested_steps: string[];
   warnings: string[];
 };
+
+type Point = { x: number; y: number };
+type Side = "top" | "right" | "bottom" | "left";
+type NodeRect = { id: string; left: number; right: number; top: number; bottom: number };
 
 const moleculeHandles = [
   { id: "top", position: Position.Top, style: { left: "50%", top: "-8px" } },
@@ -683,8 +689,13 @@ function CellDetail({
   const [relationSourceId, setRelationSourceId] = useState("");
   const [relationTargetId, setRelationTargetId] = useState("");
   const nodeTypes = useMemo(() => ({ molecule: MoleculeNode }), []);
+  const edgeTypes = useMemo(() => ({ orthogonal: OrthogonalEdge }), []);
   const molecules = cell.objects.molecules ?? [];
   const linkingActive = connectMode || shiftConnectMode;
+  const routedEdges = useMemo(
+    () => routeEdgesForNodes(edges, nodes).map((edge) => ({ ...edge, selected: edge.id === selectedEdgeId })),
+    [edges, nodes, selectedEdgeId],
+  );
 
   useEffect(() => {
     setNodes(toNodes(cell));
@@ -734,13 +745,12 @@ function CellDetail({
       if (params.source === params.target) return;
       const sourceNode = nodes.find((node) => node.id === params.source);
       const targetNode = nodes.find((node) => node.id === params.target);
-      const handles: Partial<ReturnType<typeof smartConnectionHandles>> =
-        sourceNode && targetNode ? smartConnectionHandles(sourceNode, targetNode) : {};
+      const route = sourceNode && targetNode ? chooseBestOrthogonalRoute(sourceNode, targetNode, nodes) : null;
       const edge = makeCanvasEdge({
         source: params.source,
         target: params.target,
-        sourceHandle: params.sourceHandle ?? handles.sourceHandle,
-        targetHandle: params.targetHandle ?? handles.targetHandle,
+        sourceHandle: route?.sourceHandle ?? normalizeMoleculeHandleId(params.sourceHandle, "right"),
+        targetHandle: route?.targetHandle ?? normalizeMoleculeHandleId(params.targetHandle, "left"),
       });
       setEdges((current) => addEdge(edge, current));
       setSelectedEdgeId(edge.id);
@@ -752,13 +762,12 @@ function CellDetail({
     if (sourceId === targetId) return false;
     const sourceNode = nodes.find((node) => node.id === sourceId);
     const targetNode = nodes.find((node) => node.id === targetId);
-    const handles: Partial<ReturnType<typeof smartConnectionHandles>> =
-      sourceNode && targetNode ? smartConnectionHandles(sourceNode, targetNode) : {};
+    const route = sourceNode && targetNode ? chooseBestOrthogonalRoute(sourceNode, targetNode, nodes) : null;
     const edge = makeCanvasEdge({
       source: sourceId,
       target: targetId,
-      sourceHandle: handles.sourceHandle,
-      targetHandle: handles.targetHandle,
+      sourceHandle: route?.sourceHandle ?? "right",
+      targetHandle: route?.targetHandle ?? "left",
     });
     setEdges((current) => addEdge(edge, current));
     setSelectedEdgeId(edge.id);
@@ -897,8 +906,9 @@ function CellDetail({
             },
             className: node.id === pendingConnectionNodeId ? "connection-source-node" : undefined,
           }))}
-          edges={edges.map((edge) => ({ ...edge, selected: edge.id === selectedEdgeId }))}
+          edges={routedEdges}
           nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
@@ -2282,15 +2292,16 @@ async function fetchTsPlan(reactionSmiles: string): Promise<TransitionStatePlanR
 function normalizeEdge(edge: Edge, nodeMap?: Map<string, Node>): Edge {
   const sourceNode = nodeMap?.get(edge.source);
   const targetNode = nodeMap?.get(edge.target);
-  const handles = sourceNode && targetNode
-    ? smartConnectionHandles(sourceNode, targetNode)
+  const route = nodeMap && sourceNode && targetNode
+    ? chooseBestOrthogonalRoute(sourceNode, targetNode, [...nodeMap.values()])
     : {
         sourceHandle: normalizeMoleculeHandleId(edge.sourceHandle, "right"),
         targetHandle: normalizeMoleculeHandleId(edge.targetHandle, "left"),
+        points: [],
       };
   return {
     ...edge,
-    type: "straight",
+    type: "orthogonal",
     className: edge.className ?? "canvas-edge",
     interactionWidth: edge.interactionWidth ?? 18,
     style: { stroke: "#0f172a", strokeWidth: 3, ...(edge.style ?? {}) },
@@ -2300,15 +2311,16 @@ function normalizeEdge(edge: Edge, nodeMap?: Map<string, Node>): Edge {
       height: 15,
       color: "#0f172a",
     },
-    sourceHandle: handles.sourceHandle,
-    targetHandle: handles.targetHandle,
+    sourceHandle: route.sourceHandle,
+    targetHandle: route.targetHandle,
+    data: { ...(edge.data ?? {}), routePoints: route.points },
   };
 }
 
 function makeCanvasEdge(edge: Partial<Edge> & { source: string; target: string }): Edge {
   return {
     id: edge.id ?? `edge-${Date.now()}-${Math.random().toString(16).slice(2)}`,
-    type: "straight",
+    type: "orthogonal",
     source: edge.source,
     target: edge.target,
     sourceHandle: edge.sourceHandle,
@@ -2326,28 +2338,354 @@ function makeCanvasEdge(edge: Partial<Edge> & { source: string; target: string }
   };
 }
 
-function smartConnectionHandles(source: Node, target: Node): { sourceHandle: string; targetHandle: string } {
-  const sourceCenter = nodeCenter(source);
-  const targetCenter = nodeCenter(target);
-  const dx = targetCenter.x - sourceCenter.x;
-  const dy = targetCenter.y - sourceCenter.y;
-  if (Math.abs(dx) >= Math.abs(dy)) {
-    return dx >= 0
-      ? { sourceHandle: "right", targetHandle: "left" }
-      : { sourceHandle: "left", targetHandle: "right" };
-  }
-  return dy >= 0
-    ? { sourceHandle: "bottom", targetHandle: "top" }
-    : { sourceHandle: "top", targetHandle: "bottom" };
+function routeEdgesForNodes(edges: Edge[], nodes: Node[]): Edge[] {
+  const nodeMap = new Map(nodes.map((node) => [node.id, node]));
+  return edges.map((edge) => normalizeEdge(edge, nodeMap));
 }
 
-function nodeCenter(node: Node): { x: number; y: number } {
+function chooseBestOrthogonalRoute(
+  source: Node,
+  target: Node,
+  nodes: Node[],
+): { sourceHandle: string; targetHandle: string; points: Point[] } {
+  const sourceRect = nodeRect(source);
+  const targetRect = nodeRect(target);
+  const obstacles = nodes
+    .filter((node) => node.id !== source.id && node.id !== target.id)
+    .map((node) => expandRect(nodeRect(node), 18));
+  const candidates: Array<{ sourceHandle: Side; targetHandle: Side; points: Point[] }> = [];
+
+  for (const sourceHandle of sideOrder(sourceRect, targetRect)) {
+    for (const targetHandle of sideOrder(targetRect, sourceRect)) {
+      const sourcePoint = sideCenter(sourceRect, sourceHandle);
+      const targetPoint = sideCenter(targetRect, targetHandle);
+      const sourcePort = sidePort(sourceRect, sourceHandle, 28);
+      const targetPort = sidePort(targetRect, targetHandle, 28);
+      const middle = findOrthogonalPath(sourcePort, targetPort, obstacles);
+      const points = simplifyPoints([sourcePoint, sourcePort, ...middle, targetPort, targetPoint]);
+      candidates.push({ sourceHandle, targetHandle, points });
+    }
+  }
+
+  candidates.sort((left, right) => compareRoutePoints(left.points, right.points));
+  const best = candidates[0] ?? {
+    sourceHandle: "right" as Side,
+    targetHandle: "left" as Side,
+    points: fallbackOrthogonalPath(sideCenter(sourceRect, "right"), sideCenter(targetRect, "left")),
+  };
+  return {
+    sourceHandle: best.sourceHandle,
+    targetHandle: best.targetHandle,
+    points: best.points,
+  };
+}
+
+function findOrthogonalPath(start: Point, end: Point, obstacles: NodeRect[]): Point[] {
+  const xs = uniqueSorted([start.x, end.x, ...obstacles.flatMap((rect) => [rect.left, rect.right])]);
+  const ys = uniqueSorted([start.y, end.y, ...obstacles.flatMap((rect) => [rect.top, rect.bottom])]);
+  const points: Point[] = [];
+  const indexByKey = new Map<string, number>();
+  for (const x of xs) {
+    for (const y of ys) {
+      const point = { x, y };
+      if (isPointInsideAnyRect(point, obstacles)) continue;
+      indexByKey.set(pointKey(point), points.length);
+      points.push(point);
+    }
+  }
+
+  const startIndex = indexByKey.get(pointKey(start));
+  const endIndex = indexByKey.get(pointKey(end));
+  if (startIndex === undefined || endIndex === undefined) {
+    return fallbackOrthogonalPath(start, end);
+  }
+
+  const neighbors = buildOrthogonalNeighbors(points, obstacles);
+  const bestPath = runOrthogonalSearch(points, neighbors, startIndex, endIndex);
+  return simplifyPoints(bestPath ?? fallbackOrthogonalPath(start, end));
+}
+
+function buildOrthogonalNeighbors(points: Point[], obstacles: NodeRect[]): number[][] {
+  const neighbors = points.map(() => [] as number[]);
+  const byY = new Map<number, number[]>();
+  const byX = new Map<number, number[]>();
+  points.forEach((point, index) => {
+    byY.set(point.y, [...(byY.get(point.y) ?? []), index]);
+    byX.set(point.x, [...(byX.get(point.x) ?? []), index]);
+  });
+  for (const indices of byY.values()) {
+    indices.sort((a, b) => points[a].x - points[b].x);
+    connectVisibleAdjacent(indices, points, obstacles, neighbors);
+  }
+  for (const indices of byX.values()) {
+    indices.sort((a, b) => points[a].y - points[b].y);
+    connectVisibleAdjacent(indices, points, obstacles, neighbors);
+  }
+  return neighbors;
+}
+
+function connectVisibleAdjacent(indices: number[], points: Point[], obstacles: NodeRect[], neighbors: number[][]): void {
+  for (let index = 0; index < indices.length - 1; index += 1) {
+    const left = indices[index];
+    const right = indices[index + 1];
+    if (segmentBlocked(points[left], points[right], obstacles)) continue;
+    neighbors[left].push(right);
+    neighbors[right].push(left);
+  }
+}
+
+function runOrthogonalSearch(
+  points: Point[],
+  neighbors: number[][],
+  startIndex: number,
+  endIndex: number,
+): Point[] | null {
+  type SearchState = {
+    index: number;
+    direction: "h" | "v" | null;
+    length: number;
+    bends: number;
+    completedSegments: number[];
+    activeSegment: number;
+    path: number[];
+  };
+  const queue: SearchState[] = [{
+    index: startIndex,
+    direction: null,
+    length: 0,
+    bends: 0,
+    completedSegments: [],
+    activeSegment: 0,
+    path: [startIndex],
+  }];
+  const bestByState = new Map<string, SearchState>();
+
+  while (queue.length) {
+    queue.sort(compareSearchStates);
+    const state = queue.shift()!;
+    const key = `${state.index}:${state.direction ?? "none"}`;
+    const previous = bestByState.get(key);
+    if (previous && compareSearchStates(previous, state) <= 0) continue;
+    bestByState.set(key, state);
+    if (state.index === endIndex) {
+      return state.path.map((index) => points[index]);
+    }
+    for (const nextIndex of neighbors[state.index]) {
+      if (state.path.includes(nextIndex)) continue;
+      const current = points[state.index];
+      const next = points[nextIndex];
+      const direction = current.x === next.x ? "v" : "h";
+      const distance = manhattan(current, next);
+      const sameDirection = state.direction === null || state.direction === direction;
+      const nextState: SearchState = {
+        index: nextIndex,
+        direction,
+        length: state.length + distance,
+        bends: sameDirection ? state.bends : state.bends + 1,
+        completedSegments: sameDirection ? state.completedSegments : [...state.completedSegments, state.activeSegment],
+        activeSegment: sameDirection ? state.activeSegment + distance : distance,
+        path: [...state.path, nextIndex],
+      };
+      queue.push(nextState);
+    }
+  }
+  return null;
+}
+
+function compareSearchStates(left: {
+  length: number;
+  bends: number;
+  completedSegments: number[];
+  activeSegment: number;
+}, right: {
+  length: number;
+  bends: number;
+  completedSegments: number[];
+  activeSegment: number;
+}): number {
+  if (left.length !== right.length) return left.length - right.length;
+  if (left.bends !== right.bends) return left.bends - right.bends;
+  return compareSegmentPreference([...left.completedSegments, left.activeSegment], [...right.completedSegments, right.activeSegment]);
+}
+
+function compareRoutePoints(left: Point[], right: Point[]): number {
+  const leftLengths = routeSegmentLengths(left);
+  const rightLengths = routeSegmentLengths(right);
+  const leftLength = leftLengths.reduce((sum, value) => sum + value, 0);
+  const rightLength = rightLengths.reduce((sum, value) => sum + value, 0);
+  if (leftLength !== rightLength) return leftLength - rightLength;
+  const leftBends = Math.max(0, leftLengths.length - 1);
+  const rightBends = Math.max(0, rightLengths.length - 1);
+  if (leftBends !== rightBends) return leftBends - rightBends;
+  return compareSegmentPreference(leftLengths, rightLengths);
+}
+
+function compareSegmentPreference(left: number[], right: number[]): number {
+  const length = Math.max(left.length, right.length);
+  for (let index = 0; index < length; index += 1) {
+    const leftValue = left[index] ?? 0;
+    const rightValue = right[index] ?? 0;
+    if (leftValue !== rightValue) return rightValue - leftValue;
+  }
+  return 0;
+}
+
+function routeSegmentLengths(points: Point[]): number[] {
+  const simplified = simplifyPoints(points);
+  const lengths: number[] = [];
+  for (let index = 1; index < simplified.length; index += 1) {
+    lengths.push(manhattan(simplified[index - 1], simplified[index]));
+  }
+  return lengths;
+}
+
+function sideOrder(source: NodeRect, target: NodeRect): Side[] {
+  const sourceCenter = rectCenter(source);
+  const targetCenter = rectCenter(target);
+  const dx = targetCenter.x - sourceCenter.x;
+  const dy = targetCenter.y - sourceCenter.y;
+  const horizontal: Side[] = dx >= 0 ? ["right", "left"] : ["left", "right"];
+  const vertical: Side[] = dy >= 0 ? ["bottom", "top"] : ["top", "bottom"];
+  return Math.abs(dx) >= Math.abs(dy)
+    ? [horizontal[0], vertical[0], vertical[1], horizontal[1]]
+    : [vertical[0], horizontal[0], horizontal[1], vertical[1]];
+}
+
+function nodeRect(node: Node): NodeRect {
   const width = typeof node.measured?.width === "number" ? node.measured.width : 190;
   const height = typeof node.measured?.height === "number" ? node.measured.height : 142;
   return {
-    x: node.position.x + width / 2,
-    y: node.position.y + height / 2,
+    id: node.id,
+    left: node.position.x,
+    right: node.position.x + width,
+    top: node.position.y,
+    bottom: node.position.y + height,
   };
+}
+
+function rectCenter(rect: NodeRect): Point {
+  return {
+    x: (rect.left + rect.right) / 2,
+    y: (rect.top + rect.bottom) / 2,
+  };
+}
+
+function sideCenter(rect: NodeRect, side: Side): Point {
+  const center = rectCenter(rect);
+  if (side === "top") return { x: center.x, y: rect.top };
+  if (side === "right") return { x: rect.right, y: center.y };
+  if (side === "bottom") return { x: center.x, y: rect.bottom };
+  return { x: rect.left, y: center.y };
+}
+
+function sidePort(rect: NodeRect, side: Side, offset: number): Point {
+  const point = sideCenter(rect, side);
+  if (side === "top") return { x: point.x, y: point.y - offset };
+  if (side === "right") return { x: point.x + offset, y: point.y };
+  if (side === "bottom") return { x: point.x, y: point.y + offset };
+  return { x: point.x - offset, y: point.y };
+}
+
+function expandRect(rect: NodeRect, margin: number): NodeRect {
+  return {
+    id: rect.id,
+    left: rect.left - margin,
+    right: rect.right + margin,
+    top: rect.top - margin,
+    bottom: rect.bottom + margin,
+  };
+}
+
+function isPointInsideAnyRect(point: Point, rects: NodeRect[]): boolean {
+  return rects.some((rect) => point.x > rect.left && point.x < rect.right && point.y > rect.top && point.y < rect.bottom);
+}
+
+function segmentBlocked(start: Point, end: Point, rects: NodeRect[]): boolean {
+  if (start.x === end.x) {
+    const top = Math.min(start.y, end.y);
+    const bottom = Math.max(start.y, end.y);
+    return rects.some((rect) => start.x > rect.left && start.x < rect.right && bottom > rect.top && top < rect.bottom);
+  }
+  if (start.y === end.y) {
+    const left = Math.min(start.x, end.x);
+    const right = Math.max(start.x, end.x);
+    return rects.some((rect) => start.y > rect.top && start.y < rect.bottom && right > rect.left && left < rect.right);
+  }
+  return true;
+}
+
+function fallbackOrthogonalPath(start: Point, end: Point): Point[] {
+  if (start.x === end.x || start.y === end.y) return [start, end];
+  return simplifyPoints([start, { x: end.x, y: start.y }, end]);
+}
+
+function simplifyPoints(points: Point[]): Point[] {
+  const deduped = points.filter((point, index) => index === 0 || point.x !== points[index - 1].x || point.y !== points[index - 1].y);
+  const simplified: Point[] = [];
+  for (const point of deduped) {
+    const previous = simplified[simplified.length - 1];
+    const beforePrevious = simplified[simplified.length - 2];
+    if (beforePrevious && previous && ((beforePrevious.x === previous.x && previous.x === point.x) || (beforePrevious.y === previous.y && previous.y === point.y))) {
+      simplified[simplified.length - 1] = point;
+    } else {
+      simplified.push(point);
+    }
+  }
+  return simplified;
+}
+
+function uniqueSorted(values: number[]): number[] {
+  return [...new Set(values.map((value) => Math.round(value * 1000) / 1000))].sort((left, right) => left - right);
+}
+
+function pointKey(point: Point): string {
+  return `${point.x},${point.y}`;
+}
+
+function manhattan(start: Point, end: Point): number {
+  return Math.abs(end.x - start.x) + Math.abs(end.y - start.y);
+}
+
+function pointsToSvgPath(points: Point[]): string {
+  const simplified = simplifyPoints(points);
+  if (!simplified.length) return "";
+  const [first, ...rest] = simplified;
+  return `M ${first.x},${first.y}${rest.map((point) => `L ${point.x},${point.y}`).join("")}`;
+}
+
+function midPointOnPath(points: Point[]): Point {
+  const simplified = simplifyPoints(points);
+  const lengths = routeSegmentLengths(simplified);
+  const total = lengths.reduce((sum, value) => sum + value, 0);
+  let remaining = total / 2;
+  for (let index = 1; index < simplified.length; index += 1) {
+    const start = simplified[index - 1];
+    const end = simplified[index];
+    const length = manhattan(start, end);
+    if (remaining <= length) {
+      const ratio = length === 0 ? 0 : remaining / length;
+      return { x: start.x + (end.x - start.x) * ratio, y: start.y + (end.y - start.y) * ratio };
+    }
+    remaining -= length;
+  }
+  return simplified[Math.max(0, simplified.length - 1)] ?? { x: 0, y: 0 };
+}
+
+function OrthogonalEdge(props: EdgeProps) {
+  const routePoints = Array.isArray(props.data?.routePoints) ? props.data.routePoints as Point[] : [
+    { x: props.sourceX, y: props.sourceY },
+    { x: props.targetX, y: props.targetY },
+  ];
+  const edgePath = pointsToSvgPath(routePoints);
+  const labelPoint = midPointOnPath(routePoints);
+  return (
+    <BaseEdge
+      {...props}
+      path={edgePath}
+      labelX={labelPoint.x}
+      labelY={labelPoint.y}
+    />
+  );
 }
 
 function normalizeMoleculeHandleId(handleId: string | null | undefined, fallback: string): string {
@@ -2508,14 +2846,15 @@ function addRouteCandidateToCell(cell: WorkspaceCell, route: RouteCandidate, anc
 
     const sourceNode = routeNodes.find((n) => n.id === reactantsNodeId);
     const targetNode = routeNodes.find((n) => n.id === targetNodeIdForStep);
-    const handles = sourceNode && targetNode ? smartConnectionHandles(sourceNode, targetNode) : { sourceHandle: "right", targetHandle: "left" };
+    const routeNodesForPath = [...existingNodes, ...routeNodes];
+    const routePath = sourceNode && targetNode ? chooseBestOrthogonalRoute(sourceNode, targetNode, routeNodesForPath) : null;
 
     routeEdges.push(makeCanvasEdge({
       id: `${rxnId}-edge`,
       source: reactantsNodeId,
       target: targetNodeIdForStep,
-      sourceHandle: handles.sourceHandle,
-      targetHandle: handles.targetHandle,
+      sourceHandle: routePath?.sourceHandle ?? "right",
+      targetHandle: routePath?.targetHandle ?? "left",
       label: step.template || `Step ${stepIndex + 1}`,
     }));
   });
@@ -2525,13 +2864,13 @@ function addRouteCandidateToCell(cell: WorkspaceCell, route: RouteCandidate, anc
     const anchorNode = existingNodes.find((n) => n.id === anchorMolecule.id);
     const targetNodeObj = routeNodes.find((n) => n.id === targetNodeId);
     if (targetNodeObj && anchorNode) {
-      const handles = smartConnectionHandles(targetNodeObj, anchorNode);
+      const routePath = chooseBestOrthogonalRoute(targetNodeObj, anchorNode, [...existingNodes, ...routeNodes]);
       routeEdges.push(makeCanvasEdge({
         id: `route-anchor-${stamp}-${route.id}`,
         source: targetNodeId,
         target: anchorMolecule.id,
-        sourceHandle: handles.sourceHandle,
-        targetHandle: handles.targetHandle,
+        sourceHandle: routePath.sourceHandle,
+        targetHandle: routePath.targetHandle,
         label: "route target",
       }));
     }
