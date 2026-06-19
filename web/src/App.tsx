@@ -367,11 +367,13 @@ function CellDetail({
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [connectMode, setConnectMode] = useState(false);
+  const [shiftConnectMode, setShiftConnectMode] = useState(false);
   const [pendingConnectionNodeId, setPendingConnectionNodeId] = useState<string | null>(null);
   const [relationSourceId, setRelationSourceId] = useState("");
   const [relationTargetId, setRelationTargetId] = useState("");
   const nodeTypes = useMemo(() => ({ molecule: MoleculeNode }), []);
   const molecules = cell.objects.molecules ?? [];
+  const linkingActive = connectMode || shiftConnectMode;
 
   useEffect(() => {
     setNodes(toNodes(cell));
@@ -381,6 +383,28 @@ function CellDetail({
     setRelationSourceId("");
     setRelationTargetId("");
   }, [cell.id, cell.objects]);
+
+  useEffect(() => {
+    function handleShiftDown(event: KeyboardEvent) {
+      if (event.key !== "Shift") return;
+      if (event.target instanceof HTMLTextAreaElement || event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement) return;
+      setShiftConnectMode(true);
+      setSelectedEdgeId(null);
+    }
+
+    function handleShiftUp(event: KeyboardEvent) {
+      if (event.key !== "Shift") return;
+      setShiftConnectMode(false);
+      setPendingConnectionNodeId(null);
+    }
+
+    window.addEventListener("keydown", handleShiftDown);
+    window.addEventListener("keyup", handleShiftUp);
+    return () => {
+      window.removeEventListener("keydown", handleShiftDown);
+      window.removeEventListener("keyup", handleShiftUp);
+    };
+  }, []);
 
   useEffect(() => {
     function deleteSelectedEdge(event: KeyboardEvent) {
@@ -413,8 +437,8 @@ function CellDetail({
     [nodes, setEdges],
   );
 
-  function createRelationship(sourceId: string, targetId: string) {
-    if (sourceId === targetId) return;
+  function createRelationship(sourceId: string, targetId: string): boolean {
+    if (sourceId === targetId) return false;
     const sourceNode = nodes.find((node) => node.id === sourceId);
     const targetNode = nodes.find((node) => node.id === targetId);
     const handles: Partial<ReturnType<typeof smartConnectionHandles>> =
@@ -427,19 +451,23 @@ function CellDetail({
     });
     setEdges((current) => addEdge(edge, current));
     setSelectedEdgeId(edge.id);
+    return true;
   }
 
   function handleNodeClick(node: Node) {
-    if (connectMode) {
+    if (linkingActive) {
       setSelectedEdgeId(null);
       if (!pendingConnectionNodeId) {
         setPendingConnectionNodeId(node.id);
         setRelationSourceId(node.id);
         return;
       }
-      createRelationship(pendingConnectionNodeId, node.id);
-      setPendingConnectionNodeId(null);
-      setConnectMode(false);
+      if (createRelationship(pendingConnectionNodeId, node.id)) {
+        setPendingConnectionNodeId(node.id);
+        setRelationSourceId(node.id);
+        const nextTarget = molecules.find((molecule) => molecule.id !== node.id)?.id ?? "";
+        setRelationTargetId(nextTarget);
+      }
       return;
     }
     setSelectedEdgeId(null);
@@ -450,6 +478,12 @@ function CellDetail({
   function removeEdge(edgeId: string) {
     setEdges((current) => current.filter((edge) => edge.id !== edgeId));
     setSelectedEdgeId(null);
+  }
+
+  function removeAllEdges() {
+    setEdges([]);
+    setSelectedEdgeId(null);
+    setPendingConnectionNodeId(null);
   }
 
   function persistCanvas() {
@@ -469,9 +503,10 @@ function CellDetail({
             <button
               className={`ghost-button compact ${connectMode ? "active-action" : ""}`}
               onClick={() => {
-                setConnectMode((enabled) => !enabled);
+                const nextMode = !connectMode;
                 const first = molecules[0]?.id ?? "";
                 const second = molecules.find((molecule) => molecule.id !== first)?.id ?? "";
+                setConnectMode(nextMode);
                 setPendingConnectionNodeId(null);
                 setRelationSourceId(first);
                 setRelationTargetId(second);
@@ -480,10 +515,19 @@ function CellDetail({
             >
               <Link2 size={14} /> 连接分子
             </button>
-            {connectMode && <span className="toolbar-hint">{pendingConnectionNodeId ? "选择目标块" : "选择起点块"}</span>}
+            {linkingActive && (
+              <span className="toolbar-hint">
+                {pendingConnectionNodeId ? "继续选择下一个分子" : shiftConnectMode ? "Shift 连线：选择起点" : "选择起点分子"}
+              </span>
+            )}
             {selectedEdgeId && (
               <button className="ghost-button compact danger-action" onClick={() => removeEdge(selectedEdgeId)}>
                 <Trash2 size={14} /> 删除箭头
+              </button>
+            )}
+            {edges.length > 0 && (
+              <button className="ghost-button compact danger-action" onClick={removeAllEdges}>
+                <Trash2 size={14} /> 删除全部连线
               </button>
             )}
             <button className="ghost-button compact" onClick={persistCanvas}>同步画布到单元</button>
@@ -519,9 +563,12 @@ function CellDetail({
               className="primary-button compact"
               disabled={!relationSourceId || !relationTargetId || relationSourceId === relationTargetId}
               onClick={() => {
-                createRelationship(relationSourceId, relationTargetId);
-                setPendingConnectionNodeId(null);
-                setConnectMode(false);
+                if (createRelationship(relationSourceId, relationTargetId)) {
+                  setPendingConnectionNodeId(relationTargetId);
+                  setRelationSourceId(relationTargetId);
+                  const nextTarget = molecules.find((molecule) => molecule.id !== relationTargetId)?.id ?? "";
+                  setRelationTargetId(nextTarget);
+                }
               }}
             >
               创建连接
@@ -555,7 +602,7 @@ function CellDetail({
           }}
           onPaneClick={() => {
             setSelectedEdgeId(null);
-            setPendingConnectionNodeId(null);
+            if (!connectMode) setPendingConnectionNodeId(null);
           }}
           onEdgesDelete={() => setSelectedEdgeId(null)}
         >
