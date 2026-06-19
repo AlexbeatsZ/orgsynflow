@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Background,
+  ConnectionMode,
   Controls,
   Handle,
   MarkerType,
@@ -244,15 +245,18 @@ export function App() {
             </aside>
           )}
           <section className="detail">
-            {activeCell ? (
-              <CellDetail
-                cell={activeCell}
-                onUpdate={updateCell}
-                onSelect={setSelected}
-              />
-            ) : (
-              <EmptyState />
-            )}
+            <div className="detail-stack">
+              {activeCell ? (
+                <CellDetail
+                  cell={activeCell}
+                  onUpdate={updateCell}
+                  onSelect={setSelected}
+                />
+              ) : (
+                <EmptyState />
+              )}
+              <ResultPanel result={result} />
+            </div>
           </section>
 
           <aside className="task-panel">
@@ -269,15 +273,20 @@ export function App() {
           </aside>
         </div>
 
-        <section className="result-panel">
-          <div className="result-header">
-            <BookOpen size={16} />
-            <span>结果 / 日志</span>
-          </div>
-          <pre>{result ? JSON.stringify(result, null, 2) : "选择一个节点或箭头，然后在右侧运行任务。"}</pre>
-        </section>
       </main>
     </div>
+  );
+}
+
+function ResultPanel({ result }: { result: unknown }) {
+  return (
+    <section className="result-panel">
+      <div className="result-header">
+        <BookOpen size={16} />
+        <span>结果 / 日志</span>
+      </div>
+      <pre>{result ? JSON.stringify(result, null, 2) : "选择一个节点或箭头，然后在右侧运行任务。"}</pre>
+    </section>
   );
 }
 
@@ -316,17 +325,48 @@ function CellDetail({
   const initialEdges = useMemo(() => toEdges(cell), [cell.id]);
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const nodeTypes = useMemo(() => ({ molecule: MoleculeNode }), []);
 
   useEffect(() => {
     setNodes(toNodes(cell));
     setEdges(toEdges(cell));
+    setSelectedEdgeId(null);
   }, [cell.id, cell.objects]);
 
+  useEffect(() => {
+    function deleteSelectedEdge(event: KeyboardEvent) {
+      if (!selectedEdgeId || (event.key !== "Delete" && event.key !== "Backspace")) return;
+      if (event.target instanceof HTMLTextAreaElement || event.target instanceof HTMLInputElement) return;
+      event.preventDefault();
+      removeEdge(selectedEdgeId);
+    }
+    window.addEventListener("keydown", deleteSelectedEdge);
+    return () => window.removeEventListener("keydown", deleteSelectedEdge);
+  }, [selectedEdgeId]);
+
   const onConnect = useCallback(
-    (params: Connection) => setEdges((current) => addEdge({ ...params, markerEnd: { type: MarkerType.ArrowClosed } }, current)),
+    (params: Connection) => {
+      if (!params.source || !params.target) return;
+      if (params.source === params.target) return;
+      const edge: Edge = {
+        id: `edge-${Date.now()}`,
+        source: params.source,
+        target: params.target,
+        sourceHandle: params.sourceHandle,
+        targetHandle: params.targetHandle,
+        markerEnd: { type: MarkerType.ArrowClosed },
+      };
+      setEdges((current) => addEdge(edge, current));
+      setSelectedEdgeId(edge.id);
+    },
     [setEdges],
   );
+
+  function removeEdge(edgeId: string) {
+    setEdges((current) => current.filter((edge) => edge.id !== edgeId));
+    setSelectedEdgeId(null);
+  }
 
   function persistCanvas() {
     onUpdate({
@@ -340,25 +380,38 @@ function CellDetail({
     <div className="detail-shell">
       <div className="detail-toolbar">
         <strong>{cell.title}</strong>
-        <button className="ghost-button compact" onClick={persistCanvas}>同步画布到单元</button>
+        <div className="toolbar-actions">
+          {selectedEdgeId && (
+            <button className="ghost-button compact danger-action" onClick={() => removeEdge(selectedEdgeId)}>
+              <Trash2 size={14} /> 删除箭头
+            </button>
+          )}
+          <button className="ghost-button compact" onClick={persistCanvas}>同步画布到单元</button>
+        </div>
       </div>
       <div className="canvas">
         <ReactFlow
           nodes={nodes}
-          edges={edges}
+          edges={edges.map((edge) => ({ ...edge, selected: edge.id === selectedEdgeId }))}
           nodeTypes={nodeTypes}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
+          connectionMode={ConnectionMode.Loose}
+          deleteKeyCode={["Backspace", "Delete"]}
           fitView
           onNodeClick={(_, node) => {
+            setSelectedEdgeId(null);
             const molecule = cell.objects.molecules?.find((item) => item.id === node.id);
             if (molecule) onSelect({ kind: "molecule", cell, molecule });
           }}
           onEdgeClick={(_, edge) => {
+            setSelectedEdgeId(edge.id);
             const reaction = reactionFromEdge(cell, edge);
             if (reaction) onSelect({ kind: "reaction", cell, reaction });
           }}
+          onPaneClick={() => setSelectedEdgeId(null)}
+          onEdgesDelete={() => setSelectedEdgeId(null)}
         >
           <Background />
           <Controls />
@@ -397,14 +450,14 @@ function MoleculeNode({ data }: NodeProps) {
 
   return (
     <div className="molecule-node">
-      <Handle type="target" position={Position.Left} />
+      <Handle id="left-source" type="source" position={Position.Left} className="molecule-handle molecule-handle-source" />
       <div className="molecule-drawing">
         {svg ? <div dangerouslySetInnerHTML={{ __html: svg }} /> : <span className={failed ? "formula-fallback" : ""}>{failed ? displayFormulaLike(smiles) : "渲染中..."}</span>}
       </div>
       <div className="molecule-caption" title={label === smiles ? smiles : `${label} · ${smiles}`}>
         {smiles}
       </div>
-      <Handle type="source" position={Position.Right} />
+      <Handle id="right-source" type="source" position={Position.Right} className="molecule-handle molecule-handle-source" />
     </div>
   );
 }
@@ -824,7 +877,7 @@ function toNodes(cell: WorkspaceCell): Node[] {
 }
 
 function toEdges(cell: WorkspaceCell): Edge[] {
-  if (cell.canvas?.edges?.length) return cell.canvas.edges;
+  if (cell.canvas?.edges?.length) return cell.canvas.edges.map(normalizeEdge);
   const molecules = cell.objects.molecules ?? [];
   const reactions = cell.objects.reactions ?? [];
   const edges: Edge[] = [];
@@ -841,6 +894,8 @@ function toEdges(cell: WorkspaceCell): Edge[] {
         id: `${reaction.id}-${index}`,
         source: source.id,
         target: target.id,
+        sourceHandle: "right-source",
+        targetHandle: "left-source",
         label: reaction.label || `Step ${reactionIndex + 1}`,
         markerEnd: { type: MarkerType.ArrowClosed },
       });
@@ -850,7 +905,7 @@ function toEdges(cell: WorkspaceCell): Edge[] {
 }
 
 function reactionFromEdge(cell: WorkspaceCell, edge: Edge): ReactionObject | undefined {
-  return cell.objects.reactions?.find((reaction) => edge.id.startsWith(reaction.id)) ?? cell.objects.reactions?.[0];
+  return cell.objects.reactions?.find((reaction) => edge.id.startsWith(reaction.id));
 }
 
 function objectsFromCanvas(cell: WorkspaceCell, nodes: Node[], edges: Edge[]) {
@@ -858,11 +913,21 @@ function objectsFromCanvas(cell: WorkspaceCell, nodes: Node[], edges: Edge[]) {
     const existing = cell.objects.molecules?.find((item) => item.id === node.id);
     return existing ?? { id: node.id, label: String(node.data?.label ?? node.id), smiles: String(node.data?.label ?? "") };
   });
-  const reactions = edges.map((edge, index) => {
+  const reactionsById = new Map<string, ReactionObject>();
+  edges.forEach((edge) => {
     const existing = reactionFromEdge(cell, edge);
-    return existing ?? { id: edge.id, label: String(edge.label ?? `Step ${index + 1}`), reaction_smiles: "" };
+    if (existing) reactionsById.set(existing.id, existing);
   });
-  return { ...cell.objects, molecules, reactions };
+  return { ...cell.objects, molecules, reactions: [...reactionsById.values()] };
+}
+
+function normalizeEdge(edge: Edge): Edge {
+  return {
+    ...edge,
+    markerEnd: edge.markerEnd ?? { type: MarkerType.ArrowClosed },
+    sourceHandle: edge.sourceHandle ?? "right-source",
+    targetHandle: edge.targetHandle ?? "left-source",
+  };
 }
 
 function moleculesFromReaction(reactionSmiles: string): string[] {

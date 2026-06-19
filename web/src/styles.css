@@ -86,7 +86,8 @@ button {
 
 .main {
   display: grid;
-  grid-template-rows: auto 1fr 220px;
+  grid-template-rows: auto minmax(0, 1fr);
+  height: 100vh;
   min-width: 0;
 }
 
@@ -102,7 +103,7 @@ button {
 
 .content-grid {
   display: grid;
-  grid-template-columns: 340px minmax(0, 1fr) 360px;
+  grid-template-columns: minmax(240px, 280px) minmax(280px, 1fr) minmax(260px, 280px);
   min-height: 0;
 }
 
@@ -120,7 +121,7 @@ button {
 }
 
 .unit-rail-collapsed .content-grid {
-  grid-template-columns: minmax(0, 1fr) 360px;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 280px);
 }
 
 .unit-rail-header {
@@ -133,6 +134,7 @@ button {
 
 .detail {
   background: #eef3f8;
+  overflow: hidden;
 }
 
 .task-panel {
@@ -229,9 +231,17 @@ button {
 }
 
 .detail-shell {
-  height: 100%;
+  min-height: 0;
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto minmax(360px, 1fr) auto;
+  gap: 12px;
+}
+
+.detail-stack {
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
   gap: 12px;
 }
 
@@ -247,8 +257,19 @@ button {
   gap: 12px;
 }
 
+.toolbar-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.danger-action {
+  color: #991b1b;
+  background: #fee2e2;
+}
+
 .canvas {
-  min-height: 520px;
+  min-height: 0;
   background: white;
   border: 1px solid #d9e1eb;
   border-radius: 8px;
@@ -263,6 +284,16 @@ button {
   border: 1px solid #cbd5e1;
   border-radius: 8px;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+.molecule-node .molecule-handle {
+  width: 9px;
+  height: 9px;
+  border: 2px solid white;
+}
+
+.molecule-node .molecule-handle-source {
+  background: #2563eb;
 }
 
 .molecule-drawing {
@@ -477,18 +508,24 @@ button {
 }
 
 .result-panel {
-  border-top: 1px solid #d9e1eb;
-  background: #101820;
-  color: #e8f1f8;
-  padding: 12px 18px;
+  border: 1px solid #d9e1eb;
+  border-radius: 8px;
+  background: white;
+  color: #17202a;
+  padding: 12px;
   min-height: 0;
 }
 
 .result-panel pre {
   margin: 0;
   overflow: auto;
-  max-height: 170px;
+  max-height: 150px;
+  padding: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
   font-size: 12px;
+  color: #17202a;
 }
 
 .empty-state {
