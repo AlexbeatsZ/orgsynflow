@@ -18,15 +18,20 @@ import {
   Atom,
   BookOpen,
   Boxes,
+  CheckCircle2,
   ChevronDown,
+  ChevronUp,
   Cpu,
+  History,
   Link2,
   Trash2,
   Loader2,
   PanelLeftClose,
   PanelLeftOpen,
   Plus,
+  RotateCcw,
   Save,
+  XCircle,
 } from "lucide-react";
 import {
   addCell,
@@ -49,9 +54,11 @@ import {
   runXtb,
   saveWorkspace,
   submitGaussianJob,
+  updateTaskResult,
   validateReaction,
 } from "./api";
 import type {
+  CachedResult,
   CellType,
   ComputeStatus,
   GaussianJob,
@@ -72,15 +79,33 @@ type SelectedObject =
 
 type ModalState =
   | { kind: "result"; title: string; result: unknown }
+  | { kind: "task-error"; title: string; record: CachedResult; onRetry?: () => void; onConfigure?: () => void }
   | { kind: "backend"; status: ComputeStatus | null }
   | { kind: "jobs"; jobs: GaussianJob[]; refresh: () => Promise<void> }
   | { kind: "routes"; sets: RouteCandidateSet[]; workspace: Workspace; selected: SelectedObject; onSave: (workspace?: Workspace | null) => Promise<void> }
   | null;
 
 type RunTask = (
+  definition: TaskDefinition,
   task: () => Promise<unknown>,
-  options?: { openResult?: boolean; title?: string },
-) => Promise<unknown>;
+  options?: {
+    openResult?: boolean;
+    title?: string;
+    config?: Record<string, unknown>;
+    onConfigure?: () => void;
+    statusFromResult?: (result: unknown) => CachedResult["status"];
+  },
+) => Promise<unknown | null>;
+
+interface TaskDefinition {
+  id: string;
+  label: string;
+  objectId: string;
+  objectKind: "cell" | "molecule" | "reaction";
+  objectLabel: string;
+  cellId: string;
+  engine?: string;
+}
 
 const examples = {
   molecule: "CCO",
@@ -106,15 +131,19 @@ const moleculeHandles = [
 export function App() {
   const [summaries, setSummaries] = useState<WorkspaceSummary[]>([]);
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
+  const workspaceRef = useRef<Workspace | null>(null);
   const [activeCellId, setActiveCellId] = useState<string | null>(null);
   const [selected, setSelected] = useState<SelectedObject>(null);
   const [, setResult] = useState<unknown>(null);
-  const [busy, setBusy] = useState(false);
   const [jobs, setJobs] = useState<GaussianJob[]>([]);
   const [computeStatus, setComputeStatus] = useState<ComputeStatus | null>(null);
   const [modal, setModal] = useState<ModalState>(null);
   const [workspaceMenuOpen, setWorkspaceMenuOpen] = useState(false);
   const [unitRailOpen, setUnitRailOpen] = useState(true);
+
+  useEffect(() => {
+    workspaceRef.current = workspace;
+  }, [workspace]);
 
   useEffect(() => {
     refreshWorkspaces();
@@ -135,15 +164,79 @@ export function App() {
   async function refreshWorkspaces() {
     const items = await listWorkspaces();
     setSummaries(items);
-    if (!workspace && items[0]) {
-      const loaded = await getWorkspace(items[0].id);
-      setWorkspace(loaded);
-      setActiveCellId(loaded.cells[0]?.id ?? null);
+    if (!workspaceRef.current && items[0]) {
+      await loadWorkspace(items[0].id);
     }
   }
 
   async function refreshJobs() {
-    setJobs(await listJobs());
+    const nextJobs = await listJobs();
+    setJobs(nextJobs);
+    await syncGaussianTaskRecords(nextJobs);
+  }
+
+  async function loadWorkspace(id: string) {
+    const [loaded, currentJobs] = await Promise.all([getWorkspace(id), listJobs()]);
+    const recovered = await recoverInterruptedTasks(loaded, currentJobs);
+    workspaceRef.current = recovered;
+    setWorkspace(recovered);
+    setJobs(currentJobs);
+    setActiveCellId(recovered.cells[0]?.id ?? null);
+    setSelected(null);
+    setResult(null);
+  }
+
+  async function recoverInterruptedTasks(loaded: Workspace, currentJobs: GaussianJob[]): Promise<Workspace> {
+    let next = loaded;
+    for (const cell of loaded.cells) {
+      for (const [key, record] of Object.entries(cell.results ?? {})) {
+        if (taskStatus(record.status) !== "running") continue;
+        const job = record.job_id ? currentJobs.find((item) => item.job_id === record.job_id) : null;
+        const recovered: CachedResult = job
+          ? taskRecordFromJob(record, job)
+          : {
+              ...record,
+              status: "failed",
+              updated_at: new Date().toISOString(),
+              error: record.job_id
+                ? "计算后端已重启或任务不存在，请重新提交。"
+                : "页面刷新后无法恢复此同步任务，请重新计算。",
+            };
+        await updateTaskResult(loaded.id, cell.id, key, recovered);
+        next = mergeTaskRecord(next, cell.id, key, recovered);
+      }
+    }
+    return next;
+  }
+
+  async function syncGaussianTaskRecords(currentJobs: GaussianJob[]) {
+    const current = workspaceRef.current;
+    if (!current) return;
+    for (const cell of current.cells) {
+      for (const [key, record] of Object.entries(cell.results ?? {})) {
+        if (!record.job_id) continue;
+        const job = currentJobs.find((item) => item.job_id === record.job_id);
+        if (!job) continue;
+        const nextStatus = taskStatus(job.status);
+        const payloadStatus = (record.payload as GaussianJob | null)?.status;
+        if (taskStatus(record.status) === nextStatus && payloadStatus === job.status) continue;
+        const nextRecord = taskRecordFromJob(record, job);
+        await persistTaskRecord(cell.id, key, nextRecord);
+      }
+    }
+  }
+
+  async function persistTaskRecord(cellId: string, key: string, record: CachedResult): Promise<CachedResult> {
+    const current = workspaceRef.current;
+    if (!current) throw new Error("请先打开工作区。");
+    const stored = await updateTaskResult(current.id, cellId, key, record);
+    setWorkspace((previous) => {
+      if (!previous) return previous;
+      const next = mergeTaskRecord(previous, cellId, key, stored);
+      workspaceRef.current = next;
+      return next;
+    });
+    return stored;
   }
 
   async function refreshComputeStatus() {
@@ -157,6 +250,7 @@ export function App() {
   async function handleNewWorkspace() {
     const title = `Workspace ${new Date().toLocaleString()}`;
     const created = await createWorkspace(title);
+    workspaceRef.current = created;
     setWorkspace(created);
     setActiveCellId(null);
     setSelected(null);
@@ -164,16 +258,25 @@ export function App() {
   }
 
   async function handleOpenWorkspace(id: string) {
-    const loaded = await getWorkspace(id);
-    setWorkspace(loaded);
-    setActiveCellId(loaded.cells[0]?.id ?? null);
-    setSelected(null);
-    setResult(null);
+    await loadWorkspace(id);
   }
 
   async function handleSaveWorkspace(next = workspace) {
     if (!next) return;
-    const saved = await saveWorkspace(next);
+    const latest = workspaceRef.current;
+    const candidate = latest?.id === next.id
+      ? {
+          ...next,
+          cells: next.cells.map((cell) => {
+            const latestCell = latest.cells.find((item) => item.id === cell.id);
+            return latestCell
+              ? { ...cell, results: { ...(cell.results ?? {}), ...(latestCell.results ?? {}) } }
+              : cell;
+          }),
+        }
+      : next;
+    const saved = await saveWorkspace(candidate);
+    workspaceRef.current = saved;
     setWorkspace(saved);
     await refreshWorkspaces();
   }
@@ -203,15 +306,19 @@ export function App() {
   }
 
   function updateCell(updated: WorkspaceCell) {
-    if (!workspace) return;
-    const next = {
-      ...workspace,
-      cells: workspace.cells.map((cell) => (cell.id === updated.id ? updated : cell)),
-    };
-    setWorkspace(next);
+    setWorkspace((current) => {
+      if (!current) return current;
+      const next = {
+        ...current,
+        cells: current.cells.map((cell) => (cell.id === updated.id ? { ...updated, results: cell.results } : cell)),
+      };
+      workspaceRef.current = next;
+      return next;
+    });
   }
 
   const activeCell = workspace?.cells.find((cell) => cell.id === activeCellId) ?? null;
+  const currentSelection = bindSelection(selected, workspace);
 
   return (
     <div className={`app-shell ${unitRailOpen ? "" : "unit-rail-collapsed"}`}>
@@ -301,7 +408,6 @@ export function App() {
                         <Trash2 size={15} />
                       </button>
                     </div>
-                    <CellPreview cell={cell} />
                   </div>
                 ))}
               </div>
@@ -310,11 +416,14 @@ export function App() {
           <section className="detail">
             <div className="detail-stack">
               {activeCell ? (
-                <CellDetail
-                  cell={activeCell}
-                  onUpdate={updateCell}
-                  onSelect={setSelected}
-                />
+                <>
+                  <CellDetail
+                    cell={activeCell}
+                    onUpdate={updateCell}
+                    onSelect={setSelected}
+                  />
+                  <TaskLogDrawer cell={activeCell} openModal={setModal} />
+                </>
               ) : (
                 <EmptyState />
               )}
@@ -323,15 +432,14 @@ export function App() {
 
           <aside className="task-panel">
             <TaskPanel
-              selected={selected}
+              selected={currentSelection}
               workspace={workspace}
-              busy={busy}
-              setBusy={setBusy}
               setResult={setResult}
               openModal={setModal}
               onSave={handleSaveWorkspace}
               jobs={jobs}
               refreshJobs={refreshJobs}
+              persistTaskRecord={persistTaskRecord}
             />
           </aside>
         </div>
@@ -367,6 +475,49 @@ function ResultPanel({ result }: { result: unknown }) {
       {gaussianJob && <GaussianJobView job={gaussianJob} />}
       {Boolean(result) && !routeResult && !propertyResult && !computeResult && !gaussianJob && (
         <pre>{JSON.stringify(result, null, 2) ?? ""}</pre>
+      )}
+    </section>
+  );
+}
+
+function TaskLogDrawer({ cell, openModal }: { cell: WorkspaceCell; openModal: (modal: ModalState) => void }) {
+  const [open, setOpen] = useState(false);
+  const records = Object.entries(cell.results ?? {})
+    .map(([key, record]) => ({ key, record }))
+    .sort((left, right) => String(right.record.updated_at).localeCompare(String(left.record.updated_at)));
+
+  function openRecord(record: CachedResult) {
+    const title = record.task_label ?? "任务记录";
+    if (taskStatus(record.status) === "failed") {
+      openModal({ kind: "task-error", title: `${title}失败`, record });
+      return;
+    }
+    openModal({ kind: "result", title, result: record.payload ?? record });
+  }
+
+  return (
+    <section className={`task-log-drawer ${open ? "open" : ""}`}>
+      <button className="task-log-toggle" onClick={() => setOpen((current) => !current)}>
+        <span><History size={16} /> 任务日志</span>
+        <span className="task-log-count">{records.length}</span>
+        {open ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
+      </button>
+      {open && (
+        <div className="task-log-list">
+          {records.length ? records.map(({ key, record }) => {
+            const status = taskStatus(record.status);
+            return (
+              <button key={key} className="task-log-row" onClick={() => openRecord(record)}>
+                <span className={`task-log-status task-log-status-${status}`}>{taskStatusLabel(status)}</span>
+                <span className="task-log-main">
+                  <strong>{record.task_label ?? key}</strong>
+                  <small>{record.object_label ?? record.object_id ?? "当前单元"}</small>
+                </span>
+                <time>{formatTaskTime(record.updated_at)}</time>
+              </button>
+            );
+          }) : <p className="muted task-log-empty">当前单元还没有任务记录。</p>}
+        </div>
       )}
     </section>
   );
@@ -455,28 +606,6 @@ function GaussianJobView({ job }: { job: GaussianJob }) {
       {job.work_dir && <code>{job.work_dir}</code>}
       {job.error && <p>{job.error}</p>}
       {Boolean(job.result) && <pre>{JSON.stringify(job.result, null, 2) ?? ""}</pre>}
-    </div>
-  );
-}
-
-function CellPreview({ cell }: { cell: WorkspaceCell }) {
-  return (
-    <div>
-      <p>{cell.objects.molecules?.length ?? 0} molecules · {cell.objects.reactions?.length ?? 0} reactions</p>
-      {(cell.objects.reactions ?? []).slice(0, 3).map((reaction) => (
-        <ReactionLine key={reaction.id} reaction={reaction.reaction_smiles} />
-      ))}
-    </div>
-  );
-}
-
-function ReactionLine({ reaction }: { reaction: string }) {
-  const [left, right] = reaction.split(">>");
-  return (
-    <div className="reaction-line">
-      <span>{left || "reactants"}</span>
-      <span className="arrow">→</span>
-      <span>{right || "products"}</span>
     </div>
   );
 }
@@ -954,40 +1083,91 @@ function KetcherModal({
 function TaskPanel({
   selected,
   workspace,
-  busy,
-  setBusy,
   setResult,
   openModal,
   onSave,
   jobs,
   refreshJobs,
+  persistTaskRecord,
 }: {
   selected: SelectedObject;
   workspace: Workspace | null;
-  busy: boolean;
-  setBusy: (busy: boolean) => void;
   setResult: (result: unknown) => void;
   openModal: (modal: ModalState) => void;
   onSave: (workspace?: Workspace | null) => Promise<void>;
   jobs: GaussianJob[];
   refreshJobs: () => Promise<void>;
+  persistTaskRecord: (cellId: string, key: string, record: CachedResult) => Promise<CachedResult>;
 }) {
-  async function runTask(task: () => Promise<unknown>, options?: { openResult?: boolean; title?: string }) {
-    setBusy(true);
+  async function runTask(
+    definition: TaskDefinition,
+    task: () => Promise<unknown>,
+    options?: {
+      openResult?: boolean;
+      title?: string;
+      config?: Record<string, unknown>;
+      onConfigure?: () => void;
+      statusFromResult?: (result: unknown) => CachedResult["status"];
+    },
+  ) {
+    const key = taskResultKey(definition);
+    const runningRecord: CachedResult = {
+      task_id: definition.id,
+      task_label: definition.label,
+      object_id: definition.objectId,
+      object_kind: definition.objectKind,
+      object_label: definition.objectLabel,
+      engine: definition.engine,
+      status: "running",
+      updated_at: new Date().toISOString(),
+      payload: null,
+      config: options?.config,
+    };
+    await persistTaskRecord(definition.cellId, key, runningRecord);
     try {
       const nextResult = await task();
+      const nextStatus = options?.statusFromResult?.(nextResult) ?? "succeeded";
+      const job = asGaussianJob(nextResult);
+      const completedRecord: CachedResult = {
+        ...runningRecord,
+        status: nextStatus,
+        updated_at: new Date().toISOString(),
+        payload: nextResult,
+        error: nextStatus === "failed" ? job?.error ?? "计算失败。" : undefined,
+        job_id: job?.job_id,
+      };
+      await persistTaskRecord(definition.cellId, key, completedRecord);
       setResult(nextResult);
-      if (options?.openResult !== false) {
+      if (nextStatus === "failed") {
+        openModal({
+          kind: "task-error",
+          title: `${definition.label}失败`,
+          record: completedRecord,
+          onRetry: () => void runTask(definition, task, options),
+          onConfigure: options?.onConfigure,
+        });
+      } else if (options?.openResult !== false) {
         openModal({ kind: "result", title: options?.title ?? "任务结果", result: nextResult });
       }
       return nextResult;
     } catch (error) {
-      const nextResult = { error: String(error) };
-      setResult(nextResult);
-      openModal({ kind: "result", title: "任务错误", result: nextResult });
-      return nextResult;
-    } finally {
-      setBusy(false);
+      const failedRecord: CachedResult = {
+        ...runningRecord,
+        status: "failed",
+        updated_at: new Date().toISOString(),
+        error: errorMessage(error),
+        payload: null,
+      };
+      await persistTaskRecord(definition.cellId, key, failedRecord);
+      setResult(failedRecord);
+      openModal({
+        kind: "task-error",
+        title: `${definition.label}失败`,
+        record: failedRecord,
+        onRetry: () => void runTask(definition, task, options),
+        onConfigure: options?.onConfigure,
+      });
+      return null;
     }
   }
 
@@ -997,15 +1177,13 @@ function TaskPanel({
         <Boxes size={16} />
         <span>任务面板</span>
       </div>
-      {busy && <div className="busy"><Loader2 size={16} /> 运行中...</div>}
       {!selected && <p className="muted">选择 notebook 单元、分子节点或反应箭头。</p>}
-      {selected?.kind === "cell" && <CellTasks selected={selected} runTask={runTask} />}
+      {selected?.kind === "cell" && <CellTasks selected={selected} openModal={openModal} />}
       {selected?.kind === "molecule" && (
         <MoleculeTasks
           selected={selected}
           workspace={workspace}
           runTask={runTask}
-          setResult={setResult}
           openModal={openModal}
           jobs={jobs}
           onSave={onSave}
@@ -1017,7 +1195,6 @@ function TaskPanel({
           selected={selected}
           workspace={workspace}
           runTask={runTask}
-          setResult={setResult}
           openModal={openModal}
           jobs={jobs}
           refreshJobs={refreshJobs}
@@ -1109,6 +1286,7 @@ function AppModal({
         <div className="modal-header">
           <strong>
             {modal.kind === "result" && modal.title}
+            {modal.kind === "task-error" && modal.title}
             {modal.kind === "backend" && "计算后端状态"}
             {modal.kind === "jobs" && "Gaussian 队列"}
             {modal.kind === "routes" && "路线候选"}
@@ -1117,6 +1295,12 @@ function AppModal({
         </div>
         <div className="modal-body">
           {modal.kind === "result" && <ResultPanel result={modal.result} />}
+          {modal.kind === "task-error" && (
+            <div className="task-error-content">
+              <div className="error-box">{modal.record.error ?? "计算失败，未返回具体错误。"}</div>
+              {Boolean(modal.record.payload) && <ResultPanel result={modal.record.payload} />}
+            </div>
+          )}
           {modal.kind === "backend" && <BackendStatus status={modal.status} />}
           {modal.kind === "jobs" && <GaussianJobsView jobs={modal.jobs} refresh={modal.refresh} />}
           {modal.kind === "routes" && (
@@ -1132,6 +1316,16 @@ function AppModal({
             />
           )}
         </div>
+        {modal.kind === "task-error" && (modal.onRetry || modal.onConfigure) && (
+          <div className="modal-footer task-error-actions">
+            {modal.onConfigure && (
+              <button className="ghost-button" onClick={() => { onClose(); modal.onConfigure?.(); }}>修改配置</button>
+            )}
+            {modal.onRetry && (
+              <button className="primary-button" onClick={() => { onClose(); modal.onRetry?.(); }}>重新计算</button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1177,20 +1371,74 @@ function BackendStatus({ status }: { status: ComputeStatus | null }) {
   );
 }
 
+function TaskButton({
+  definition,
+  record,
+  onRun,
+  onRetry,
+  onConfigure,
+  openModal,
+}: {
+  definition: TaskDefinition;
+  record?: CachedResult;
+  onRun: () => void;
+  onRetry?: () => void;
+  onConfigure?: () => void;
+  openModal: (modal: ModalState) => void;
+}) {
+  const status = taskStatus(record?.status);
+  const icon = status === "running"
+    ? <Loader2 size={16} className="spin" />
+    : status === "succeeded"
+      ? <CheckCircle2 size={16} />
+      : status === "failed"
+        ? <XCircle size={16} />
+        : null;
+
+  function handleClick() {
+    if (!record || status === "idle") {
+      onRun();
+      return;
+    }
+    if (status === "failed") {
+      openModal({
+        kind: "task-error",
+        title: `${definition.label}失败`,
+        record,
+        onRetry: onRetry ?? onRun,
+        onConfigure,
+      });
+      return;
+    }
+    openModal({ kind: "result", title: definition.label, result: record.payload ?? record });
+  }
+
+  return (
+    <button
+      className={`task-button task-status-${status}`}
+      onClick={handleClick}
+      title={taskStatusLabel(status)}
+    >
+      <span>{definition.label}</span>
+      {icon}
+    </button>
+  );
+}
+
 function CellTasks({
   selected,
-  runTask,
+  openModal,
 }: {
   selected: Extract<SelectedObject, { kind: "cell" }>;
-  runTask: RunTask;
+  openModal: (modal: ModalState) => void;
 }) {
   return (
     <div className="task-group">
       <h3>{selected.cell.title}</h3>
-      <button onClick={() => runTask(() => Promise.resolve(selected.cell), { title: "单元数据" })}>查看单元 JSON</button>
+      <button className="secondary-task-button" onClick={() => openModal({ kind: "result", title: "单元数据", result: selected.cell })}>查看单元数据</button>
       {selected.cell.type === "route" && (
-        <button onClick={() => runTask(() => Promise.resolve({ note: "路线级报告沿用后端 report_markdown；下一步可在此接入 PDF/Markdown 导出。" }))}>
-          路线报告
+        <button className="secondary-task-button" onClick={() => openModal({ kind: "result", title: "路线报告", result: { note: "路线级报告沿用后端 report_markdown；下一步可在此接入 PDF/Markdown 导出。" } })}>
+          查看路线报告
         </button>
       )}
     </div>
@@ -1201,7 +1449,6 @@ function MoleculeTasks({
   selected,
   workspace,
   runTask,
-  setResult,
   openModal,
   jobs,
   onSave,
@@ -1210,7 +1457,6 @@ function MoleculeTasks({
   selected: Extract<SelectedObject, { kind: "molecule" }>;
   workspace: Workspace | null;
   runTask: RunTask;
-  setResult: (result: unknown) => void;
   openModal: (modal: ModalState) => void;
   jobs: GaussianJob[];
   onSave: (workspace?: Workspace | null) => Promise<void>;
@@ -1219,95 +1465,105 @@ function MoleculeTasks({
   const { molecule } = selected;
   const [gaussianConfigOpen, setGaussianConfigOpen] = useState(false);
   const moleculeRouteSets = workspace?.route_candidate_sets?.filter((set) => set.target_smiles === molecule.smiles) ?? [];
+  const propertiesTask = makeTaskDefinition(selected, "molecule-properties", "计算分子性质（RDKit + OPERA）", "RDKit + OPERA");
+  const descriptorsTask = makeTaskDefinition(selected, "molecule-descriptors", "计算分子描述符（RDKit）", "RDKit");
+  const xtbTask = makeTaskDefinition(selected, "xtb-geometry-energy", "计算几何优化与能量（xTB）", "xTB");
+  const crestTask = makeTaskDefinition(selected, "crest-conformers", "搜索低能构象（CREST）", "CREST");
+  const routeTask = makeTaskDefinition(selected, "retrosynthesis", "预测逆合成路线（AiZynthFinder）", "AiZynthFinder");
+  const gaussianTask = makeTaskDefinition(selected, "gaussian-opt-freq", "计算结构优化与频率（Gaussian）", "Gaussian");
+
+  function recordFor(definition: TaskDefinition) {
+    return selected.cell.results?.[taskResultKey(definition)];
+  }
+
+  async function predictRoute() {
+    let routeSet: RouteCandidateSet | null = null;
+    let nextWorkspace = workspace;
+    const prediction = await runTask(routeTask, async () => {
+      const nextPrediction = await analyzeRoute(molecule.smiles, 3, true);
+      routeSet = {
+        id: `rcs-${Date.now()}`,
+        target_smiles: nextPrediction.target_smiles ?? molecule.smiles,
+        status: nextPrediction.status ?? "unknown",
+        created_at: new Date().toISOString(),
+        candidates: nextPrediction.candidates ?? [],
+        route_scores: nextPrediction.route_scores,
+        feasibility: nextPrediction.feasibility,
+        used_fallback: nextPrediction.used_fallback,
+      };
+      if (workspace) {
+        nextWorkspace = {
+          ...workspace,
+          route_candidate_sets: [...(workspace.route_candidate_sets ?? []), routeSet],
+        };
+        await onSave(nextWorkspace);
+      }
+      return nextPrediction;
+    }, { openResult: false, title: routeTask.label });
+    if (!prediction) return;
+    if (routeSet && nextWorkspace) {
+      openModal({ kind: "routes", sets: [routeSet], workspace: nextWorkspace, selected, onSave });
+    } else {
+      openModal({ kind: "result", title: routeTask.label, result: prediction });
+    }
+  }
+
+  async function submitGaussian(gjfText: string, config: Record<string, unknown>) {
+    const job = await runTask(
+      gaussianTask,
+      () => submitGaussianJob(gjfText, workspace?.id, selected.cell.id, molecule.id),
+      {
+        openResult: false,
+        title: gaussianTask.label,
+        config: { ...config, gjf_text: gjfText },
+        onConfigure: () => setGaussianConfigOpen(true),
+        statusFromResult: (result) => gaussianTaskStatus((result as GaussianJob).status),
+      },
+    );
+    if (job) {
+      setGaussianConfigOpen(false);
+      await refreshJobs();
+    }
+  }
+
+  function retryGaussian() {
+    const record = recordFor(gaussianTask);
+    const gjfText = typeof record?.config?.gjf_text === "string" ? record.config.gjf_text : null;
+    if (!gjfText) {
+      setGaussianConfigOpen(true);
+      return;
+    }
+    void submitGaussian(gjfText, record?.config ?? {});
+  }
+
   return (
     <div className="task-group">
       <h3>{molecule.label}</h3>
       <code>{molecule.smiles}</code>
-      <button onClick={() => runTask(() => predictProperties(molecule.smiles, true))}>RDKit + OPERA QSAR 物性</button>
-      <button onClick={() => runTask(() => calculateDescriptors(molecule.smiles))}>描述符</button>
-      <button onClick={() => runTask(() => runXtb(molecule.smiles, 300))}>xTB 优化/能量</button>
-      <button onClick={() => runTask(() => runCrest(molecule.smiles, 1800))}>CREST 构象搜索</button>
-      <button
-        onClick={async () => {
-          let routeSet: RouteCandidateSet | null = null;
-          let nextWorkspace = workspace;
-          const prediction = await runTask(async () => {
-            const prediction = (await analyzeRoute(molecule.smiles, 3, true)) as {
-              status?: string;
-              used_fallback?: boolean;
-              target_smiles?: string;
-              candidates?: RouteCandidate[];
-              route_scores?: Record<string, unknown>;
-              feasibility?: Record<string, unknown>;
-            };
-            routeSet = {
-              id: `rcs-${Date.now()}`,
-              target_smiles: prediction.target_smiles ?? molecule.smiles,
-              status: prediction.status ?? "unknown",
-              created_at: new Date().toISOString(),
-              candidates: prediction.candidates ?? [],
-              route_scores: prediction.route_scores,
-              feasibility: prediction.feasibility,
-              used_fallback: prediction.used_fallback,
-            };
-            if (workspace) {
-              nextWorkspace = {
-                ...workspace,
-                route_candidate_sets: [...(workspace.route_candidate_sets ?? []), routeSet],
-              };
-              await onSave(nextWorkspace);
-            }
-            return prediction;
-          }, { openResult: false });
-          if (routeSet && nextWorkspace) {
-            openModal({ kind: "routes", sets: [routeSet], workspace: nextWorkspace, selected, onSave });
-          } else {
-            openModal({ kind: "result", title: "路线预测结果", result: prediction });
-          }
-        }}
-      >
-        预测逆合成路线
-      </button>
+      <TaskButton definition={propertiesTask} record={recordFor(propertiesTask)} onRun={() => void runTask(propertiesTask, () => predictProperties(molecule.smiles, true), { title: propertiesTask.label })} openModal={openModal} />
+      <TaskButton definition={descriptorsTask} record={recordFor(descriptorsTask)} onRun={() => void runTask(descriptorsTask, () => calculateDescriptors(molecule.smiles), { title: descriptorsTask.label })} openModal={openModal} />
+      <TaskButton definition={xtbTask} record={recordFor(xtbTask)} onRun={() => void runTask(xtbTask, () => runXtb(molecule.smiles, 300), { title: xtbTask.label })} openModal={openModal} />
+      <TaskButton definition={crestTask} record={recordFor(crestTask)} onRun={() => void runTask(crestTask, () => runCrest(molecule.smiles, 1800), { title: crestTask.label })} openModal={openModal} />
+      <TaskButton definition={routeTask} record={recordFor(routeTask)} onRun={() => void predictRoute()} openModal={openModal} />
       {workspace && moleculeRouteSets.length > 0 && (
-        <button onClick={() => openModal({ kind: "routes", sets: moleculeRouteSets, workspace, selected, onSave })}>
+        <button className="secondary-task-button" onClick={() => openModal({ kind: "routes", sets: moleculeRouteSets, workspace, selected, onSave })}>
           查看路线候选 ({moleculeRouteSets.length})
         </button>
       )}
-      <button
-        onClick={() =>
-          runTask(async () => {
-            const gjf = await makeGaussianInput(molecule.smiles);
-            const job = await submitGaussianJob(gjf, workspace?.id, selected.cell.id, molecule.id);
-            await refreshJobs();
-            await onSave(workspace);
-            return job;
-          })
-        }
-      >
-        提交 Gaussian opt/freq
-      </button>
-      <button onClick={() => setGaussianConfigOpen(true)}>Gaussian 高级配置</button>
-      <button onClick={() => openModal({ kind: "jobs", jobs, refresh: refreshJobs })}>查看 Gaussian 队列</button>
+      <TaskButton
+        definition={gaussianTask}
+        record={recordFor(gaussianTask)}
+        onRun={() => setGaussianConfigOpen(true)}
+        onRetry={retryGaussian}
+        onConfigure={() => setGaussianConfigOpen(true)}
+        openModal={openModal}
+      />
+      <button className="secondary-task-button" onClick={() => openModal({ kind: "jobs", jobs, refresh: refreshJobs })}>查看计算队列（Gaussian）</button>
       {gaussianConfigOpen && (
         <GaussianConfigModal
           smiles={molecule.smiles}
           onClose={() => setGaussianConfigOpen(false)}
-          onSubmit={(jobType, method, basis, charge, multiplicity) =>
-            runTask(async () => {
-              const gjf = await makeGaussianInput(molecule.smiles, jobType, method, basis, charge, multiplicity);
-              const job = await submitGaussianJob(gjf, workspace?.id, selected.cell.id, molecule.id);
-              await refreshJobs();
-              await onSave(workspace);
-              setGaussianConfigOpen(false);
-              return job;
-            })
-          }
-          onPreview={(jobType, method, basis, charge, multiplicity) =>
-            runTask(async () => {
-              const gjf = await makeGaussianInput(molecule.smiles, jobType, method, basis, charge, multiplicity);
-              return { gjf };
-            })
-          }
+          onSubmit={(gjfText, config) => void submitGaussian(gjfText, config)}
         />
       )}
     </div>
@@ -1318,7 +1574,6 @@ function ReactionTasks({
   selected,
   workspace,
   runTask,
-  setResult,
   openModal,
   jobs,
   refreshJobs,
@@ -1326,47 +1581,62 @@ function ReactionTasks({
   selected: Extract<SelectedObject, { kind: "reaction" }>;
   workspace: Workspace | null;
   runTask: RunTask;
-  setResult: (result: unknown) => void;
   openModal: (modal: ModalState) => void;
   jobs: GaussianJob[];
   refreshJobs: () => Promise<void>;
 }) {
   const { reaction } = selected;
+  const validationTask = makeTaskDefinition(selected, "reaction-validation", "校验反应可行性", undefined);
+  const explanationTask = makeTaskDefinition(selected, "reaction-explanation", "解释反应", undefined);
+  const mappingTask = makeTaskDefinition(selected, "reaction-mapping", "映射反应原子（RXNMapper）", "RXNMapper");
+  const yieldTask = makeTaskDefinition(selected, "reaction-yield", "估算反应产率", undefined);
+  const featuresTask = makeTaskDefinition(selected, "reaction-features", "计算反应特征", undefined);
+  const tsPlanTask = makeTaskDefinition(selected, "transition-state-plan", "规划过渡态", undefined);
+  const tsInputTask = makeTaskDefinition(selected, "transition-state-input", "生成过渡态输入（Gaussian）", "Gaussian");
+  const tsComputeTask = makeTaskDefinition(selected, "transition-state-compute", "计算过渡态（Gaussian）", "Gaussian");
+
+  function recordFor(definition: TaskDefinition) {
+    return selected.cell.results?.[taskResultKey(definition)];
+  }
+
+  const tsGjf = `# opt=(ts,calcfc,noeigentest) freq\n\nOrgSynFlow TS candidate - unverified\n\n0 1\n\n`;
+
   return (
     <div className="task-group">
       <h3>{reaction.label}</h3>
       <code>{reaction.reaction_smiles}</code>
-      <button onClick={() => runTask(() => validateReaction(reaction.reaction_smiles, reaction.template))}>基础校验 + 可行性</button>
-      <button onClick={() => runTask(() => explainReaction(reaction.reaction_smiles, reaction.template))}>反应解释</button>
-      <button onClick={() => runTask(() => mapReaction(reaction.reaction_smiles))}>RXNMapper 映射</button>
-      <button onClick={() => runTask(() => estimateYield(reaction.reaction_smiles, reaction.template))}>产率估计</button>
-      <button onClick={() => runTask(() => reactionFeatures(reaction.reaction_smiles))}>反应特征</button>
-      <button onClick={() => runTask(() => planTs(reaction.reaction_smiles))}>TS 计划</button>
-      <button
-        onClick={() =>
-          runTask(async () => {
-            const plan = await planTs(reaction.reaction_smiles);
-            const gjf = `# opt=(ts,calcfc,noeigentest) freq\n\nOrgSynFlow TS candidate - unverified\n\n0 1\n\n`;
-            setResult({ plan, gjf, validation_level: "未验证" });
-            return { plan, gjf, validation_level: "未验证" };
-          })
-        }
-      >
-        生成 TS gjf 草稿
-      </button>
-      <button
-        onClick={() =>
-          runTask(async () => {
-            const gjf = `# opt=(ts,calcfc,noeigentest) freq\n\nOrgSynFlow TS candidate - unverified\n\n0 1\n\n`;
-            const job = await submitGaussianJob(gjf, workspace?.id, selected.cell.id, reaction.id);
-            await refreshJobs();
-            return job;
-          })
-        }
-      >
-        提交 TS Gaussian 作业
-      </button>
-      <button onClick={() => openModal({ kind: "jobs", jobs, refresh: refreshJobs })}>查看 Gaussian 队列</button>
+      <TaskButton definition={validationTask} record={recordFor(validationTask)} onRun={() => void runTask(validationTask, () => validateReaction(reaction.reaction_smiles, reaction.template), { title: validationTask.label })} openModal={openModal} />
+      <TaskButton definition={explanationTask} record={recordFor(explanationTask)} onRun={() => void runTask(explanationTask, () => explainReaction(reaction.reaction_smiles, reaction.template), { title: explanationTask.label })} openModal={openModal} />
+      <TaskButton definition={mappingTask} record={recordFor(mappingTask)} onRun={() => void runTask(mappingTask, () => mapReaction(reaction.reaction_smiles), { title: mappingTask.label })} openModal={openModal} />
+      <TaskButton definition={yieldTask} record={recordFor(yieldTask)} onRun={() => void runTask(yieldTask, () => estimateYield(reaction.reaction_smiles, reaction.template), { title: yieldTask.label })} openModal={openModal} />
+      <TaskButton definition={featuresTask} record={recordFor(featuresTask)} onRun={() => void runTask(featuresTask, () => reactionFeatures(reaction.reaction_smiles), { title: featuresTask.label })} openModal={openModal} />
+      <TaskButton definition={tsPlanTask} record={recordFor(tsPlanTask)} onRun={() => void runTask(tsPlanTask, () => planTs(reaction.reaction_smiles), { title: tsPlanTask.label })} openModal={openModal} />
+      <TaskButton
+        definition={tsInputTask}
+        record={recordFor(tsInputTask)}
+        onRun={() => void runTask(tsInputTask, async () => ({
+          plan: await planTs(reaction.reaction_smiles),
+          gjf: tsGjf,
+          validation_level: "未验证",
+        }), { title: tsInputTask.label })}
+        openModal={openModal}
+      />
+      <TaskButton
+        definition={tsComputeTask}
+        record={recordFor(tsComputeTask)}
+        onRun={() => void runTask(
+          tsComputeTask,
+          () => submitGaussianJob(tsGjf, workspace?.id, selected.cell.id, reaction.id),
+          {
+            openResult: false,
+            title: tsComputeTask.label,
+            config: { gjf_text: tsGjf },
+            statusFromResult: (result) => gaussianTaskStatus((result as GaussianJob).status),
+          },
+        ).then(() => refreshJobs())}
+        openModal={openModal}
+      />
+      <button className="secondary-task-button" onClick={() => openModal({ kind: "jobs", jobs, refresh: refreshJobs })}>查看计算队列（Gaussian）</button>
     </div>
   );
 }
@@ -1375,24 +1645,56 @@ function GaussianConfigModal({
   smiles,
   onClose,
   onSubmit,
-  onPreview,
 }: {
   smiles: string;
   onClose: () => void;
-  onSubmit: (jobType: string, method: string, basis: string, charge: number, multiplicity: number) => void;
-  onPreview: (jobType: string, method: string, basis: string, charge: number, multiplicity: number) => void;
+  onSubmit: (gjfText: string, config: Record<string, unknown>) => void;
 }) {
   const [jobType, setJobType] = useState("opt freq");
   const [method, setMethod] = useState("B3LYP");
   const [basis, setBasis] = useState("6-31G(d)");
   const [charge, setCharge] = useState(0);
   const [multiplicity, setMultiplicity] = useState(1);
+  const [gjfText, setGjfText] = useState("");
+  const [generating, setGenerating] = useState(true);
+  const [generationError, setGenerationError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    makeGaussianInput(smiles)
+      .then((gjf) => {
+        if (!cancelled) setGjfText(gjf);
+      })
+      .catch((error) => {
+        if (!cancelled) setGenerationError(errorMessage(error));
+      })
+      .finally(() => {
+        if (!cancelled) setGenerating(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [smiles]);
+
+  async function regenerate() {
+    setGenerating(true);
+    setGenerationError("");
+    try {
+      setGjfText(await makeGaussianInput(smiles, jobType, method, basis, charge, multiplicity));
+    } catch (error) {
+      setGenerationError(errorMessage(error));
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  const config = { job_type: jobType, method, basis, charge, multiplicity };
 
   return (
     <div className="modal-backdrop">
-      <div className="config-modal">
+      <div className="config-modal gaussian-config-modal">
         <div className="modal-header">
-          <strong>Gaussian 配置</strong>
+          <strong>结构优化与频率计算（Gaussian）</strong>
           <button onClick={onClose}>关闭</button>
         </div>
         <div className="config-form">
@@ -1403,10 +1705,10 @@ function GaussianConfigModal({
           <label>
             任务
             <select value={jobType} onChange={(event) => setJobType(event.target.value)}>
-              <option value="opt freq">opt + freq</option>
-              <option value="opt">opt</option>
-              <option value="freq">freq</option>
-              <option value="sp">single point</option>
+              <option value="opt freq">结构优化 + 频率</option>
+              <option value="opt">结构优化</option>
+              <option value="freq">频率</option>
+              <option value="sp">单点能</option>
             </select>
           </label>
           <label>
@@ -1425,10 +1727,23 @@ function GaussianConfigModal({
             自旋多重度
             <input type="number" min={1} value={multiplicity} onChange={(event) => setMultiplicity(Number(event.target.value))} />
           </label>
+          <div className="gaussian-input-heading">
+            <strong>Gaussian 输入</strong>
+            <button className="ghost-button compact" onClick={() => void regenerate()} disabled={generating}>
+              <RotateCcw size={14} /> {generating ? "正在生成" : "按当前参数重新生成"}
+            </button>
+          </div>
+          <textarea
+            className="gaussian-input-editor"
+            value={gjfText}
+            onChange={(event) => setGjfText(event.target.value)}
+            aria-label="Gaussian 输入"
+          />
+          {generationError && <div className="error-box gaussian-error">{generationError}</div>}
         </div>
         <div className="modal-footer">
-          <button onClick={() => onPreview(jobType, method, basis, charge, multiplicity)}>预览 gjf</button>
-          <button className="primary-button" onClick={() => onSubmit(jobType, method, basis, charge, multiplicity)}>提交计算</button>
+          <button className="ghost-button" onClick={onClose}>关闭</button>
+          <button className="primary-button" disabled={generating || !gjfText.trim()} onClick={() => onSubmit(gjfText, config)}>提交计算</button>
         </div>
       </div>
     </div>
@@ -1698,6 +2013,96 @@ function createRouteCellFromCandidate(route: RouteCandidate): WorkspaceCell {
     results: {},
   };
   return addRouteCandidateToCell(emptyCell, route, null);
+}
+
+type DisplayTaskStatus = "idle" | "running" | "succeeded" | "failed";
+
+function taskStatus(status: string | undefined): DisplayTaskStatus {
+  if (status === "queued" || status === "running") return "running";
+  if (status === "succeeded" || status === "completed" || status === "available") return "succeeded";
+  if (status === "failed" || status === "cancelled" || status === "error") return "failed";
+  return "idle";
+}
+
+function gaussianTaskStatus(status: string): CachedResult["status"] {
+  return taskStatus(status) === "idle" ? "failed" : taskStatus(status);
+}
+
+function taskStatusLabel(status: DisplayTaskStatus): string {
+  if (status === "running") return "计算中";
+  if (status === "succeeded") return "已完成";
+  if (status === "failed") return "计算失败";
+  return "未计算";
+}
+
+function makeTaskDefinition(
+  selected: Exclude<SelectedObject, null>,
+  id: string,
+  label: string,
+  engine?: string,
+): TaskDefinition {
+  const object = selected.kind === "molecule" ? selected.molecule : selected.kind === "reaction" ? selected.reaction : selected.cell;
+  return {
+    id,
+    label,
+    engine,
+    cellId: selected.cell.id,
+    objectId: object.id,
+    objectKind: selected.kind,
+    objectLabel: "label" in object ? object.label : object.title,
+  };
+}
+
+function taskResultKey(definition: TaskDefinition): string {
+  return `${definition.objectKind}:${definition.objectId}:${definition.id}`;
+}
+
+function mergeTaskRecord(workspace: Workspace, cellId: string, key: string, record: CachedResult): Workspace {
+  return {
+    ...workspace,
+    cells: workspace.cells.map((cell) => cell.id === cellId
+      ? { ...cell, results: { ...(cell.results ?? {}), [key]: record } }
+      : cell),
+  };
+}
+
+function taskRecordFromJob(record: CachedResult, job: GaussianJob): CachedResult {
+  const status = gaussianTaskStatus(job.status);
+  return {
+    ...record,
+    status,
+    updated_at: job.finished_at ?? job.started_at ?? job.created_at ?? new Date().toISOString(),
+    payload: job,
+    error: status === "failed" ? job.error ?? "Gaussian 计算失败。" : undefined,
+    job_id: job.job_id,
+  };
+}
+
+function bindSelection(selected: SelectedObject, workspace: Workspace | null): SelectedObject {
+  if (!selected || !workspace) return null;
+  const cell = workspace.cells.find((item) => item.id === selected.cell.id);
+  if (!cell) return null;
+  if (selected.kind === "cell") return { kind: "cell", cell };
+  if (selected.kind === "molecule") {
+    const molecule = cell.objects.molecules?.find((item) => item.id === selected.molecule.id);
+    return molecule ? { kind: "molecule", cell, molecule } : null;
+  }
+  const reaction = cell.objects.reactions?.find((item) => item.id === selected.reaction.id);
+  return reaction ? { kind: "reaction", cell, reaction } : null;
+}
+
+function errorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (error && typeof error === "object") {
+    const detail = (error as { response?: { data?: { detail?: unknown } } }).response?.data?.detail;
+    if (detail) return String(detail);
+  }
+  return String(error);
+}
+
+function formatTaskTime(value: string): string {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleString("zh-CN", { hour12: false });
 }
 
 function asRoutePredictionResult(value: unknown): {

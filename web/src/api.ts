@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { CellType, ComputeStatus, GaussianJob, RouteCandidate, Workspace, WorkspaceCell, WorkspaceSummary } from "./types";
+import type { CachedResult, CellType, ComputeStatus, GaussianJob, RouteCandidate, Workspace, WorkspaceCell, WorkspaceSummary } from "./types";
 
 const http = axios.create({ baseURL: "/api" });
 
@@ -34,6 +34,19 @@ export async function addCell(
     title,
     objects,
   });
+  return data;
+}
+
+export async function updateTaskResult(
+  workspaceId: string,
+  cellId: string,
+  resultKey: string,
+  record: CachedResult,
+): Promise<CachedResult> {
+  const { data } = await http.put(
+    `/workspaces/${workspaceId}/cells/${cellId}/results/${encodeURIComponent(resultKey)}`,
+    { record },
+  );
   return data;
 }
 

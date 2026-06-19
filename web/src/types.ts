@@ -96,6 +96,15 @@ export interface CachedResult {
   status: string;
   updated_at: string;
   payload: unknown;
+  task_id?: string;
+  task_label?: string;
+  object_id?: string;
+  object_kind?: "cell" | "molecule" | "reaction";
+  object_label?: string;
+  engine?: string;
+  error?: string;
+  config?: Record<string, unknown>;
+  job_id?: string;
 }
 
 export interface GaussianJob {

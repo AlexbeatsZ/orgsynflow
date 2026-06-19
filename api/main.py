@@ -31,6 +31,7 @@ from core.workspaces import (
     get_workspace,
     list_workspaces,
     save_workspace,
+    update_result,
 )
 
 
@@ -99,6 +100,10 @@ class CellCreateRequest(BaseModel):
     objects: dict[str, object] = {}
 
 
+class TaskResultRequest(BaseModel):
+    record: dict[str, object]
+
+
 class MoleculeSvgRequest(BaseModel):
     smiles: str
     width: int = 320
@@ -165,6 +170,19 @@ def workspaces_delete(workspace_id: str) -> dict[str, object]:
 def workspaces_add_cell(workspace_id: str, request: CellCreateRequest) -> dict[str, object]:
     try:
         return add_cell(workspace_id, request.cell_type, request.title, request.objects)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.put("/workspaces/{workspace_id}/cells/{cell_id}/results/{result_key}")
+def workspaces_update_result(
+    workspace_id: str,
+    cell_id: str,
+    result_key: str,
+    request: TaskResultRequest,
+) -> dict[str, object]:
+    try:
+        return update_result(workspace_id, cell_id, result_key, request.record)
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 

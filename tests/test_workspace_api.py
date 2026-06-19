@@ -27,6 +27,27 @@ def test_workspace_crud_and_cell_creation(tmp_path, monkeypatch) -> None:
     loaded = client.get(f"/workspaces/{created['id']}").json()
     assert loaded["cells"][0]["objects"]["molecules"][0]["smiles"] == "CCO"
 
+    task_record = {
+        "task_id": "molecule-properties",
+        "task_label": "计算分子性质（RDKit + OPERA）",
+        "object_id": "mol-1",
+        "object_kind": "molecule",
+        "engine": "RDKit + OPERA",
+        "status": "running",
+        "updated_at": "2026-06-19T00:00:00+00:00",
+        "payload": None,
+    }
+    result_key = "molecule:mol-1:molecule-properties"
+    stored = client.put(
+        f"/workspaces/{created['id']}/cells/{cell['id']}/results/{result_key}",
+        json={"record": task_record},
+    ).json()
+    assert stored == task_record
+
+    loaded = client.get(f"/workspaces/{created['id']}").json()
+    assert loaded["cells"][0]["results"][result_key]["status"] == "running"
+    assert loaded["cells"][0]["objects"]["molecules"][0]["smiles"] == "CCO"
+
     saved = client.put(f"/workspaces/{created['id']}", json={"workspace": {**loaded, "title": "Renamed"}}).json()
     assert saved["title"] == "Renamed"
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+import threading
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -10,6 +11,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 WORKSPACE_DIR = ROOT / "data" / "workspaces"
+_WORKSPACE_LOCK = threading.RLock()
 
 
 def list_workspaces() -> list[dict[str, Any]]:
@@ -62,13 +64,14 @@ def get_workspace(workspace_id: str) -> dict[str, Any]:
 
 
 def save_workspace(workspace_id: str, workspace: dict[str, Any]) -> dict[str, Any]:
-    WORKSPACE_DIR.mkdir(parents=True, exist_ok=True)
-    payload = {**workspace, "id": workspace_id, "updated_at": _now()}
-    path = _path_for(workspace_id)
-    tmp_path = path.with_suffix(".json.tmp")
-    tmp_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
-    tmp_path.replace(path)
-    return payload
+    with _WORKSPACE_LOCK:
+        WORKSPACE_DIR.mkdir(parents=True, exist_ok=True)
+        payload = {**workspace, "id": workspace_id, "updated_at": _now()}
+        path = _path_for(workspace_id)
+        tmp_path = path.with_suffix(".json.tmp")
+        tmp_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+        tmp_path.replace(path)
+        return payload
 
 
 def delete_workspace(workspace_id: str) -> dict[str, Any]:
@@ -114,6 +117,23 @@ def append_result(
             cell["updated_at"] = _now()
             save_workspace(workspace_id, workspace)
             return cell["results"][result_key]
+    raise FileNotFoundError(f"Cell not found: {cell_id}")
+
+
+def update_result(
+    workspace_id: str,
+    cell_id: str,
+    result_key: str,
+    record: dict[str, Any],
+) -> dict[str, Any]:
+    with _WORKSPACE_LOCK:
+        workspace = get_workspace(workspace_id)
+        for cell in workspace.get("cells", []):
+            if cell.get("id") == cell_id:
+                cell.setdefault("results", {})[result_key] = record
+                cell["updated_at"] = _now()
+                save_workspace(workspace_id, workspace)
+                return record
     raise FileNotFoundError(f"Cell not found: {cell_id}")
 
 
