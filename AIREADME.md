@@ -137,6 +137,7 @@ WSL 临时文件必须放在：
 - React Flow 手动画出的边不要被误当作第一条反应；只有由 reaction 对象生成的边才打开反应任务。手动画布边应能选中后删除，且禁止自连接这类不可见/无意义边。
 - 化学画布应允许同一个 SMILES/结构出现多个独立节点，不能按 `smiles` 去重；重复试剂、等价底物、不同位置的同一分子都需要独立对象。
 - 分子节点连接位点太少会限制路线/网络表达。当前每个分子节点应提供 8 个连接位点：top-a/top-b/right-a/right-b/bottom-a/bottom-b/left-a/left-b。
+- 不要把 React Flow 的多个连接位点直接显示成蓝点，这会让用户以为必须拖拽锚点且画布很乱。连接位点应作为内部锚点隐藏；用户通过“连接分子”关系栏选择起点/终点，或点击两个分子块创建关系。连接线应使用更粗的深色 smoothstep 箭头，选中态再用蓝色强调。
 - 前端改动后应尽量用浏览器/Playwright 检查真实 UI，而不只看 `npm run build`。
 
 化学结果表达经验：
@@ -187,6 +188,7 @@ WSL 临时文件必须放在：
 - [done] 手动画布箭头已支持选中删除，禁止自连接，且不会再误打开无关反应任务。
 - [done] 同一个 SMILES/结构已允许重复加入画布。
 - [done] 分子节点连接位点已扩展为 8 个。
+- [done] 分子节点周边可见蓝色连接点已隐藏；连接关系改为“连接分子”关系栏选择起点/终点创建，点击两个块作为快捷方式；连接线已加粗加深。
 - [done] WSL 已可复用 Windows Gaussian 16W；项目 Gaussian runner 能在 Windows 与 WSL 路径下发现该可执行文件。
 - [done] WSL `orgsynflow-chem` 已安装/确认 xTB、CREST、Open Babel、ASE、geomeTRIC、PySCF、Psi4、cclib、GoodVibes 等计算工具。
 - [done] 单元删除入口已加入。
@@ -219,7 +221,7 @@ WSL 临时文件必须放在：
 
 最近一次验证基线：
 
-- `uv run pytest -q`：34 passed。
+- `uv run pytest -q`：35 passed。
 - 前端构建命令：`cd web; npm run build`。
 - `CO2.H2O` UI 回归检查：本机 Chrome + Playwright 打开 `http://127.0.0.1:5173/`，添加节点后确认多组分结构 SVG 已显示；截图在 `%LOCALAPPDATA%\Temp\codex\orgsynflow\co2-h2o-component-structures-ui-check.png`。
 - 布局/箭头 UI 回归检查：本机 Chrome + Playwright 确认结果面板在 `.detail` 内、浅色显示；手动画布边可创建并通过“删除箭头”删除；819px 视口下中间面板宽度约 280px；截图在 `%LOCALAPPDATA%\Temp\codex\orgsynflow\layout-edge-fix-ui-check.png`。
@@ -228,4 +230,5 @@ WSL 临时文件必须放在：
 - WSL 量化 smoke test：PySCF H2/STO-3G energy `-1.11675931`；Psi4 H2/STO-3G energy `-1.11678332`；Gaussian16W H2O HF/STO-3G 正常结束。
 - 计算 API smoke test：`/compute/status` 返回 Gaussian Windows bridge 和 WSL xTB/CREST/Open Babel/PySCF/Psi4/geomeTRIC/GoodVibes/ASE；`/compute/xtb` 对 `O` 返回 `total_energy_hartree=-5.06897994546`；`/compute/crest` 对 `O` 正常 returncode 0。
 - 前端 UI 检查：内置浏览器刷新 `http://127.0.0.1:5173/` 后右侧任务面板显示计算后端状态；选中 CCO 分子后出现 `xTB 优化/能量`、`CREST 构象搜索`；点击 xTB 后结果面板显示 `xTB CLI via WSL` 和 `/tmp/codex/orgsynflow/xtb_jobs/...`。
+- 连接 UI 检查：内置浏览器添加两个 CCO 后打开 `连接分子`，通过关系栏选择起点/终点并创建连接；DOM 检查 `edgeCount=1`、`visibleHandles=0`、边线 `stroke=rgb(15, 23, 42)`、`strokeWidth=3px`。
 - 桌面开关脚本：已验证可启动、关闭、重新启动 8765/5173。

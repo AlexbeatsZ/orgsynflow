@@ -20,6 +20,7 @@ import {
   BookOpen,
   Boxes,
   ChevronDown,
+  Link2,
   Trash2,
   Loader2,
   PanelLeftClose,
@@ -365,12 +366,20 @@ function CellDetail({
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
+  const [connectMode, setConnectMode] = useState(false);
+  const [pendingConnectionNodeId, setPendingConnectionNodeId] = useState<string | null>(null);
+  const [relationSourceId, setRelationSourceId] = useState("");
+  const [relationTargetId, setRelationTargetId] = useState("");
   const nodeTypes = useMemo(() => ({ molecule: MoleculeNode }), []);
+  const molecules = cell.objects.molecules ?? [];
 
   useEffect(() => {
     setNodes(toNodes(cell));
     setEdges(toEdges(cell));
     setSelectedEdgeId(null);
+    setPendingConnectionNodeId(null);
+    setRelationSourceId("");
+    setRelationTargetId("");
   }, [cell.id, cell.objects]);
 
   useEffect(() => {
@@ -388,19 +397,55 @@ function CellDetail({
     (params: Connection) => {
       if (!params.source || !params.target) return;
       if (params.source === params.target) return;
-      const edge: Edge = {
-        id: `edge-${Date.now()}`,
+      const sourceNode = nodes.find((node) => node.id === params.source);
+      const targetNode = nodes.find((node) => node.id === params.target);
+      const handles: Partial<ReturnType<typeof smartConnectionHandles>> =
+        sourceNode && targetNode ? smartConnectionHandles(sourceNode, targetNode) : {};
+      const edge = makeCanvasEdge({
         source: params.source,
         target: params.target,
-        sourceHandle: params.sourceHandle,
-        targetHandle: params.targetHandle,
-        markerEnd: { type: MarkerType.ArrowClosed },
-      };
+        sourceHandle: params.sourceHandle ?? handles.sourceHandle,
+        targetHandle: params.targetHandle ?? handles.targetHandle,
+      });
       setEdges((current) => addEdge(edge, current));
       setSelectedEdgeId(edge.id);
     },
-    [setEdges],
+    [nodes, setEdges],
   );
+
+  function createRelationship(sourceId: string, targetId: string) {
+    if (sourceId === targetId) return;
+    const sourceNode = nodes.find((node) => node.id === sourceId);
+    const targetNode = nodes.find((node) => node.id === targetId);
+    const handles: Partial<ReturnType<typeof smartConnectionHandles>> =
+      sourceNode && targetNode ? smartConnectionHandles(sourceNode, targetNode) : {};
+    const edge = makeCanvasEdge({
+      source: sourceId,
+      target: targetId,
+      sourceHandle: handles.sourceHandle,
+      targetHandle: handles.targetHandle,
+    });
+    setEdges((current) => addEdge(edge, current));
+    setSelectedEdgeId(edge.id);
+  }
+
+  function handleNodeClick(node: Node) {
+    if (connectMode) {
+      setSelectedEdgeId(null);
+      if (!pendingConnectionNodeId) {
+        setPendingConnectionNodeId(node.id);
+        setRelationSourceId(node.id);
+        return;
+      }
+      createRelationship(pendingConnectionNodeId, node.id);
+      setPendingConnectionNodeId(null);
+      setConnectMode(false);
+      return;
+    }
+    setSelectedEdgeId(null);
+    const molecule = cell.objects.molecules?.find((item) => item.id === node.id);
+    if (molecule) onSelect({ kind: "molecule", cell, molecule });
+  }
 
   function removeEdge(edgeId: string) {
     setEdges((current) => current.filter((edge) => edge.id !== edgeId));
@@ -417,20 +462,83 @@ function CellDetail({
 
   return (
     <div className="detail-shell">
-      <div className="detail-toolbar">
-        <strong>{cell.title}</strong>
-        <div className="toolbar-actions">
-          {selectedEdgeId && (
-            <button className="ghost-button compact danger-action" onClick={() => removeEdge(selectedEdgeId)}>
-              <Trash2 size={14} /> 删除箭头
+      <div className="detail-toolbar-group">
+        <div className="detail-toolbar">
+          <strong>{cell.title}</strong>
+          <div className="toolbar-actions">
+            <button
+              className={`ghost-button compact ${connectMode ? "active-action" : ""}`}
+              onClick={() => {
+                setConnectMode((enabled) => !enabled);
+                const first = molecules[0]?.id ?? "";
+                const second = molecules.find((molecule) => molecule.id !== first)?.id ?? "";
+                setPendingConnectionNodeId(null);
+                setRelationSourceId(first);
+                setRelationTargetId(second);
+                setSelectedEdgeId(null);
+              }}
+            >
+              <Link2 size={14} /> 连接分子
             </button>
-          )}
-          <button className="ghost-button compact" onClick={persistCanvas}>同步画布到单元</button>
+            {connectMode && <span className="toolbar-hint">{pendingConnectionNodeId ? "选择目标块" : "选择起点块"}</span>}
+            {selectedEdgeId && (
+              <button className="ghost-button compact danger-action" onClick={() => removeEdge(selectedEdgeId)}>
+                <Trash2 size={14} /> 删除箭头
+              </button>
+            )}
+            <button className="ghost-button compact" onClick={persistCanvas}>同步画布到单元</button>
+          </div>
         </div>
+        {connectMode && (
+          <div className="relationship-bar">
+            <select
+              aria-label="连接起点"
+              value={relationSourceId}
+              onChange={(event) => {
+                setRelationSourceId(event.target.value);
+                setPendingConnectionNodeId(event.target.value || null);
+              }}
+            >
+              <option value="">起点</option>
+              {molecules.map((molecule) => (
+                <option key={molecule.id} value={molecule.id}>{molecule.label || molecule.smiles}</option>
+              ))}
+            </select>
+            <span>→</span>
+            <select
+              aria-label="连接终点"
+              value={relationTargetId}
+              onChange={(event) => setRelationTargetId(event.target.value)}
+            >
+              <option value="">终点</option>
+              {molecules.map((molecule) => (
+                <option key={molecule.id} value={molecule.id}>{molecule.label || molecule.smiles}</option>
+              ))}
+            </select>
+            <button
+              className="primary-button compact"
+              disabled={!relationSourceId || !relationTargetId || relationSourceId === relationTargetId}
+              onClick={() => {
+                createRelationship(relationSourceId, relationTargetId);
+                setPendingConnectionNodeId(null);
+                setConnectMode(false);
+              }}
+            >
+              创建连接
+            </button>
+          </div>
+        )}
       </div>
       <div className="canvas">
         <ReactFlow
-          nodes={nodes}
+          nodes={nodes.map((node) => ({
+            ...node,
+            data: {
+              ...node.data,
+              onActivate: () => handleNodeClick(node),
+            },
+            className: node.id === pendingConnectionNodeId ? "connection-source-node" : undefined,
+          }))}
           edges={edges.map((edge) => ({ ...edge, selected: edge.id === selectedEdgeId }))}
           nodeTypes={nodeTypes}
           onNodesChange={onNodesChange}
@@ -439,17 +547,16 @@ function CellDetail({
           connectionMode={ConnectionMode.Loose}
           deleteKeyCode={["Backspace", "Delete"]}
           fitView
-          onNodeClick={(_, node) => {
-            setSelectedEdgeId(null);
-            const molecule = cell.objects.molecules?.find((item) => item.id === node.id);
-            if (molecule) onSelect({ kind: "molecule", cell, molecule });
-          }}
+          onNodeClick={(_, node) => handleNodeClick(node)}
           onEdgeClick={(_, edge) => {
             setSelectedEdgeId(edge.id);
             const reaction = reactionFromEdge(cell, edge);
             if (reaction) onSelect({ kind: "reaction", cell, reaction });
           }}
-          onPaneClick={() => setSelectedEdgeId(null)}
+          onPaneClick={() => {
+            setSelectedEdgeId(null);
+            setPendingConnectionNodeId(null);
+          }}
           onEdgesDelete={() => setSelectedEdgeId(null)}
         >
           <Background />
@@ -464,6 +571,7 @@ function CellDetail({
 function MoleculeNode({ data }: NodeProps) {
   const smiles = String(data.smiles ?? "");
   const label = String(data.label ?? smiles);
+  const onActivate = typeof data.onActivate === "function" ? data.onActivate : null;
   const [svg, setSvg] = useState<string | null>(null);
   const [failed, setFailed] = useState(false);
 
@@ -488,16 +596,30 @@ function MoleculeNode({ data }: NodeProps) {
   }, [smiles]);
 
   return (
-    <div className="molecule-node">
+    <div
+      className="molecule-node"
+      onClick={(event) => {
+        event.stopPropagation();
+        onActivate?.();
+      }}
+    >
       {moleculeHandles.map((handle) => (
-        <Handle
-          key={handle.id}
-          id={handle.id}
-          type="source"
-          position={handle.position}
-          className="molecule-handle molecule-handle-source"
-          style={handle.style}
-        />
+        <span key={handle.id}>
+          <Handle
+            id={handle.id}
+            type="source"
+            position={handle.position}
+            className="molecule-handle molecule-handle-hidden"
+            style={handle.style}
+          />
+          <Handle
+            id={handle.id}
+            type="target"
+            position={handle.position}
+            className="molecule-handle molecule-handle-hidden"
+            style={handle.style}
+          />
+        </span>
       ))}
       <div className="molecule-drawing">
         {svg ? <div dangerouslySetInnerHTML={{ __html: svg }} /> : <span className={failed ? "formula-fallback" : ""}>{failed ? displayFormulaLike(smiles) : "渲染中..."}</span>}
@@ -966,15 +1088,14 @@ function toEdges(cell: WorkspaceCell): Edge[] {
     reactantSmiles.forEach((smiles, index) => {
       const source = molecules.find((molecule) => molecule.smiles === smiles);
       if (!source) return;
-      edges.push({
+      edges.push(makeCanvasEdge({
         id: `${reaction.id}-${index}`,
         source: source.id,
         target: target.id,
         sourceHandle: "right-a",
         targetHandle: "left-a",
         label: reaction.label || `Step ${reactionIndex + 1}`,
-        markerEnd: { type: MarkerType.ArrowClosed },
-      });
+      }));
     });
   });
   return edges;
@@ -1000,10 +1121,43 @@ function objectsFromCanvas(cell: WorkspaceCell, nodes: Node[], edges: Edge[]) {
 function normalizeEdge(edge: Edge): Edge {
   return {
     ...edge,
-    markerEnd: edge.markerEnd ?? { type: MarkerType.ArrowClosed },
+    type: edge.type ?? "smoothstep",
+    className: edge.className ?? "canvas-edge",
+    interactionWidth: edge.interactionWidth ?? 18,
+    markerEnd: edge.markerEnd ?? { type: MarkerType.ArrowClosed, color: "#0f172a", width: 18, height: 18 },
+    style: { stroke: "#0f172a", strokeWidth: 3, ...(edge.style ?? {}) },
     sourceHandle: normalizeMoleculeHandleId(edge.sourceHandle, "right-a"),
     targetHandle: normalizeMoleculeHandleId(edge.targetHandle, "left-a"),
   };
+}
+
+function makeCanvasEdge(edge: Partial<Edge> & { source: string; target: string }): Edge {
+  return {
+    id: edge.id ?? `edge-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    type: "smoothstep",
+    source: edge.source,
+    target: edge.target,
+    sourceHandle: edge.sourceHandle,
+    targetHandle: edge.targetHandle,
+    label: edge.label,
+    className: "canvas-edge",
+    interactionWidth: 18,
+    markerEnd: { type: MarkerType.ArrowClosed, color: "#0f172a", width: 18, height: 18 },
+    style: { stroke: "#0f172a", strokeWidth: 3, ...(edge.style ?? {}) },
+  };
+}
+
+function smartConnectionHandles(source: Node, target: Node): { sourceHandle: string; targetHandle: string } {
+  const dx = target.position.x - source.position.x;
+  const dy = target.position.y - source.position.y;
+  if (Math.abs(dx) >= Math.abs(dy)) {
+    return dx >= 0
+      ? { sourceHandle: "right-a", targetHandle: "left-a" }
+      : { sourceHandle: "left-a", targetHandle: "right-a" };
+  }
+  return dy >= 0
+    ? { sourceHandle: "bottom-a", targetHandle: "top-a" }
+    : { sourceHandle: "top-a", targetHandle: "bottom-a" };
 }
 
 function normalizeMoleculeHandleId(handleId: string | null | undefined, fallback: string): string {

@@ -14,7 +14,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -257,6 +258,11 @@ button {
   gap: 12px;
 }
 
+.detail-toolbar-group {
+  display: grid;
+  gap: 8px;
+}
+
 .toolbar-actions {
   display: inline-flex;
   align-items: center;
@@ -266,6 +272,44 @@ button {
 .danger-action {
   color: #991b1b;
   background: #fee2e2;
+}
+
+.active-action {
+  background: #dbeafe;
+  color: #1746a2;
+  box-shadow: inset 0 0 0 1px #93c5fd;
+}
+
+.toolbar-hint {
+  color: #475569;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.relationship-bar {
+  background: white;
+  border: 1px solid #d9e1eb;
+  border-radius: 8px;
+  padding: 8px 10px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.relationship-bar select {
+  min-width: 0;
+  height: 30px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #f8fafc;
+  color: #17202a;
+  padding: 4px 8px;
+}
+
+.relationship-bar button:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
 }
 
 .canvas {
@@ -287,13 +331,38 @@ button {
 }
 
 .molecule-node .molecule-handle {
-  width: 9px;
-  height: 9px;
-  border: 2px solid white;
+  width: 1px;
+  height: 1px;
+  border: 0;
 }
 
-.molecule-node .molecule-handle-source {
-  background: #2563eb;
+.molecule-node .molecule-handle-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.react-flow__node.connection-source-node .molecule-node {
+  border-color: #2563eb;
+  box-shadow:
+    0 0 0 3px rgba(37, 99, 235, 0.18),
+    0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+.react-flow__edge.canvas-edge .react-flow__edge-path {
+  stroke: #0f172a;
+  stroke-width: 3;
+}
+
+.react-flow__edge.canvas-edge.selected .react-flow__edge-path,
+.react-flow__edge.canvas-edge:focus .react-flow__edge-path {
+  stroke: #2563eb;
+  stroke-width: 4;
+}
+
+.react-flow__edge.canvas-edge .react-flow__edge-text {
+  fill: #0f172a;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .molecule-drawing {
