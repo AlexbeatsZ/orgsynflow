@@ -422,7 +422,12 @@ export function App() {
                     onUpdate={updateCell}
                     onSelect={setSelected}
                   />
-                  <TaskLogDrawer cell={activeCell} openModal={setModal} />
+                  <TaskLogDrawer
+                    cell={activeCell}
+                    openModal={setModal}
+                    workspace={workspace}
+                    onSave={handleSaveWorkspace}
+                  />
                 </>
               ) : (
                 <EmptyState />
@@ -480,17 +485,45 @@ function ResultPanel({ result }: { result: unknown }) {
   );
 }
 
-function TaskLogDrawer({ cell, openModal }: { cell: WorkspaceCell; openModal: (modal: ModalState) => void }) {
+function TaskLogDrawer({
+  cell,
+  openModal,
+  workspace,
+  onSave,
+}: {
+  cell: WorkspaceCell;
+  openModal: (modal: ModalState) => void;
+  workspace: Workspace | null;
+  onSave: (workspace?: Workspace | null) => Promise<void>;
+}) {
   const [open, setOpen] = useState(false);
   const records = Object.entries(cell.results ?? {})
     .map(([key, record]) => ({ key, record }))
     .sort((left, right) => String(right.record.updated_at).localeCompare(String(left.record.updated_at)));
 
-  function openRecord(record: CachedResult) {
+  function openRecord(record: CachedResult, key: string) {
     const title = record.task_label ?? "任务记录";
     if (taskStatus(record.status) === "failed") {
       openModal({ kind: "task-error", title: `${title}失败`, record });
       return;
+    }
+    const parts = key.split(":");
+    if (parts[2] === "retrosynthesis" && workspace) {
+      const moleculeId = parts[1];
+      const molecule = cell.objects?.molecules?.find((m) => m.id === moleculeId);
+      if (molecule) {
+        const moleculeRouteSets = workspace.route_candidate_sets?.filter((set) => set.target_smiles === molecule.smiles) ?? [];
+        if (moleculeRouteSets.length > 0) {
+          openModal({
+            kind: "routes",
+            sets: moleculeRouteSets,
+            workspace,
+            selected: { kind: "molecule", cell, molecule },
+            onSave,
+          });
+          return;
+        }
+      }
     }
     openModal({ kind: "result", title, result: record.payload ?? record });
   }
@@ -507,7 +540,7 @@ function TaskLogDrawer({ cell, openModal }: { cell: WorkspaceCell; openModal: (m
           {records.length ? records.map(({ key, record }) => {
             const status = taskStatus(record.status);
             return (
-              <button key={key} className="task-log-row" onClick={() => openRecord(record)}>
+              <button key={key} className="task-log-row" onClick={() => openRecord(record, key)}>
                 <span className={`task-log-status task-log-status-${status}`}>{taskStatusLabel(status)}</span>
                 <span className="task-log-main">
                   <strong>{record.task_label ?? key}</strong>
@@ -1378,6 +1411,7 @@ function TaskButton({
   onRetry,
   onConfigure,
   openModal,
+  onViewResult,
 }: {
   definition: TaskDefinition;
   record?: CachedResult;
@@ -1385,6 +1419,7 @@ function TaskButton({
   onRetry?: () => void;
   onConfigure?: () => void;
   openModal: (modal: ModalState) => void;
+  onViewResult?: () => void;
 }) {
   const status = taskStatus(record?.status);
   const icon = status === "running"
@@ -1408,6 +1443,10 @@ function TaskButton({
         onRetry: onRetry ?? onRun,
         onConfigure,
       });
+      return;
+    }
+    if (status === "succeeded" && onViewResult) {
+      onViewResult();
       return;
     }
     openModal({ kind: "result", title: definition.label, result: record.payload ?? record });
@@ -1544,12 +1583,22 @@ function MoleculeTasks({
       <TaskButton definition={descriptorsTask} record={recordFor(descriptorsTask)} onRun={() => void runTask(descriptorsTask, () => calculateDescriptors(molecule.smiles), { title: descriptorsTask.label })} openModal={openModal} />
       <TaskButton definition={xtbTask} record={recordFor(xtbTask)} onRun={() => void runTask(xtbTask, () => runXtb(molecule.smiles, 300), { title: xtbTask.label })} openModal={openModal} />
       <TaskButton definition={crestTask} record={recordFor(crestTask)} onRun={() => void runTask(crestTask, () => runCrest(molecule.smiles, 1800), { title: crestTask.label })} openModal={openModal} />
-      <TaskButton definition={routeTask} record={recordFor(routeTask)} onRun={() => void predictRoute()} openModal={openModal} />
-      {workspace && moleculeRouteSets.length > 0 && (
-        <button className="secondary-task-button" onClick={() => openModal({ kind: "routes", sets: moleculeRouteSets, workspace, selected, onSave })}>
-          查看路线候选 ({moleculeRouteSets.length})
-        </button>
-      )}
+      <TaskButton
+        definition={routeTask}
+        record={recordFor(routeTask)}
+        onRun={() => void predictRoute()}
+        openModal={openModal}
+        onViewResult={() => {
+          if (workspace && moleculeRouteSets.length > 0) {
+            openModal({ kind: "routes", sets: moleculeRouteSets, workspace, selected, onSave });
+          } else {
+            const record = recordFor(routeTask);
+            if (record) {
+              openModal({ kind: "result", title: routeTask.label, result: record.payload ?? record });
+            }
+          }
+        }}
+      />
       <TaskButton
         definition={gaussianTask}
         record={recordFor(gaussianTask)}
@@ -1558,7 +1607,6 @@ function MoleculeTasks({
         onConfigure={() => setGaussianConfigOpen(true)}
         openModal={openModal}
       />
-      <button className="secondary-task-button" onClick={() => openModal({ kind: "jobs", jobs, refresh: refreshJobs })}>查看计算队列（Gaussian）</button>
       {gaussianConfigOpen && (
         <GaussianConfigModal
           smiles={molecule.smiles}
@@ -1636,7 +1684,6 @@ function ReactionTasks({
         ).then(() => refreshJobs())}
         openModal={openModal}
       />
-      <button className="secondary-task-button" onClick={() => openModal({ kind: "jobs", jobs, refresh: refreshJobs })}>查看计算队列（Gaussian）</button>
     </div>
   );
 }
