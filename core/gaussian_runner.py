@@ -4,6 +4,7 @@ import shutil
 import subprocess
 from dataclasses import dataclass
 from datetime import datetime
+import os
 from pathlib import Path
 
 from core.temp_paths import orgsynflow_temp_dir
@@ -39,7 +40,38 @@ def find_gaussian_executable() -> str | None:
         found = shutil.which(name)
         if found:
             return found
+    for candidate in _gaussian_executable_candidates():
+        if candidate.is_file():
+            return str(candidate)
     return None
+
+
+def _gaussian_executable_candidates() -> list[Path]:
+    candidates: list[Path] = []
+    gauss_exedir = os.environ.get("GAUSS_EXEDIR")
+    if gauss_exedir:
+        root = Path(_windows_path_to_wsl(gauss_exedir))
+        candidates.extend(root / name for name in ("g16.exe", "g16", "g09.exe", "g09"))
+
+    wsl_user_roots = Path("/mnt/c/Users")
+    if wsl_user_roots.exists():
+        candidates.extend(wsl_user_roots.glob("*/AppData/Local/Programs/g16w/g16.exe"))
+        candidates.extend(wsl_user_roots.glob("*/AppData/Local/Programs/Gaussian*/g16.exe"))
+
+    for root in (Path("/mnt/c/Program Files"), Path("/mnt/c/Program Files (x86)")):
+        if root.exists():
+            candidates.extend(root.glob("Gaussian*/**/g16.exe"))
+            candidates.extend(root.glob("g16*/g16.exe"))
+
+    return candidates
+
+
+def _windows_path_to_wsl(path: str) -> str:
+    if len(path) >= 3 and path[1:3] == ":\\":
+        drive = path[0].lower()
+        rest = path[3:].replace("\\", "/")
+        return f"/mnt/{drive}/{rest}"
+    return path
 
 
 def run_gaussian_job(
