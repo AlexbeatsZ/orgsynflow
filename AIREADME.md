@@ -156,6 +156,7 @@ WSL 临时文件必须放在：
 
 - 不要把 heuristic/demo 逻辑包装成真实模型结果。
 - AiZynthFinder、OPERA、RXNMapper、DRFP/RXNFP、xTB、CREST、GoodVibes、cclib 都是可选工具；不可用时应返回明确 unavailable/disabled/fallback，而不是抛未处理异常。
+- 公开权重审计结论记录在 `docs/public-model-weights-audit.md`：AiZynthFinder、OPERA、RXNMapper 是当前可直接依赖的公开模型/权重；ASKCOS 公开模型和数据但部署重且模型/数据为 CC BY-NC-SA；DRFP 不需要权重；RXNFP 有公开预训练反应 BERT 但不是通用产率预测器；没有找到可负责任直接接入的官方通用 organic reaction yield 权重，产率模块应继续明确显示 heuristic/features/no trained model。
 - 计算后端调研：xTB 官方仓库是 `grimme-lab/xtb`；CREST 官方仓库/文档是 `crest-lab/crest` 和 `crest-lab.github.io/crest-docs`；cclib 可解析多类量化输出；GoodVibes 可从 Gaussian/ORCA/NWChem/Q-Chem/xTB/ASE 结果计算准谐热化学校正；PySCF、Psi4、geomeTRIC、ASE 可作为开源量化/优化/工作流后端候选。
 - Gaussian 是商业闭源软件，不能从 GitHub 或公开源直接安装；WSL 集成需要用户提供合法 Gaussian 安装包和 license/环境变量信息。
 - 本机 Windows 已安装 Gaussian 16W：`C:\Users\Meta\AppData\Local\Programs\g16w\g16.exe`。WSL 可通过 `/mnt/c/Users/Meta/AppData/Local/Programs/g16w/g16.exe` 调用该 Windows 可执行文件；`core.gaussian_runner.find_gaussian_executable()` 已加固为先查 PATH，再查 `GAUSS_EXEDIR`，最后扫描 WSL 挂载的 Windows Gaussian 常见路径。
@@ -236,6 +237,7 @@ WSL 临时文件必须放在：
 - [done] Phenol acetylation 示例已改为单个点式反应物块 `O=C(O)c1ccccc1O.CC(=O)OC(C)=O` 指向 aspirin，旧的失败/不可用任务缓存已清空。
 - [done] 过渡态任务已合并为单一“计算过渡态（Gaussian）”入口；点击后打开参数化窗口，包含 TS 搜索建议、方法/基组/电荷/多重度/作业类型、相对位移/旋转滑块、3D 构象预览和 GJF 预览。
 - [done] 反应/路线箭头已改为智能正交路由，支持四侧中心自动端点选择、横竖折线、避开其它 SMILES 块，以及按路径长度/弯折数/前段长度排序。
+- [done] 完成公开模型/权重审计并写入 `docs/public-model-weights-audit.md`：确认 AiZynthFinder/OPERA/RXNMapper/DRFP 当前状态，记录 ASKCOS、RXNFP、Yield-BERT、Chemprop 的可用性与限制。
 
 当前可运行入口：
 
@@ -259,6 +261,7 @@ WSL 临时文件必须放在：
 - [done] xTB/CREST 已接入分子任务按钮，可从当前前端直接运行并把结果送到中间结果面板。
 - [todo] 继续把 PySCF/Psi4/geomeTRIC 接入具体任务按钮，而不只是环境可用。
 - [todo] 产率/动力学/热力学结果还需要聚合到路线级评分：总收率、最高能垒、限速步、主要风险。
+- [todo] 如需真实 ML 产率层，优先评估 `rxn4chemistry/rxn_yields` 或其他窄领域公开模型，并在 UI 中强制展示训练数据来源、反应族/适用域和不确定性；不要把 RXNFP/DRFP 特征本身显示成预测产率。
 - [todo] README 中部分 React 工作区描述可能滞后于当前“通用化学单元”设计，后续可同步更新。
 
 最近一次验证基线：
