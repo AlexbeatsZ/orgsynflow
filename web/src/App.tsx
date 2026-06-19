@@ -75,12 +75,16 @@ const examples = {
 };
 
 const moleculeHandles = [
+  { id: "top", position: Position.Top, style: { left: "50%" } },
   { id: "top-a", position: Position.Top, style: { left: "34%" } },
   { id: "top-b", position: Position.Top, style: { left: "66%" } },
+  { id: "right", position: Position.Right, style: { top: "50%" } },
   { id: "right-a", position: Position.Right, style: { top: "30%" } },
   { id: "right-b", position: Position.Right, style: { top: "70%" } },
+  { id: "bottom", position: Position.Bottom, style: { left: "50%" } },
   { id: "bottom-a", position: Position.Bottom, style: { left: "34%" } },
   { id: "bottom-b", position: Position.Bottom, style: { left: "66%" } },
+  { id: "left", position: Position.Left, style: { top: "50%" } },
   { id: "left-a", position: Position.Left, style: { top: "30%" } },
   { id: "left-b", position: Position.Left, style: { top: "70%" } },
 ];
@@ -1139,8 +1143,8 @@ function toEdges(cell: WorkspaceCell): Edge[] {
         id: `${reaction.id}-${index}`,
         source: source.id,
         target: target.id,
-        sourceHandle: "right-a",
-        targetHandle: "left-a",
+        sourceHandle: "right",
+        targetHandle: "left",
         label: reaction.label || `Step ${reactionIndex + 1}`,
       }));
     });
@@ -1168,20 +1172,20 @@ function objectsFromCanvas(cell: WorkspaceCell, nodes: Node[], edges: Edge[]) {
 function normalizeEdge(edge: Edge): Edge {
   return {
     ...edge,
-    type: edge.type ?? "smoothstep",
+    type: "straight",
     className: edge.className ?? "canvas-edge",
     interactionWidth: edge.interactionWidth ?? 18,
     markerEnd: edge.markerEnd ?? { type: MarkerType.ArrowClosed, color: "#0f172a", width: 18, height: 18 },
     style: { stroke: "#0f172a", strokeWidth: 3, ...(edge.style ?? {}) },
-    sourceHandle: normalizeMoleculeHandleId(edge.sourceHandle, "right-a"),
-    targetHandle: normalizeMoleculeHandleId(edge.targetHandle, "left-a"),
+    sourceHandle: normalizeMoleculeHandleId(edge.sourceHandle, "right"),
+    targetHandle: normalizeMoleculeHandleId(edge.targetHandle, "left"),
   };
 }
 
 function makeCanvasEdge(edge: Partial<Edge> & { source: string; target: string }): Edge {
   return {
     id: edge.id ?? `edge-${Date.now()}-${Math.random().toString(16).slice(2)}`,
-    type: "smoothstep",
+    type: "straight",
     source: edge.source,
     target: edge.target,
     sourceHandle: edge.sourceHandle,
@@ -1199,18 +1203,20 @@ function smartConnectionHandles(source: Node, target: Node): { sourceHandle: str
   const dy = target.position.y - source.position.y;
   if (Math.abs(dx) >= Math.abs(dy)) {
     return dx >= 0
-      ? { sourceHandle: "right-a", targetHandle: "left-a" }
-      : { sourceHandle: "left-a", targetHandle: "right-a" };
+      ? { sourceHandle: "right", targetHandle: "left" }
+      : { sourceHandle: "left", targetHandle: "right" };
   }
   return dy >= 0
-    ? { sourceHandle: "bottom-a", targetHandle: "top-a" }
-    : { sourceHandle: "top-a", targetHandle: "bottom-a" };
+    ? { sourceHandle: "bottom", targetHandle: "top" }
+    : { sourceHandle: "top", targetHandle: "bottom" };
 }
 
 function normalizeMoleculeHandleId(handleId: string | null | undefined, fallback: string): string {
   if (!handleId) return fallback;
-  if (handleId === "right-source") return "right-a";
-  if (handleId === "left-source") return "left-a";
+  if (handleId === "right-source" || handleId === "right-a" || handleId === "right-b") return "right";
+  if (handleId === "left-source" || handleId === "left-a" || handleId === "left-b") return "left";
+  if (handleId === "top-a" || handleId === "top-b") return "top";
+  if (handleId === "bottom-a" || handleId === "bottom-b") return "bottom";
   return moleculeHandles.some((handle) => handle.id === handleId) ? handleId : fallback;
 }
 

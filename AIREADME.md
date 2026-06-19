@@ -138,6 +138,7 @@ WSL 临时文件必须放在：
 - 化学画布应允许同一个 SMILES/结构出现多个独立节点，不能按 `smiles` 去重；重复试剂、等价底物、不同位置的同一分子都需要独立对象。
 - 分子节点连接位点太少会限制路线/网络表达。当前每个分子节点应提供 8 个连接位点：top-a/top-b/right-a/right-b/bottom-a/bottom-b/left-a/left-b。
 - 不要把 React Flow 的多个连接位点直接显示成蓝点，这会让用户以为必须拖拽锚点且画布很乱。连接位点应作为内部锚点隐藏；用户通过“连接分子”按钮进入连续连线状态，或按住 Shift 临时进入连续连线状态；每次点击分子会从上一个分子自动连到当前分子，并把当前分子作为下一段起点。连接线应使用更粗的深色 smoothstep 箭头，选中态再用蓝色强调。画布需要提供“一键删除全部连线”。
+- 用户对分子块之间的连接线更偏好几何直觉：当 B 在 A 上方时，应从 A 顶部中心连到 B 底部中心并画成一条直线；左右关系也应使用左右中心锚点。React Flow 边应使用 `straight` 类型，旧的 `top-a/right-a/...` 等边 handle 需要归一到中心 `top/right/bottom/left`，避免历史数据继续画出多弯折线。
 - 前端改动后应尽量用浏览器/Playwright 检查真实 UI，而不只看 `npm run build`。
 
 化学结果表达经验：
@@ -189,6 +190,7 @@ WSL 临时文件必须放在：
 - [done] 同一个 SMILES/结构已允许重复加入画布。
 - [done] 分子节点连接位点已扩展为 8 个。
 - [done] 分子节点周边可见蓝色连接点已隐藏；连接关系改为“连接分子”连续连线模式，支持按钮切换或按住 Shift 临时进入；连接线已加粗加深，并提供删除全部连线。
+- [done] 连接线已改为按节点相对位置自动选择上下/左右中心锚点，并使用直线边，避免上下连接时出现歪斜和多段弯折。
 - [done] WSL 已可复用 Windows Gaussian 16W；项目 Gaussian runner 能在 Windows 与 WSL 路径下发现该可执行文件。
 - [done] WSL `orgsynflow-chem` 已安装/确认 xTB、CREST、Open Babel、ASE、geomeTRIC、PySCF、Psi4、cclib、GoodVibes 等计算工具。
 - [done] 单元删除入口已加入。
@@ -231,4 +233,5 @@ WSL 临时文件必须放在：
 - 计算 API smoke test：`/compute/status` 返回 Gaussian Windows bridge 和 WSL xTB/CREST/Open Babel/PySCF/Psi4/geomeTRIC/GoodVibes/ASE；`/compute/xtb` 对 `O` 返回 `total_energy_hartree=-5.06897994546`；`/compute/crest` 对 `O` 正常 returncode 0。
 - 前端 UI 检查：内置浏览器刷新 `http://127.0.0.1:5173/` 后右侧任务面板显示计算后端状态；选中 CCO 分子后出现 `xTB 优化/能量`、`CREST 构象搜索`；点击 xTB 后结果面板显示 `xTB CLI via WSL` 和 `/tmp/codex/orgsynflow/xtb_jobs/...`。
 - 连接 UI 检查：内置浏览器添加三个 CCO 后打开 `连接分子`，依次点击三个分子得到 `edgeCount=2`、`visibleHandles=0`，模式保持开启且提示继续选择下一个分子；点击 `删除全部连线` 后 `edgeCount=0`。
+- 直线连接 UI 检查：内置浏览器临时把示例工作区放成上下两个节点，打开 `连接分子` 后点击下方 A 再点击上方 B，生成 `react-flow__edge-straight canvas-edge`，SVG path 为单段 `M 315,317.5L 315,196.5`，`visibleHandles=0`；验证后已恢复示例数据。
 - 桌面开关脚本：已验证可启动、关闭、重新启动 8765/5173。
