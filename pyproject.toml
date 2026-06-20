@@ -15,6 +15,9 @@ dependencies = [
     "rdkit>=2026.3.3",
     "streamlit>=1.45.0",
     "uvicorn>=0.38.0",
+    "gradio>=4.0.0",
+    "py3Dmol>=2.0.0",
+    "matplotlib>=3.8.0",
 ]
 
 [tool.uv]
