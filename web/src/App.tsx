@@ -663,43 +663,59 @@ function ReactionMappingView({ result }: { result: any }) {
 
   useEffect(() => {
     if (!mol3dReady || !coords || !viewerRefR.current || !viewerRefP.current || !(window as any).$3Dmol) return;
+    const $3Dmol = (window as any).$3Dmol;
 
-    const renderViewer = (ref: HTMLDivElement, data: any, label: string) => {
-      while (ref.firstChild) ref.removeChild(ref.firstChild);
-      const viewer = (window as any).$3Dmol.createViewer(ref, { backgroundColor: "#f8fafc" });
-      viewer.setBackgroundColor("#f8fafc");
+    const viewerR = $3Dmol.createViewer(viewerRefR.current, { backgroundColor: "#f8fafc" });
+    const viewerP = $3Dmol.createViewer(viewerRefP.current, { backgroundColor: "#f8fafc" });
 
-      if (data?.xyz) {
-        viewer.addModel(data.xyz, "xyz");
-        viewer.setStyle({}, { stick: { radius: 0.15 }, sphere: { scale: 0.28 } });
-
-        if (data.atoms && Array.isArray(data.atoms)) {
-          data.atoms.forEach((atom: any) => {
-            if (atom.map_index && atom.map_index > 0) {
-              viewer.addLabel(String(atom.map_index), {
-                position: { x: atom.x, y: atom.y, z: atom.z },
-                backgroundColor: "rgba(37,99,235,0.85)",
-                fontColor: "white",
-                fontSize: 12,
-                showBackground: true,
-              });
-            }
-          });
-        }
-
-        viewer.zoomTo();
-        viewer.render();
+    if (coords.reactants?.xyz) {
+      viewerR.addModel(coords.reactants.xyz, "xyz");
+      viewerR.setStyle({}, { stick: { radius: 0.15 }, sphere: { scale: 0.25 } });
+      if (Array.isArray(coords.reactants.atoms)) {
+        coords.reactants.atoms.forEach((atom: any) => {
+          if (atom.map_index > 0) {
+            viewerR.addLabel(String(atom.map_index), {
+              position: { x: atom.x + 0.15, y: atom.y + 0.15, z: atom.z + 0.15 },
+              backgroundColor: "rgba(37,99,235,0.85)",
+              fontColor: "white",
+              fontSize: 11,
+              showBackground: true,
+            });
+          }
+        });
       }
+      viewerR.zoomTo();
+      viewerR.render();
+    }
 
-      return viewer;
-    };
+    if (coords.products?.xyz) {
+      viewerP.addModel(coords.products.xyz, "xyz");
+      viewerP.setStyle({}, { stick: { radius: 0.15 }, sphere: { scale: 0.25 } });
+      if (Array.isArray(coords.products.atoms)) {
+        coords.products.atoms.forEach((atom: any) => {
+          if (atom.map_index > 0) {
+            viewerP.addLabel(String(atom.map_index), {
+              position: { x: atom.x + 0.15, y: atom.y + 0.15, z: atom.z + 0.15 },
+              backgroundColor: "rgba(37,99,235,0.85)",
+              fontColor: "white",
+              fontSize: 11,
+              showBackground: true,
+            });
+          }
+        });
+      }
+      viewerP.zoomTo();
+      viewerP.render();
+    }
 
-    const viewerR = renderViewer(viewerRefR.current, coords.reactants, "reactants");
-    const viewerP = renderViewer(viewerRefP.current, coords.products, "products");
+    requestAnimationFrame(() => {
+      viewerR.resize();
+      viewerP.resize();
+    });
 
     return () => {
-      if (viewerR?.clear) viewerR.clear();
-      if (viewerP?.clear) viewerP.clear();
+      viewerR.clear();
+      viewerP.clear();
     };
   }, [mol3dReady, coords]);
 
@@ -723,15 +739,19 @@ function ReactionMappingView({ result }: { result: any }) {
         </tbody>
       </table>
 
-      {coords && !coords.error ? (
+      {coords && !coords.error && (coords.reactants?.xyz || coords.products?.xyz) ? (
         <div style={{ display: "flex", gap: "16px", marginBottom: "12px", flexWrap: "wrap" }}>
           <div style={{ flex: 1, minWidth: "280px" }}>
             <h5 style={{ margin: "0 0 6px 0", color: "#334155" }}>反应物 (Atom Mapping)</h5>
-            <div ref={viewerRefR} style={{ width: "100%", height: "320px", borderRadius: "8px", border: "1px solid #e2e8f0", position: "relative" }} />
+            <div className="result-3d-viewer-container">
+              <div ref={viewerRefR} className="result-3d-viewer" />
+            </div>
           </div>
           <div style={{ flex: 1, minWidth: "280px" }}>
             <h5 style={{ margin: "0 0 6px 0", color: "#334155" }}>产物 (Atom Mapping)</h5>
-            <div ref={viewerRefP} style={{ width: "100%", height: "320px", borderRadius: "8px", border: "1px solid #e2e8f0", position: "relative" }} />
+            <div className="result-3d-viewer-container">
+              <div ref={viewerRefP} className="result-3d-viewer" />
+            </div>
           </div>
         </div>
       ) : coords?.error ? (
