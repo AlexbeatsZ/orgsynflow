@@ -151,6 +151,7 @@ WSL 临时文件必须放在：
 - 路线候选中同一步的多个前体必须放进同一个反应物块，SMILES 用点号连接，例如 `O=C(O)c1ccccc1O.CC(=O)OC(C)=O` 作为一个节点连接到产物，不能拆成两条平行边。单纯用户手动输入多个独立分子时仍可按多行创建多个节点。
 - 从某个现有 SMILES 块发起逆合成预测后，插入候选路线必须把预测 target 绑定回这个现有块；不要再新建一个同产物的 `C` 块。对于 `A+B>>C` 这类单步结果，画布应创建一个 `A.B` 点式反应物块并用一条箭头指向现有 `C` 块，这样才能区分“一个合成反应的多个反应物”和“两条独立路线”。
 - 如果用户从点式多分子块里的某个内层组分发起逆合成预测，插入路线时反应箭头仍属于外层组合节点，但 SVG path 的终点应穿过外层容器并落到该内层组分卡片的边缘；同一组合块里的其它组分卡片要作为障碍绕开，避免箭头压过相邻分子。
+- 路线候选树里可能出现多个 molecule id 共享同一个目标 SMILES。对从内层组分发起的逆合成插入，所有与目标组分 SMILES 相同的 route molecule 都必须映射回原内层目标，不能在外面再复制一个“需要合成的东西”；映射后产生的 self-loop 反应边应跳过。
 - 前端改动后应尽量用浏览器/Playwright 检查真实 UI，而不只看 `npm run build`。
 - 任务面板中常驻的“查看计算队列（Gaussian）”和“查看路线候选”按钮已被移除。计算队列状态与结果已统一收拢到底部任务日志抽屉；路线预测成功后，点击绿色状态的预测路线任务按钮或任务日志中对应的成功记录，均能直接调起带交互操作（“加入当前画布”/“新建路线单元”）的路线候选弹窗，而不是无操作的静态展示。
 - 绿色“已完成”任务按钮不应只能查看旧结果；从任务面板点击已完成任务打开结果/路线候选窗口时，应在窗口底部保留“重新计算”入口，复用该任务原来的运行/重试逻辑。Gaussian 等需要参数的任务仍应保留“修改配置”入口。
@@ -210,6 +211,7 @@ WSL 临时文件必须放在：
 - [done] 2026-06-20 修复组合节点组分级逆合成插入：AiZynthFinder reaction 节点不再误作分子；多个前体拆为独立结构；复用所选目标节点；路线和原反应箭头均保持前体到产物的正向顺序；多组分宽度与下游间距已校正。
 - [done] 2026-06-20 修复逆合成候选插入语义：从现有 SMILES 块预测路线时强制复用该产物块；同一步多个前体合并为一个点式 SMILES 反应物块，并只生成一条反应箭头指向产物。
 - [done] 2026-06-20 修复点式多分子目标的路线箭头端点：从内层组分预测路线后，新增反应边会把 `targetComponentIndex` 持久化到 edge data，渲染时把终点定位到目标组分边缘，并把同块其它组分作为路由障碍。
+- [done] 2026-06-20 修复路线候选重复目标节点：从任务日志/旧结果打开路线候选时，会按 `target_smiles` 在当前 cell 中反查目标分子/组分；所有与目标组分同 SMILES 的 route molecule id 映射到原节点，并跳过映射后 source=target 的自环边。
 - [done] 2026-06-20 优化任务面板已完成任务：点击绿色完成态任务打开结果或路线候选窗口时，窗口底部提供“重新计算”按钮，失败态仍沿用错误窗口重试逻辑。
 - [done] 三阶段计划已写入 `plan.md`。
 - [done] 基础 CLI、适配器、API、测试面已建立。
@@ -316,6 +318,7 @@ WSL 临时文件必须放在：
 - 2026-06-20 已完成任务重新计算入口验证：`cd web; npm run build` 成功（仅 Vite 大 chunk warning）；使用本机 Chrome headless 打开 `http://127.0.0.1:5173/`，临时添加 CCO 节点并运行“计算分子描述符（RDKit）”，任务按钮变为 `task-status-succeeded`，首次结果弹窗和再次点击绿色按钮打开的结果弹窗均出现“重新计算”。测试前后已从 `%LOCALAPPDATA%\Temp\.agents\orgsynflow\example-workspace.before-recompute-ui.json` 恢复 `data/workspaces/example-workspace.json`，SHA256 均为 `0D7CA51DD36D940DFDAC7CAE89722F0298C6AE6155A44F3B7B0F1A36B8F2756F`。
 - 2026-06-20 逆合成候选插入修复验证：`cd web; npm run build` 成功（仅 Vite 大 chunk warning）；`uv run pytest -q tests/test_route_layout.py tests/test_workspace_api.py` 为 5 passed。代码检查确认 `addRouteCandidateToCell()` 会复用当前选中产物节点，并把同一步多前体候选投影为一个点式 SMILES reactant 节点与一条产物箭头。
 - 2026-06-20 组分级路线箭头端点验证：`cd web; npm run build` 成功（仅 Vite 大 chunk warning）；`uv run pytest -q tests/test_route_layout.py tests/test_workspace_api.py` 为 5 passed。Chrome/Playwright 使用临时工作区验证 `c1ccccc1.O=C1CCC(=O)N1Br` 中第二个组分作为逆合成目标时，插入候选后 edge path 为 `M 528,337.5L 678,337.5L 678,252L 706,252`，终点落在目标组分左边缘，且绕开左侧相邻组分；截图在 `%LOCALAPPDATA%\Temp\.agents\orgsynflow-route-component-endpoint.png`，临时工作区已删除。
+- 2026-06-20 重复目标节点回归验证：`cd web; npm run build` 成功（仅 Vite 大 chunk warning）；`uv run pytest -q tests/test_route_layout.py tests/test_workspace_api.py` 为 5 passed。Chrome/Playwright 使用临时工作区构造 route 中 `target` 与 `dup` 两个 molecule id 共享 `O=C1CCC(=O)N1Br` 的候选路线；插入后 `targetStandaloneNodes=[]`，只保留原组合块中的目标组分，edge path 为 `M 468,297.5L 678,297.5L 678,252L 706,252`；截图在 `%LOCALAPPDATA%\Temp\.agents\orgsynflow-no-duplicate-target.png`，临时工作区已删除。
 
 ## 4. New Issues
 

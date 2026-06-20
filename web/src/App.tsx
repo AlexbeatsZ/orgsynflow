@@ -1541,12 +1541,11 @@ function RouteCandidateSets({
   setResult: (result: unknown) => void;
 }) {
   const activeCell = selected?.kind ? selected.cell : workspace.cells[0];
-  const anchorMolecule = selected?.kind === "molecule" ? selected.molecule : null;
-  const anchorComponent = selected?.kind === "molecule" ? selected.component ?? null : null;
 
-  async function addRouteToCurrentCell(route: RouteCandidate) {
+  async function addRouteToCurrentCell(route: RouteCandidate, targetSmiles: string) {
     if (!activeCell) return;
-    const updatedCell = addRouteCandidateToCell(activeCell, route, anchorMolecule, anchorComponent);
+    const anchor = resolveRouteAnchor(activeCell, targetSmiles, selected);
+    const updatedCell = addRouteCandidateToCell(activeCell, route, anchor.molecule, anchor.component);
     await onSave({
       ...workspace,
       cells: workspace.cells.map((cell) => (cell.id === updatedCell.id ? updatedCell : cell)),
@@ -1581,7 +1580,7 @@ function RouteCandidateSets({
                 </button>
                 <span>{route.depth} 步 · 前体 {route.precursor_count} · 库存 {route.stock_count}</span>
                 <div className="route-actions">
-                  <button onClick={() => addRouteToCurrentCell(route)}>加入当前画布</button>
+                  <button onClick={() => addRouteToCurrentCell(route, set.target_smiles)}>加入当前画布</button>
                   <button onClick={() => createRouteCell(route)}>新建路线单元</button>
                 </div>
               </div>
@@ -1591,6 +1590,29 @@ function RouteCandidateSets({
       </div>
     </>
   );
+}
+
+function resolveRouteAnchor(
+  cell: WorkspaceCell,
+  targetSmiles: string,
+  selected: SelectedObject,
+): { molecule: MoleculeObject | null; component: MoleculeComponent | null } {
+  if (selected?.kind === "molecule" && selected.cell.id === cell.id) {
+    const selectedTargetSmiles = selected.component?.smiles ?? selected.molecule.smiles;
+    if (selectedTargetSmiles === targetSmiles) {
+      return { molecule: selected.molecule, component: selected.component ?? null };
+    }
+  }
+  for (const molecule of cell.objects.molecules ?? []) {
+    if (molecule.smiles === targetSmiles) {
+      return { molecule, component: null };
+    }
+    const component = componentsForMolecule(molecule).find((item) => item.smiles === targetSmiles);
+    if (component) {
+      return { molecule, component };
+    }
+  }
+  return { molecule: null, component: null };
 }
 
 function EngineSelectorView({
@@ -3156,6 +3178,7 @@ function addRouteCandidateToCell(
   const routeReactions: ReactionObject[] = [];
   const routeEdges: Edge[] = [];
   const routeNodeIdByMoleculeId = new Map<string, string>();
+  const anchorTargetSmiles = anchorComponent?.smiles ?? anchorMolecule?.smiles ?? targetMol.smiles;
   const targetComponentIndex = shiftedAnchorNode && anchorComponent?.parent_molecule_id === shiftedAnchorNode.id
     ? anchorComponent.component_index
     : null;
@@ -3172,11 +3195,11 @@ function addRouteCandidateToCell(
   // represent each synthetic operation as one reactant block pointing to the
   // product. A + B >> C therefore becomes a single A.B node connected to C.
   route.molecules.forEach((molecule, index) => {
-    if (!individualMoleculeIds.has(molecule.id)) return;
-    if (molecule.id === route.target_id && shiftedAnchorNode) {
+    if (shiftedAnchorNode && molecule.smiles === anchorTargetSmiles) {
       routeNodeIdByMoleculeId.set(molecule.id, shiftedAnchorNode.id);
       return;
     }
+    if (!individualMoleculeIds.has(molecule.id)) return;
     const nodeId = `route-${stamp}-${route.id}-molecule-${molecule.id}`;
     const layout = route.layout?.nodes?.[molecule.id];
     routeNodeIdByMoleculeId.set(molecule.id, nodeId);
@@ -3237,9 +3260,10 @@ function addRouteCandidateToCell(
     }
 
     if (sourceNodeId) {
+      if (sourceNodeId === productNodeId) return;
       const sourceNode = allRouteNodes.find((node) => node.id === sourceNodeId);
       const targetNode = allRouteNodes.find((node) => node.id === productNodeId);
-      const edgeData = targetComponentIndex !== null && productNodeId === shiftedAnchorNode?.id && step.product_id === route.target_id
+      const edgeData = targetComponentIndex !== null && productNodeId === shiftedAnchorNode?.id && productMol.smiles === anchorTargetSmiles
         ? { targetComponentIndex }
         : undefined;
       const endpointOverrides = targetNode && edgeData
