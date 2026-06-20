@@ -15,7 +15,7 @@ from typing import Any
 
 from adapters.xtb_adapter import run_xtb_job
 from adapters.goodvibes_adapter import run_goodvibes
-from core.gaussian import GaussianResult, parse_gaussian_log
+from core.gaussian import GaussianResult, parse_gaussian_log, parse_gaussian_log_progress
 from core.gaussian_runner import find_gaussian_executable, run_gaussian_job
 from core.kinetics import HARTREE_TO_KJ_MOL, eyring_rate_constant
 from core.reaction_mapping import map_reaction
@@ -93,7 +93,7 @@ class TsWorkflowManager:
         path = self._manifest_path(workflow_id)
         if not path.exists():
             return None
-        return json.loads(path.read_text(encoding="utf-8"))
+        return self._with_log_progress(json.loads(path.read_text(encoding="utf-8")))
 
     def list(self) -> list[dict[str, Any]]:
         workflows = [json.loads(path.read_text(encoding="utf-8")) for path in self.root.glob("*/manifest.json")]
@@ -126,7 +126,7 @@ class TsWorkflowManager:
         self._save(workflow)
         self._cancel_events[workflow_id] = threading.Event()
         self._spawn(workflow_id, self._execute)
-        return workflow
+        return self._with_log_progress(workflow)
 
     def pause(self, workflow_id: str) -> dict[str, Any]:
         workflow = self._require(workflow_id)
@@ -134,7 +134,7 @@ class TsWorkflowManager:
         workflow["pause_requested"] = True
         workflow["updated_at"] = _now()
         self._save(workflow)
-        return workflow
+        return self._with_log_progress(workflow)
 
     def resume(self, workflow_id: str) -> dict[str, Any]:
         workflow = self._require(workflow_id)
@@ -148,7 +148,7 @@ class TsWorkflowManager:
         self._cancel_events[workflow_id] = threading.Event()
         self._pause_events.setdefault(workflow_id, threading.Event()).clear()
         self._spawn(workflow_id, self._execute)
-        return workflow
+        return self._with_log_progress(workflow)
 
     def retry(self, workflow_id: str) -> dict[str, Any]:
         return self.resume(workflow_id)
@@ -162,7 +162,13 @@ class TsWorkflowManager:
         workflow["updated_at"] = _now()
         self._save(workflow)
         _terminate_workflow_gaussian_processes(self._workflow_dir(workflow_id), self.root)
-        return workflow
+        return self._with_log_progress(workflow)
+
+    def _with_log_progress(self, workflow: dict[str, Any]) -> dict[str, Any]:
+        progress = _latest_workflow_log_progress(self._workflow_dir(str(workflow.get("workflow_id") or "")))
+        if not progress:
+            return workflow
+        return {**workflow, "gaussian_progress": progress}
 
     def export(self, workflow_id: str) -> Path:
         workflow = self._require(workflow_id)
@@ -637,6 +643,7 @@ def generate_candidate_geometries(smiles: str, count: int = 3) -> list[dict[str,
             for atom_index in atom_indices:
                 point = conf.GetAtomPosition(atom_index)
                 conf.SetAtomPosition(atom_index, (point.x + dx, point.y + dy, point.z + 0.2 * index))
+        min_distance = separate_overlapping_fragments(mol, fragments)
         lines = []
         for atom in mol.GetAtoms():
             point = conf.GetAtomPosition(atom.GetIdx())
@@ -646,8 +653,76 @@ def generate_candidate_geometries(smiles: str, count: int = 3) -> list[dict[str,
             "label": f"候选构象 {index + 1}",
             "xyz": f"{mol.GetNumAtoms()}\nOrgSynFlow candidate {index + 1}\n" + "\n".join(lines) + "\n",
             "fallback_method": fallback,
+            "minimum_interfragment_distance": min_distance,
         })
     return candidates
+
+
+def separate_overlapping_fragments(mol: Any, fragments: tuple[tuple[int, ...], ...], minimum_distance: float = 1.25) -> float:
+    """Move disconnected fragments apart if RDKit embeds them with obvious overlap."""
+    if len(fragments) < 2:
+        return float("inf")
+    conf = mol.GetConformer()
+    fragments = tuple(tuple(fragment) for fragment in fragments)
+    for _ in range(12):
+        closest = _closest_fragment_pair(mol, fragments)
+        if closest["distance"] >= minimum_distance:
+            return round(float(closest["distance"]), 4)
+        first_fragment = fragments[int(closest["first_fragment"])]
+        second_fragment = fragments[int(closest["second_fragment"])]
+        first_center = _fragment_centroid(conf, first_fragment)
+        second_center = _fragment_centroid(conf, second_fragment)
+        vector = [second_center[i] - first_center[i] for i in range(3)]
+        norm = math.sqrt(sum(value * value for value in vector))
+        if norm < 1e-6:
+            vector = [1.0, 0.0, 0.0]
+            norm = 1.0
+        unit = [value / norm for value in vector]
+        shift = (minimum_distance - float(closest["distance"]) + 0.25) / 2
+        _translate_fragment(conf, first_fragment, [-shift * value for value in unit])
+        _translate_fragment(conf, second_fragment, [shift * value for value in unit])
+    return round(float(_closest_fragment_pair(mol, fragments)["distance"]), 4)
+
+
+def _closest_fragment_pair(mol: Any, fragments: tuple[tuple[int, ...], ...]) -> dict[str, float | int]:
+    conf = mol.GetConformer()
+    best: dict[str, float | int] = {"distance": float("inf"), "first_fragment": 0, "second_fragment": 1}
+    for first_index, first_fragment in enumerate(fragments[:-1]):
+        for second_index, second_fragment in enumerate(fragments[first_index + 1:], start=first_index + 1):
+            for first_atom_index in first_fragment:
+                first_atom = mol.GetAtomWithIdx(first_atom_index)
+                if first_atom.GetAtomicNum() == 1:
+                    continue
+                first_point = conf.GetAtomPosition(first_atom_index)
+                for second_atom_index in second_fragment:
+                    second_atom = mol.GetAtomWithIdx(second_atom_index)
+                    if second_atom.GetAtomicNum() == 1:
+                        continue
+                    second_point = conf.GetAtomPosition(second_atom_index)
+                    distance = math.dist(
+                        (first_point.x, first_point.y, first_point.z),
+                        (second_point.x, second_point.y, second_point.z),
+                    )
+                    if distance < float(best["distance"]):
+                        best = {"distance": distance, "first_fragment": first_index, "second_fragment": second_index}
+    if math.isinf(float(best["distance"])):
+        return {"distance": float("inf"), "first_fragment": 0, "second_fragment": 1}
+    return best
+
+
+def _fragment_centroid(conf: Any, atom_indices: tuple[int, ...]) -> list[float]:
+    points = [conf.GetAtomPosition(atom_index) for atom_index in atom_indices]
+    return [
+        sum(point.x for point in points) / len(points),
+        sum(point.y for point in points) / len(points),
+        sum(point.z for point in points) / len(points),
+    ]
+
+
+def _translate_fragment(conf: Any, atom_indices: tuple[int, ...], vector: list[float]) -> None:
+    for atom_index in atom_indices:
+        point = conf.GetAtomPosition(atom_index)
+        conf.SetAtomPosition(atom_index, (point.x + vector[0], point.y + vector[1], point.z + vector[2]))
 
 
 def build_scan_grid(coordinates: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -813,7 +888,32 @@ def standard_state(config: dict[str, Any]) -> str:
 
 
 def _public_workflow(workflow: dict[str, Any]) -> dict[str, Any]:
-    return {key: value for key, value in workflow.items() if key not in {"raw_logs"}}
+    public = {key: value for key, value in workflow.items() if key not in {"raw_logs"}}
+    workflow_id = str(workflow.get("workflow_id") or "")
+    if workflow_id:
+        progress = _latest_workflow_log_progress(WORKFLOW_ROOT / workflow_id)
+        if progress:
+            public["gaussian_progress"] = progress
+    return public
+
+
+def _latest_workflow_log_progress(workflow_dir: Path) -> dict[str, Any] | None:
+    if not workflow_dir.exists():
+        return None
+    candidates = sorted(
+        [*workflow_dir.rglob("*.log"), *workflow_dir.rglob("*.out")],
+        key=lambda item: item.stat().st_mtime,
+        reverse=True,
+    )
+    if not candidates:
+        return None
+    log_path = candidates[0]
+    text = log_path.read_text(encoding="utf-8", errors="ignore")
+    return {
+        "log_path": str(log_path),
+        "log_tail": text[-12000:],
+        "progress": parse_gaussian_log_progress(text),
+    }
 
 
 def _terminate_workflow_gaussian_processes(workflow_dir: Path, workflow_root: Path = WORKFLOW_ROOT) -> None:

@@ -170,6 +170,8 @@ WSL 临时文件必须放在：
 - Chemformer 会规范化目标 SMILES，路线插入器不能只用 SMILES 字符串完全相等来复用现有目标节点；应优先把 `route.target_id` 映射到用户发起预测时的锚点节点。
 - `/compute/status` 不应为每个后端重复调用完整适配器扫描；WSL 探测较慢，应一次构建状态映射后复用，否则前端引擎选择器会长时间显示未检测状态。
 - Gaussian 优化的收敛过程图表可通过解析 log 文件中所有 `SCF Done:` 与 `Maximum Force` 提取，并在 `GaussianJobView` 渲染出迭代详情（类似 `temp/main.py` 的实现）。
+- Gaussian/TS 任务的“输出预览”不应等计算结束才生成。队列和 TS workflow 的状态接口应读取当前工作目录里最新 `.log/.out`，返回 `log_tail` 与结构化 `log_progress`（SCF 轮数、优化收敛表、warning/error），前端轮询即可显示实时进度。
+- TS 初始构象生成不能接受明显碎片重叠。RDKit 为点式多分子反应物嵌入后，必须检查非键合碎片间最小重原子距离；低于阈值时沿碎片质心方向外推，至少避免原子穿插这类低级错误。
 - FastAPI 后端需要显式映射所有管理器，如果新增管理器（例如 `TsWorkflowManager`），必须在 `api/main.py` 添加对应的 `GET / POST` 路由才能防止前端报 404 错误。
 化学结果表达经验：
 
@@ -351,6 +353,7 @@ WSL 临时文件必须放在：
 - 2026-06-20 逆合成候选插入修复验证：`cd web; npm run build` 成功（仅 Vite 大 chunk warning）；`uv run pytest -q tests/test_route_layout.py tests/test_workspace_api.py` 为 5 passed。代码检查确认 `addRouteCandidateToCell()` 会复用当前选中产物节点，并把同一步多前体候选投影为一个点式 SMILES reactant 节点与一条产物箭头。
 - 2026-06-20 组分级路线箭头端点验证：`cd web; npm run build` 成功（仅 Vite 大 chunk warning）；`uv run pytest -q tests/test_route_layout.py tests/test_workspace_api.py` 为 5 passed。Chrome/Playwright 使用临时工作区验证 `c1ccccc1.O=C1CCC(=O)N1Br` 中第二个组分作为逆合成目标时，插入候选后 edge path 为 `M 528,337.5L 678,337.5L 678,252L 706,252`，终点落在目标组分左边缘，且绕开左侧相邻组分；截图在 `%LOCALAPPDATA%\Temp\.agents\orgsynflow-route-component-endpoint.png`，临时工作区已删除。
 - 2026-06-20 重复目标节点回归验证：`cd web; npm run build` 成功（仅 Vite 大 chunk warning）；`uv run pytest -q tests/test_route_layout.py tests/test_workspace_api.py` 为 5 passed。Chrome/Playwright 使用临时工作区构造 route 中 `target` 与 `dup` 两个 molecule id 共享 `O=C1CCC(=O)N1Br` 的候选路线；插入后 `targetStandaloneNodes=[]`，只保留原组合块中的目标组分，edge path 为 `M 468,297.5L 678,297.5L 678,252L 706,252`；截图在 `%LOCALAPPDATA%\Temp\.agents\orgsynflow-no-duplicate-target.png`，临时工作区已删除。
+- 2026-06-20 Gaussian/TS 输出预览验证：`uv run pytest -q tests/test_v3_gaussian.py tests/test_gaussian_runner.py tests/test_ts_workflow.py tests/test_workspace_api.py` 为 17 passed；`cd web; npm run build` 成功（仅 3Dmol eval 与大 chunk 既有警告）。Gaussian parser 现在解析 SCF cycles、优化收敛表、warning/error、最终坐标和虚频位移；`/jobs` 与 `/ts/workflow/{id}` 会返回最新 log tail/progress；TS 窗口提交后从 GJF 输入预览切换为输出预览；TS 候选生成会分离重叠碎片，`CBr.[Cl-]` 候选最小碎片距离回归通过。
 
 ## 4. New Issues
 
@@ -359,3 +362,4 @@ WSL 临时文件必须放在：
 - [todo] Ketcher 绘图窗口仍未居中且无法使用。已尝试在 `web/src/styles.css` 中移除 `.osf-ketcher-host > div` 的 flex 布局并提交（commit e1b4eb0），但窗口仍表现异常，需要进一步调试布局和可能的全局 CSS 冲突。
 
 - [done] 2026-06-20 Fix canvas UI interactions: allow dragging blocks from sub-molecules, and add selected styling to single-molecule blocks.
+- [done] 2026-06-20 加入 Gaussian/TS 实时输出预览：参考 `temp/main.py` 的 SCF/收敛表/告警解析，增强 `core.gaussian` parser；普通 Gaussian 队列和 TS workflow 状态返回当前 log 摘要；前端在结果窗口和 TS modal 中显示实时 SCF、优化步骤、最新收敛表及日志告警。TS 自动闭环窗口提交后不再继续显示静态 GJF，而改为 Gaussian 输出预览。另修复 `run_gaussian_job(cancel_event=...)` 接口缺失，并为 TS 初始构象添加碎片重叠防护。

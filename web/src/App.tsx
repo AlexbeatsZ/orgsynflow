@@ -887,6 +887,16 @@ function GaussianJobView({ job }: { job: GaussianJob }) {
   const payload = job as any;
   const result = isPlainObject(payload.result) ? payload.result : null;
   const parsed = isPlainObject(result?.parsed_result) ? result?.parsed_result : null;
+  const progress = payload.log_progress ?? result?.log_progress ?? (
+    parsed ? {
+      summary: undefined,
+      scf_cycles: parsed.scf_cycles,
+      convergence_tables: parsed.convergence_tables,
+      optimization_steps: parsed.optimization_steps,
+      issues: parsed.log_issues,
+    } : null
+  );
+  const logTail = String(payload.log_tail ?? result?.log_tail ?? "");
   const metrics = [
     ["状态", statusLabel(job.status)],
     ["作业 ID", job.job_id],
@@ -896,7 +906,7 @@ function GaussianJobView({ job }: { job: GaussianJob }) {
     ["HOMO", parsed?.homo_ev],
     ["LUMO", parsed?.lumo_ev],
   ].filter(([, value]) => value !== undefined && value !== null && value !== "");
-  const highlights = extractLogHighlights([result?.stdout, result?.stderr, job.error].filter(Boolean).join("\n"));
+  const highlights = extractLogHighlights([logTail, result?.stdout, result?.stderr, job.error].filter(Boolean).join("\n"));
   return (
     <div className="structured-result">
       <div className="result-summary">
@@ -908,25 +918,10 @@ function GaussianJobView({ job }: { job: GaussianJob }) {
           <div key={String(key)}><span>{String(key)}</span><strong>{formatResultValue(value)}</strong></div>
         ))}
       </div>
-      {parsed?.optimization_steps && parsed.optimization_steps.length > 0 && (
-        <div className="result-block">
-          <strong>优化收敛过程 ({parsed.optimization_steps.length} 步)</strong>
-          <div className="optimization-steps-chart" style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '8px', maxHeight: '150px', overflowY: 'auto', fontSize: '12px' }}>
-            {parsed.optimization_steps.map((step: any) => (
-              <div key={step.step} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 8px', background: 'var(--surface-color)', borderRadius: '4px' }}>
-                <span style={{ color: 'var(--muted-color)' }}>Step {step.step}</span>
-                <span style={{ fontFamily: 'monospace' }}>
-                  {step.energy_hartree ? `${step.energy_hartree.toFixed(6)} Ha` : '-'}
-                  {step.max_force ? ` | Max Force: ${step.max_force.toFixed(6)}` : ''}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {progress && <GaussianProgressView progress={progress} />}
       {job.work_dir && <code>{job.work_dir}</code>}
       {result?.input_path && <code>{String(result.input_path)}</code>}
-      {result?.log_path && <code>{String(result.log_path)}</code>}
+      {(payload.log_path || result?.log_path) && <code>{String(payload.log_path ?? result?.log_path)}</code>}
       {Array.isArray(parsed?.warnings) && parsed.warnings.length > 0 && (
         <div className="result-block">
           <strong>解析警告</strong>
@@ -937,11 +932,80 @@ function GaussianJobView({ job }: { job: GaussianJob }) {
       {highlights.length > 0 && <LogHighlights items={highlights} />}
       <RawLogDetails
         logs={[
+          ["Gaussian log", logTail],
           ["标准输出", result?.stdout],
           ["错误输出", result?.stderr],
         ]}
         raw={job}
       />
+    </div>
+  );
+}
+
+function GaussianProgressView({ progress }: { progress: any }) {
+  const scfCycles = Array.isArray(progress?.scf_cycles) ? progress.scf_cycles : [];
+  const optimizationSteps = Array.isArray(progress?.optimization_steps) ? progress.optimization_steps : [];
+  const convergenceTables = Array.isArray(progress?.convergence_tables) ? progress.convergence_tables : [];
+  const latestConvergence = convergenceTables.length ? convergenceTables[convergenceTables.length - 1] : null;
+  const issues = isPlainObject(progress?.issues) ? progress.issues : {};
+  const errors = Array.isArray(issues.errors) ? issues.errors : [];
+  const warnings = Array.isArray(issues.warnings) ? issues.warnings : [];
+  return (
+    <div className="gaussian-progress">
+      <div className="result-block">
+        <strong>输出预览 / 计算进度</strong>
+        <p>{String(progress?.summary ?? "等待 Gaussian 写入日志。")}</p>
+      </div>
+      {scfCycles.length > 0 && (
+        <div className="result-block">
+          <strong>SCF 迭代 ({scfCycles.length})</strong>
+          <div className="gaussian-progress-list">
+            {scfCycles.slice(-8).map((cycle: any, index: number) => (
+              <div key={`${cycle.step}-${index}`} className={cycle.in_progress ? "running-row" : ""}>
+                <span>{cycle.in_progress ? "进行中" : `SCF ${cycle.step ?? index + 1}`}</span>
+                <code>{formatResultValue(cycle.energy_hartree)} Ha</code>
+                <small>{cycle.cycles ? `${cycle.cycles} cycles` : "-"}</small>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {optimizationSteps.length > 0 && (
+        <div className="result-block">
+          <strong>优化收敛过程 ({optimizationSteps.length} 步)</strong>
+          <div className="gaussian-progress-list">
+            {optimizationSteps.slice(-10).map((step: any) => (
+              <div key={step.step}>
+                <span>Step {step.step}</span>
+                <code>{formatResultValue(step.energy_hartree)} Ha</code>
+                <small>Max Force {formatResultValue(step.max_force)}</small>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {latestConvergence?.rows?.length > 0 && (
+        <div className="result-block">
+          <strong>最新收敛表 · Step {latestConvergence.step}</strong>
+          <div className="gaussian-convergence-table">
+            {latestConvergence.rows.map((row: any) => (
+              <div key={row.item} className={row.converged ? "converged" : "not-converged"}>
+                <span>{row.item}</span>
+                <code>{formatResultValue(row.value)}</code>
+                <small>阈值 {formatResultValue(row.threshold)}</small>
+                <strong>{row.converged ? "YES" : "NO"}</strong>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {(errors.length > 0 || warnings.length > 0) && (
+        <div className="result-block">
+          <strong>日志告警</strong>
+          {errors.slice(0, 5).map((item: any, index: number) => <p className="error-text" key={`e-${index}`}>[{item.line ?? "-"}] {item.text}</p>)}
+          {warnings.slice(0, 5).map((item: any, index: number) => <p key={`w-${index}`}>[{item.line ?? "-"}] {item.text}</p>)}
+        </div>
+      )}
     </div>
   );
 }
@@ -3051,10 +3115,19 @@ function TransitionStateConfigModal({
                     <p>标准态：{String(workflow.thermochemistry.standard_state ?? "-")}</p>
                   </div>
                 )}
-                <h4>Gaussian 输入预览 (GJF)</h4>
-                <pre style={{ maxHeight: "200px", overflow: "auto", fontSize: "11px", background: "#0f172a", color: "#38bdf8", padding: "10px", borderRadius: "6px" }}>
-                  {gjfText}
-                </pre>
+                {workflow && workflow.status !== "awaiting_confirmation" ? (
+                  <>
+                    <h4>Gaussian 输出预览</h4>
+                    <TsGaussianOutputPreview workflow={workflow} />
+                  </>
+                ) : (
+                  <>
+                    <h4>Gaussian 输入预览 (GJF)</h4>
+                    <pre className="gaussian-preview-block">
+                      {gjfText}
+                    </pre>
+                  </>
+                )}
               </div>
             </div>
           )}
@@ -3073,6 +3146,46 @@ function TransitionStateConfigModal({
           <button className="primary-button" disabled={loading || !!error || !canConfigureWorkflow || !selectedCandidateId || coordinates.length === 0} onClick={handleSubmit}>确认参数并启动自动闭环</button>
         </div>
       </div>
+    </div>
+  );
+}
+
+function TsGaussianOutputPreview({ workflow }: { workflow: TsWorkflow }) {
+  const gaussianProgress = workflow.gaussian_progress;
+  const progress = gaussianProgress?.progress;
+  const activeGridPoints = workflow.grid_points?.filter((point: any) => ["running", "succeeded", "failed"].includes(point.status)) ?? [];
+  return (
+    <div className="ts-output-preview">
+      <div className="result-summary">
+        <strong>{statusLabel(workflow.status)}</strong>
+        <span>{workflow.stage}</span>
+      </div>
+      {gaussianProgress?.log_path && <code>{gaussianProgress.log_path}</code>}
+      {progress ? (
+        <GaussianProgressView progress={progress} />
+      ) : (
+        <div className="result-block">
+          <strong>等待 Gaussian 日志</strong>
+          <p>工作流已提交，当前阶段尚未产生 `.log/.out` 文件。</p>
+        </div>
+      )}
+      {activeGridPoints.length > 0 && (
+        <div className="result-block">
+          <strong>扫描/TS 任务概览</strong>
+          <div className="gaussian-progress-list">
+            {activeGridPoints.slice(-8).map((point: any) => (
+              <div key={point.point_id}>
+                <span>{point.point_id}</span>
+                <code>{point.energy_hartree !== undefined ? `${Number(point.energy_hartree).toFixed(6)} Ha` : statusLabel(point.status)}</code>
+                <small>{point.values?.map((value: number) => Number(value).toFixed(2)).join(" / ") ?? "-"}</small>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {gaussianProgress?.log_tail && (
+        <RawLogDetails logs={[["Gaussian log", gaussianProgress.log_tail]]} raw={gaussianProgress} />
+      )}
     </div>
   );
 }

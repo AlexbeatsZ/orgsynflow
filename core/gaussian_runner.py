@@ -6,9 +6,11 @@ from dataclasses import dataclass
 from datetime import datetime
 import os
 from pathlib import Path
+from threading import Event
+import time
 
 from core.temp_paths import orgsynflow_temp_dir
-from core.gaussian import GaussianResult, parse_gaussian_log
+from core.gaussian import GaussianResult, parse_gaussian_log, parse_gaussian_log_progress
 
 
 @dataclass(frozen=True)
@@ -21,6 +23,8 @@ class GaussianRunResult:
     stderr: str
     message: str
     parsed_result: GaussianResult | None
+    log_tail: str | None = None
+    log_progress: dict[str, object] | None = None
 
     def as_dict(self) -> dict[str, object]:
         return {
@@ -32,6 +36,8 @@ class GaussianRunResult:
             "stderr": self.stderr,
             "message": self.message,
             "parsed_result": self.parsed_result.as_dict() if self.parsed_result else None,
+            "log_tail": self.log_tail,
+            "log_progress": self.log_progress,
         }
 
 
@@ -79,6 +85,7 @@ def run_gaussian_job(
     work_dir: str | Path | None = None,
     executable: str | None = None,
     timeout_seconds: int = 3600,
+    cancel_event: Event | None = None,
 ) -> GaussianRunResult:
     exe = executable or find_gaussian_executable()
     job_dir = Path(work_dir) if work_dir else _default_job_dir()
@@ -96,17 +103,22 @@ def run_gaussian_job(
             stderr="",
             message="未检测到 Gaussian 可执行文件。请确认 g16/g09 已加入 PATH。",
             parsed_result=None,
+            log_tail=None,
+            log_progress=None,
         )
 
     try:
-        completed = subprocess.run(
-            [exe, input_path.name],
-            check=False,
-            capture_output=True,
-            text=True,
-            timeout=timeout_seconds,
-            cwd=str(job_dir),
-        )
+        if cancel_event is None:
+            completed = subprocess.run(
+                [exe, input_path.name],
+                check=False,
+                capture_output=True,
+                text=True,
+                timeout=timeout_seconds,
+                cwd=str(job_dir),
+            )
+        else:
+            completed = _run_cancellable([exe, input_path.name], job_dir, timeout_seconds, cancel_event)
     except subprocess.TimeoutExpired as exc:
         return GaussianRunResult(
             success=False,
@@ -117,6 +129,8 @@ def run_gaussian_job(
             stderr=exc.stderr or "",
             message=f"Gaussian 运行超时：{timeout_seconds} 秒。",
             parsed_result=None,
+            log_tail=None,
+            log_progress=None,
         )
     except Exception as exc:
         return GaussianRunResult(
@@ -128,12 +142,19 @@ def run_gaussian_job(
             stderr=str(exc),
             message=f"Gaussian 调用失败：{exc}",
             parsed_result=None,
+            log_tail=None,
+            log_progress=None,
         )
 
     log_path = _find_log(job_dir)
     parsed = None
+    log_tail = None
+    log_progress = None
     if log_path and log_path.exists():
-        parsed = parse_gaussian_log(log_path.read_text(encoding="utf-8", errors="ignore"))
+        log_text = log_path.read_text(encoding="utf-8", errors="ignore")
+        parsed = parse_gaussian_log(log_text)
+        log_tail = log_text[-12000:]
+        log_progress = parse_gaussian_log_progress(log_text)
 
     success = completed.returncode == 0 and parsed is not None and parsed.normal_termination
     return GaussianRunResult(
@@ -145,6 +166,8 @@ def run_gaussian_job(
         stderr=completed.stderr,
         message="Gaussian 计算完成。" if success else "Gaussian 已返回，但未确认正常结束；请查看 stdout/stderr/log。",
         parsed_result=parsed,
+        log_tail=log_tail,
+        log_progress=log_progress,
     )
 
 
@@ -159,3 +182,30 @@ def _find_log(job_dir: Path) -> Path | None:
         return candidates[0]
     out_candidates = sorted(job_dir.glob("*.out"), key=lambda item: item.stat().st_mtime, reverse=True)
     return out_candidates[0] if out_candidates else None
+
+
+def _run_cancellable(command: list[str], job_dir: Path, timeout_seconds: int, cancel_event: Event) -> subprocess.CompletedProcess[str]:
+    process = subprocess.Popen(
+        command,
+        cwd=str(job_dir),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    start = time.monotonic()
+    while process.poll() is None:
+        if cancel_event.is_set():
+            process.terminate()
+            try:
+                stdout, stderr = process.communicate(timeout=10)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                stdout, stderr = process.communicate()
+            return subprocess.CompletedProcess(command, process.returncode or -15, stdout=stdout or "", stderr=stderr or "Gaussian job cancelled.")
+        if time.monotonic() - start > timeout_seconds:
+            process.kill()
+            stdout, stderr = process.communicate()
+            raise subprocess.TimeoutExpired(command, timeout_seconds, output=stdout, stderr=stderr)
+        time.sleep(1)
+    stdout, stderr = process.communicate()
+    return subprocess.CompletedProcess(command, process.returncode or 0, stdout=stdout or "", stderr=stderr or "")

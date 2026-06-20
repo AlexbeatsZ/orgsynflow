@@ -1,4 +1,4 @@
-from core.gaussian import generate_gaussian_input, parse_gaussian_log
+from core.gaussian import generate_gaussian_input, parse_gaussian_log, parse_gaussian_log_progress
 
 
 def test_generate_gaussian_input_contains_route_and_title() -> None:
@@ -37,3 +37,28 @@ def test_parse_gaussian_log_extracts_key_fields() -> None:
     assert result.imaginary_frequency_count == 1
     assert result.homo_ev is not None
     assert result.lumo_ev is not None
+
+
+def test_parse_gaussian_log_progress_extracts_scf_and_convergence_table() -> None:
+    log = """
+ SCF Done:  E(RB3LYP) =  -228.100000000     A.U. after   8 cycles
+         Item               Value     Threshold  Converged?
+ Maximum Force            0.000012     0.000450     YES
+ RMS     Force            0.000004     0.000300     YES
+ Maximum Displacement     0.001200     0.001800     YES
+ RMS     Displacement     0.000700     0.001200     YES
+ SCF Done:  E(RB3LYP) =  -228.123456789     A.U. after   10 cycles
+         Item               Value     Threshold  Converged?
+ Maximum Force            0.000010     0.000450     YES
+ RMS     Force            0.000003     0.000300     YES
+ Maximum Displacement     0.001000     0.001800     YES
+ RMS     Displacement     0.000600     0.001200     YES
+ Normal termination of Gaussian 16
+"""
+
+    progress = parse_gaussian_log_progress(log)
+
+    assert progress["summary"] == "Gaussian 正常结束。"
+    assert len(progress["scf_cycles"]) == 2
+    assert len(progress["convergence_tables"]) == 2
+    assert progress["optimization_steps"][-1]["max_force"] == 0.00001

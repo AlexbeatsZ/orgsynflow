@@ -135,6 +135,8 @@ export interface GaussianJob {
   work_dir?: string;
   result?: {
     normal_termination?: boolean;
+    log_tail?: string | null;
+    log_progress?: GaussianLogProgress | null;
     parsed_result?: {
       final_energy_hartree?: number | null;
       gibbs_free_energy_hartree?: number | null;
@@ -142,12 +144,59 @@ export interface GaussianJob {
       homo_ev?: number | null;
       lumo_ev?: number | null;
       warnings?: string[];
-      optimization_steps?: Array<{ step: number; energy_hartree?: number; max_force?: number }>;
+      optimization_steps?: GaussianOptimizationStep[];
+      scf_cycles?: GaussianScfCycle[];
+      convergence_tables?: GaussianConvergenceTable[];
     };
     stdout?: string;
     stderr?: string;
   };
   error?: string;
+  log_path?: string;
+  log_tail?: string;
+  log_progress?: GaussianLogProgress;
+}
+
+export interface GaussianScfCycle {
+  step: number;
+  method?: string;
+  energy_hartree?: number;
+  cycles?: number;
+  in_progress?: boolean;
+}
+
+export interface GaussianConvergenceRow {
+  item: string;
+  value?: number | string;
+  threshold?: number | string;
+  converged?: boolean;
+}
+
+export interface GaussianConvergenceTable {
+  step: number;
+  rows: GaussianConvergenceRow[];
+}
+
+export interface GaussianOptimizationStep {
+  step: number;
+  energy_hartree?: number;
+  scf_cycles?: number;
+  max_force?: number;
+  rms_force?: number;
+  max_displacement?: number;
+  rms_displacement?: number;
+  [key: string]: unknown;
+}
+
+export interface GaussianLogProgress {
+  summary?: string;
+  scf_cycles?: GaussianScfCycle[];
+  convergence_tables?: GaussianConvergenceTable[];
+  optimization_steps?: GaussianOptimizationStep[];
+  issues?: {
+    warnings?: Array<{ line?: number; text: string }>;
+    errors?: Array<{ line?: number; text: string }>;
+  };
 }
 
 export interface ComputeBackendStatus {
@@ -183,4 +232,9 @@ export interface TsWorkflow {
   ts_results?: Array<{ frequency_result?: { final_coordinates_xyz?: string; vibration_modes?: Array<{ frequency_cm1: number; displacements: number[][] }> } }>;
   validation?: { frequency_ok?: boolean };
   thermochemistry?: any;
+  gaussian_progress?: {
+    log_path?: string;
+    log_tail?: string;
+    progress?: GaussianLogProgress;
+  };
 }

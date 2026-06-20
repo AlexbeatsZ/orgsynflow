@@ -405,10 +405,11 @@ def kinetics_profile(request: EnergyProfileRequest) -> dict[str, object]:
 
 from core.ts_workflow import TsWorkflowManager
 ts_manager = TsWorkflowManager()
+ts_workflow_manager = ts_manager
 
 @app.post("/ts/workflow")
 def ts_workflow_create(request: TsWorkflowCreateRequest) -> dict[str, object]:
-    return ts_manager.create(
+    return ts_workflow_manager.create(
         reaction_smiles=request.reaction_smiles,
         workspace_id=request.workspace_id,
         cell_id=request.cell_id,
@@ -416,17 +417,25 @@ def ts_workflow_create(request: TsWorkflowCreateRequest) -> dict[str, object]:
         included_agents=request.agents,
     )
 
+@app.post("/ts-workflows")
+def ts_workflow_create_legacy(request: TsWorkflowCreateRequest) -> dict[str, object]:
+    return ts_workflow_create(request)
+
 @app.get("/ts/workflow/{workflow_id}")
 def ts_workflow_get(workflow_id: str) -> dict[str, object]:
-    workflow = ts_manager.get(workflow_id)
+    workflow = ts_workflow_manager.get(workflow_id)
     if not workflow:
         raise HTTPException(status_code=404, detail="Workflow not found")
     return workflow
 
+@app.get("/ts-workflows/{workflow_id}")
+def ts_workflow_get_legacy(workflow_id: str) -> dict[str, object]:
+    return ts_workflow_get(workflow_id)
+
 @app.post("/ts/workflow/{workflow_id}/confirm")
 def ts_workflow_confirm(workflow_id: str, request: TsWorkflowConfirmRequest) -> dict[str, object]:
     try:
-        return ts_manager.confirm(workflow_id, request.model_dump())
+        return ts_workflow_manager.confirm(workflow_id, request.model_dump())
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
@@ -435,11 +444,11 @@ def ts_workflow_action(workflow_id: str, request: TsWorkflowActionRequest) -> di
     try:
         action = request.action
         if action == "pause":
-            return ts_manager.pause(workflow_id)
+            return ts_workflow_manager.pause(workflow_id)
         elif action in ["resume", "retry"]:
-            return ts_manager.resume(workflow_id)
+            return ts_workflow_manager.resume(workflow_id)
         elif action == "cancel":
-            return ts_manager.cancel(workflow_id)
+            return ts_workflow_manager.cancel(workflow_id)
         else:
             raise HTTPException(status_code=400, detail=f"Unknown action: {action}")
     except ValueError as exc:

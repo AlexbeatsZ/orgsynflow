@@ -5,8 +5,10 @@ import uuid
 from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 
+from core.gaussian import parse_gaussian_log_progress
 from core.gaussian_runner import run_gaussian_job
 from core.temp_paths import orgsynflow_temp_dir
 
@@ -27,6 +29,7 @@ class GaussianJob:
     error: str | None = None
 
     def as_dict(self) -> dict[str, Any]:
+        log_snapshot = _read_log_snapshot(self.work_dir)
         return {
             "job_id": self.job_id,
             "workspace_id": self.workspace_id,
@@ -39,6 +42,7 @@ class GaussianJob:
             "work_dir": self.work_dir,
             "result": self.result,
             "error": self.error,
+            **log_snapshot,
         }
 
 
@@ -129,6 +133,29 @@ class GaussianJobQueue:
 
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def _read_log_snapshot(work_dir: str | None) -> dict[str, Any]:
+    if not work_dir:
+        return {}
+    directory = Path(work_dir)
+    if not directory.exists():
+        return {}
+    candidates = sorted(
+        [*directory.glob("*.log"), *directory.glob("*.out")],
+        key=lambda item: item.stat().st_mtime,
+        reverse=True,
+    )
+    if not candidates:
+        return {}
+    log_path = candidates[0]
+    text = log_path.read_text(encoding="utf-8", errors="ignore")
+    tail = text[-12000:]
+    return {
+        "log_path": str(log_path),
+        "log_tail": tail,
+        "log_progress": parse_gaussian_log_progress(text),
+    }
 
 
 gaussian_job_queue = GaussianJobQueue()

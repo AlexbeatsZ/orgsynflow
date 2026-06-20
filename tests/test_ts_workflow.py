@@ -14,6 +14,7 @@ from core.ts_workflow import (
     infer_charge_and_multiplicity,
     irc_endpoints_match,
     rank_saddle_candidates,
+    generate_candidate_geometries,
     set_xyz_distances,
     suggest_scan_coordinates,
 )
@@ -67,6 +68,13 @@ def test_one_coordinate_uses_nine_points() -> None:
     assert len(grid) == 9
     assert grid[0]["values"] == [3.0]
     assert grid[-1]["values"] == [1.5]
+
+
+def test_candidate_generation_separates_disconnected_fragments() -> None:
+    candidates = generate_candidate_geometries("CBr.[Cl-]", count=2)
+
+    assert candidates
+    assert all(candidate["minimum_interfragment_distance"] >= 1.25 for candidate in candidates)
 
 
 def test_frequency_parser_extracts_mode_displacements_and_final_geometry() -> None:

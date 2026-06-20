@@ -1020,6 +1020,81 @@ button {
   font-size: 12px;
 }
 
+.gaussian-progress,
+.ts-output-preview {
+  display: grid;
+  gap: 10px;
+}
+
+.gaussian-progress-list {
+  display: grid;
+  gap: 4px;
+  max-height: 180px;
+  overflow: auto;
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+.gaussian-progress-list > div,
+.gaussian-convergence-table > div {
+  display: grid;
+  grid-template-columns: minmax(74px, 1fr) minmax(110px, auto) minmax(80px, auto) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+}
+
+.gaussian-progress-list code {
+  padding: 0;
+  background: transparent;
+  color: #0f172a;
+  font-size: 11px;
+}
+
+.gaussian-progress-list small,
+.gaussian-convergence-table small {
+  color: #64748b;
+}
+
+.gaussian-progress-list .running-row {
+  border-color: #facc15;
+  background: #fefce8;
+}
+
+.gaussian-convergence-table {
+  display: grid;
+  gap: 4px;
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+.gaussian-convergence-table .converged strong {
+  color: #166534;
+}
+
+.gaussian-convergence-table .not-converged {
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.gaussian-convergence-table .not-converged strong,
+.error-text {
+  color: #991b1b;
+}
+
+.gaussian-preview-block {
+  max-height: 200px;
+  overflow: auto;
+  font-size: 11px;
+  background: #0f172a;
+  color: #38bdf8;
+  padding: 10px;
+  border-radius: 6px;
+}
+
 .result-3d-viewer-container {
   position: relative;
   width: 100%;
