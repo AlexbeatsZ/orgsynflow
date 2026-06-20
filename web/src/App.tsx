@@ -144,6 +144,10 @@ type MoleculeTransform = {
   rotationZ: number;
 };
 
+type MoleculeDragMode = "translate" | "rotate";
+type Vector3Value = { x: number; y: number; z: number };
+type QuaternionValue = { x: number; y: number; z: number; w: number };
+
 const emptyMoleculeTransform = (): MoleculeTransform => ({
   x: 0,
   y: 0,
@@ -2394,11 +2398,14 @@ function TransitionStateConfigModal({
   }, [reactionSmiles]);
   const [includedAgents, setIncludedAgents] = useState<string[]>([]);
   const terminalRecordedRef = useRef(false);
-  const moveDragRef = useRef<{
+  const moleculeDragRef = useRef<{
     pointerId: number;
+    mode: MoleculeDragMode;
     startX: number;
     startY: number;
     transform: MoleculeTransform;
+    screenRight: Vector3Value;
+    screenUp: Vector3Value;
   } | null>(null);
 
   const viewerRef = useRef<HTMLDivElement>(null);
@@ -2554,10 +2561,6 @@ function TransitionStateConfigModal({
         stick: { radius: selected ? 0.2 : 0.14 },
         sphere: { scale: selected ? 0.32 : 0.23 },
       });
-      model.setClickable({}, true, (_atom: unknown, _viewer: unknown, event: MouseEvent | undefined) => {
-        if (!event?.ctrlKey) return;
-        setSelectedMoleculeIndex(index);
-      });
       if (showAtomLabels) {
         atoms.forEach((atom, atomIndex) => {
           viewer.addLabel(String(atomOffset + atomIndex + 1), {
@@ -2627,47 +2630,54 @@ function TransitionStateConfigModal({
     });
   }
 
-  function handleMovePointerDown(event: React.PointerEvent<HTMLDivElement>) {
-    if (!event.shiftKey) return;
+  function handleMoleculePointerDown(event: React.PointerEvent<HTMLDivElement>) {
+    const mode: MoleculeDragMode | null = event.ctrlKey ? "rotate" : event.shiftKey ? "translate" : null;
+    if (!mode || !viewer) return;
     event.preventDefault();
     event.stopPropagation();
     event.currentTarget.setPointerCapture(event.pointerId);
-    moveDragRef.current = {
+    const screenRight = normalizeVector3(viewer.screenOffsetToModel(100, 0));
+    const screenDown = normalizeVector3(viewer.screenOffsetToModel(0, 100));
+    moleculeDragRef.current = {
       pointerId: event.pointerId,
+      mode,
       startX: event.clientX,
       startY: event.clientY,
       transform: { ...selectedMoleculeTransform },
+      screenRight,
+      screenUp: scaleVector3(screenDown, -1),
     };
   }
 
-  function handleMovePointerMove(event: React.PointerEvent<HTMLDivElement>) {
-    const drag = moveDragRef.current;
+  function handleMoleculePointerMove(event: React.PointerEvent<HTMLDivElement>) {
+    const drag = moleculeDragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
     event.preventDefault();
     event.stopPropagation();
-    const dx = (event.clientX - drag.startX) * 0.02;
-    const dy = (event.clientY - drag.startY) * 0.02;
-    updateSelectedMoleculeTransform({ x: drag.transform.x + dx, y: drag.transform.y - dy });
+    const dx = event.clientX - drag.startX;
+    const dy = event.clientY - drag.startY;
+    if (drag.mode === "translate") {
+      const offset = viewer.screenOffsetToModel(dx, dy);
+      updateSelectedMoleculeTransform({
+        x: drag.transform.x + offset.x,
+        y: drag.transform.y + offset.y,
+        z: drag.transform.z + offset.z,
+      });
+      return;
+    }
+    const startRotation = quaternionFromEulerDegrees(drag.transform);
+    const horizontalRotation = quaternionFromAxisAngle(drag.screenUp, dx * 0.01);
+    const verticalRotation = quaternionFromAxisAngle(drag.screenRight, dy * 0.01);
+    const rotated = multiplyQuaternions(verticalRotation, multiplyQuaternions(horizontalRotation, startRotation));
+    updateSelectedMoleculeTransform(eulerDegreesFromQuaternion(rotated));
   }
 
-  function handleMovePointerEnd(event: React.PointerEvent<HTMLDivElement>) {
-    if (moveDragRef.current?.pointerId !== event.pointerId) return;
+  function handleMoleculePointerEnd(event: React.PointerEvent<HTMLDivElement>) {
+    if (moleculeDragRef.current?.pointerId !== event.pointerId) return;
     event.preventDefault();
     event.stopPropagation();
-    moveDragRef.current = null;
+    moleculeDragRef.current = null;
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
-  }
-
-  function handleMoveKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
-    const step = event.altKey ? 0.05 : 0.2;
-    if (event.key === "ArrowLeft") updateSelectedMoleculeTransform({ x: selectedMoleculeTransform.x - step });
-    else if (event.key === "ArrowRight") updateSelectedMoleculeTransform({ x: selectedMoleculeTransform.x + step });
-    else if (event.key === "ArrowUp" && event.shiftKey) updateSelectedMoleculeTransform({ z: selectedMoleculeTransform.z + step });
-    else if (event.key === "ArrowDown" && event.shiftKey) updateSelectedMoleculeTransform({ z: selectedMoleculeTransform.z - step });
-    else if (event.key === "ArrowUp") updateSelectedMoleculeTransform({ y: selectedMoleculeTransform.y + step });
-    else if (event.key === "ArrowDown") updateSelectedMoleculeTransform({ y: selectedMoleculeTransform.y - step });
-    else return;
-    event.preventDefault();
   }
 
   const gjfText = useMemo(() => {
@@ -2929,13 +2939,12 @@ function TransitionStateConfigModal({
                 <div
                   className="ts-3d-viewer-container"
                   role="application"
-                  aria-label="3D 分子视图：左键调整视角，Shift 加左键移动分子，Ctrl 加左键选择分子"
+                  aria-label="3D 分子视图：左键调整视角，Shift 加左键平移分子，Ctrl 加左键旋转分子"
                   tabIndex={0}
-                  onPointerDownCapture={handleMovePointerDown}
-                  onPointerMoveCapture={handleMovePointerMove}
-                  onPointerUpCapture={handleMovePointerEnd}
-                  onPointerCancelCapture={handleMovePointerEnd}
-                  onKeyDown={handleMoveKeyDown}
+                  onPointerDownCapture={handleMoleculePointerDown}
+                  onPointerMoveCapture={handleMoleculePointerMove}
+                  onPointerUpCapture={handleMoleculePointerEnd}
+                  onPointerCancelCapture={handleMoleculePointerEnd}
                 >
                   <div ref={viewerRef} className="ts-3d-viewer" />
                   {!mol3dReady && (
@@ -2943,7 +2952,7 @@ function TransitionStateConfigModal({
                   )}
                 </div>
                 <p className="result-hint">
-                  左键拖拽调整视角；Shift + 左键拖拽移动选中分子；Ctrl + 左键点击选择分子。滚轮缩放，方向键微调位置。
+                  左键拖拽调整视角；Shift + 左键沿当前视图平面移动选中分子；Ctrl + 左键旋转选中分子。滚轮缩放；左侧分子卡用于切换操作对象。
                 </p>
                 {workflow?.validation?.frequency_ok && (
                   <button className={`secondary-button ${animateImaginaryMode ? "active-action" : ""}`} onClick={() => setAnimateImaginaryMode((current) => !current)}>
@@ -4227,6 +4236,65 @@ function moleculeCentroid(atoms: MoleculeCoordinates["atoms"]): { x: number; y: 
     { x: 0, y: 0, z: 0 },
   );
   return { x: total.x / atoms.length, y: total.y / atoms.length, z: total.z / atoms.length };
+}
+
+function normalizeVector3(vector: Vector3Value): Vector3Value {
+  const length = Math.hypot(vector.x, vector.y, vector.z);
+  if (length === 0) return { x: 0, y: 0, z: 0 };
+  return { x: vector.x / length, y: vector.y / length, z: vector.z / length };
+}
+
+function scaleVector3(vector: Vector3Value, scale: number): Vector3Value {
+  return { x: vector.x * scale, y: vector.y * scale, z: vector.z * scale };
+}
+
+function quaternionFromEulerDegrees(transform: MoleculeTransform): QuaternionValue {
+  const x = transform.rotationX * Math.PI / 360;
+  const y = transform.rotationY * Math.PI / 360;
+  const z = transform.rotationZ * Math.PI / 360;
+  const sx = Math.sin(x), cx = Math.cos(x);
+  const sy = Math.sin(y), cy = Math.cos(y);
+  const sz = Math.sin(z), cz = Math.cos(z);
+  return {
+    x: sx * cy * cz - cx * sy * sz,
+    y: cx * sy * cz + sx * cy * sz,
+    z: cx * cy * sz - sx * sy * cz,
+    w: cx * cy * cz + sx * sy * sz,
+  };
+}
+
+function quaternionFromAxisAngle(axis: Vector3Value, angle: number): QuaternionValue {
+  const normalized = normalizeVector3(axis);
+  const halfAngle = angle / 2;
+  const scale = Math.sin(halfAngle);
+  return { x: normalized.x * scale, y: normalized.y * scale, z: normalized.z * scale, w: Math.cos(halfAngle) };
+}
+
+function multiplyQuaternions(left: QuaternionValue, right: QuaternionValue): QuaternionValue {
+  return {
+    x: left.x * right.w + left.w * right.x + left.y * right.z - left.z * right.y,
+    y: left.y * right.w + left.w * right.y + left.z * right.x - left.x * right.z,
+    z: left.z * right.w + left.w * right.z + left.x * right.y - left.y * right.x,
+    w: left.w * right.w - left.x * right.x - left.y * right.y - left.z * right.z,
+  };
+}
+
+function eulerDegreesFromQuaternion(quaternion: QuaternionValue): Pick<MoleculeTransform, "rotationX" | "rotationY" | "rotationZ"> {
+  const length = Math.hypot(quaternion.x, quaternion.y, quaternion.z, quaternion.w) || 1;
+  const x = quaternion.x / length;
+  const y = quaternion.y / length;
+  const z = quaternion.z / length;
+  const w = quaternion.w / length;
+  const sinX = 2 * (w * x + y * z);
+  const cosX = 1 - 2 * (x * x + y * y);
+  const sinY = Math.max(-1, Math.min(1, 2 * (w * y - z * x)));
+  const sinZ = 2 * (w * z + x * y);
+  const cosZ = 1 - 2 * (y * y + z * z);
+  return {
+    rotationX: Math.atan2(sinX, cosX) * 180 / Math.PI,
+    rotationY: Math.asin(sinY) * 180 / Math.PI,
+    rotationZ: Math.atan2(sinZ, cosZ) * 180 / Math.PI,
+  };
 }
 
 function transformMoleculeAtoms(
