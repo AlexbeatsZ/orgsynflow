@@ -1,0 +1,84 @@
+{
+  "workflow_id": "ts-95b248a0ba69",
+  "workspace_id": "example-workspace",
+  "cell_id": "cell-b366fb01",
+  "reaction_id": "rxn-route-1781925770744-aizynth-route-1-s2-1",
+  "reaction_smiles": "CC(=O)OCC(=O)CCO>>O=C(CO)CCO",
+  "included_agents": [],
+  "status": "awaiting_confirmation",
+  "stage": "awaiting_confirmation",
+  "validation_level": "未验证",
+  "created_at": "2026-06-20T03:24:55.445263+00:00",
+  "updated_at": "2026-06-20T03:25:12.034022+00:00",
+  "mapping": {
+    "reaction_smiles": "CC(=O)OCC(=O)CCO>>O=C(CO)CCO",
+    "mapped_reaction_smiles": "CC(=O)[O:4][CH2:3][C:2](=[O:1])[CH2:5][CH2:6][OH:7]>>[O:1]=[C:2]([CH2:3][OH:4])[CH2:5][CH2:6][OH:7]",
+    "method": "rxnmapper_wsl",
+    "status": "mapped",
+    "confidence": "高",
+    "reaction_center": [
+      "反应物与产物结构差异区域"
+    ],
+    "formed_bonds": [
+      "待原子映射确认"
+    ],
+    "broken_bonds": [
+      "待原子映射确认"
+    ],
+    "note": "已通过 rxnmapper_wsl 运行 RXNMapper (confidence=0.991)；成键/断键已成功识别。"
+  },
+  "coordinates": [],
+  "candidates": [
+    {
+      "candidate_id": "candidate-3",
+      "label": "候选构象 3",
+      "xyz": "20\nOrgSynFlow candidate 3\nC   3.69329027  0.60639237  0.24502850\nC   2.34882265 -0.03858150  0.37994287\nO   1.74242657 -0.17186549  1.43435791\nO   1.90938723 -0.47011060 -0.83485879\nC   0.59113297 -1.01143636 -0.80583562\nC  -0.48791742  0.05681781 -0.63287084\nO  -0.26885585  1.24936127 -0.84986717\nC  -1.84320992 -0.44786784 -0.19068970\nC  -2.88962208  0.65086835 -0.19628352\nO  -4.13864243  0.11520005  0.22903317\nH   4.42308079 -0.12802709 -0.10440636\nH   3.63224616  1.44909464 -0.44826187\nH   4.01372368  0.98311697  1.22056977\nH   0.50584881 -1.76851340 -0.01778259\nH   0.41479805 -1.50714551 -1.76583471\nH  -2.15490944 -1.25745280 -0.86013285\nH  -1.74871680 -0.87177919  0.81516036\nH  -3.02262772  1.05637247 -1.20460857\nH  -2.61795957  1.48001220  0.46585514\nH  -4.10229596  0.02554364  1.19733768\n",
+      "fallback_method": "MMFF",
+      "preoptimization": "available",
+      "preoptimization_source": "xTB CLI via WSL",
+      "energy_hartree": -34.195636200289
+    },
+    {
+      "candidate_id": "candidate-1",
+      "label": "候选构象 1",
+      "xyz": "20\nOrgSynFlow candidate 1\nC  -3.29695097  0.08577079 -1.44685596\nC  -1.99226829  0.30454448 -0.74501267\nO  -1.29362003  1.30098578 -0.87358574\nO  -1.71338612 -0.75514918  0.06429689\nC  -0.43627351 -0.67454114  0.69939346\nC   0.71177995 -0.96786944 -0.26656626\nO   0.51999642 -1.40444654 -1.40505738\nC   2.11924677 -0.74437044  0.23942933\nC   2.41747573  0.73716953  0.35711115\nO   1.95168791  1.20673472  1.61756429\nH  -3.25038048 -0.83213963 -2.03831417\nH  -3.48955532  0.92374435 -2.12288095\nH  -4.10681580  0.03214238 -0.71518717\nH  -0.41305209 -1.43707202  1.48431312\nH  -0.31884720  0.30290440  1.17405137\nH   2.23583811 -1.27071790  1.19245064\nH   2.80190203 -1.20096938 -0.48637341\nH   1.93859018  1.31937659 -0.43683166\nH   3.49809946  0.90666177  0.32202758\nH   2.11653327  2.16724087  1.63908601\n",
+      "fallback_method": "MMFF",
+      "preoptimization": "available",
+      "preoptimization_source": "xTB CLI via WSL",
+      "energy_hartree": -34.19532083167
+    },
+    {
+      "candidate_id": "candidate-2",
+      "label": "候选构象 2",
+      "xyz": "20\nOrgSynFlow candidate 2\nC   3.86006793  0.36996861  0.01105475\nC   2.43771811  0.79531993  0.20924306\nO   2.09521237  1.85031739  0.72375128\nO   1.59484555 -0.15587852 -0.26788890\nC   0.21059524  0.15791887 -0.10604750\nC  -0.65078577 -0.90032346 -0.78863976\nO  -0.19179107 -1.96151706 -1.21810584\nC  -2.12671339 -0.59404406 -0.94376415\nC  -2.81858504 -0.57238756  0.40365027\nO  -2.59777750  0.68417277  1.03294471\nH   4.04656745 -0.56277903  0.54920751\nH   4.06503246  0.24719211 -1.05535516\nH   4.52731826  1.14022558  0.40832926\nH  -0.00775191  1.12528217 -0.57150321\nH  -0.03063070  0.16884197  0.96108075\nH  -2.22948851  0.35691156 -1.47674573\nH  -2.56194844 -1.38236831 -1.56839536\nH  -2.44044069 -1.35668494  1.06701855\nH  -3.89863493 -0.71121235  0.28973746\nH  -3.28280941  1.30104432  0.71749286\n",
+      "fallback_method": "MMFF",
+      "preoptimization": "available",
+      "preoptimization_source": "xTB CLI via WSL",
+      "energy_hartree": -34.190100012764
+    }
+  ],
+  "grid_points": [],
+  "ts_candidates": [],
+  "validation": {
+    "level": "未验证",
+    "warnings": []
+  },
+  "thermochemistry": null,
+  "config": {
+    "method": "wB97XD",
+    "basis": "def2SVP",
+    "solvent": null,
+    "charge": 0,
+    "multiplicity": 1,
+    "nproc": 4,
+    "memory": "4GB",
+    "temperature_k": 298.15,
+    "imaginary_threshold_cm1": -50.0,
+    "mode_overlap_threshold": 0.15,
+    "max_grid_points": 40,
+    "max_retries": 2
+  },
+  "error": null,
+  "warnings": [],
+  "requires_manual_coordinates": true
+}

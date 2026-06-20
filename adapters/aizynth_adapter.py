@@ -10,6 +10,8 @@ import uuid
 from dataclasses import dataclass
 from pathlib import Path
 
+from rdkit import Chem
+
 from core.route import Route, route_from_dict
 
 WSL_AIZYNTHCLI = "/home/meta/.local/opt/miniforge3/envs/orgsynflow-chem/bin/aizynthcli"
@@ -168,7 +170,13 @@ def _route_from_tree(tree: dict, index: int, raw: dict) -> Route:
     expanded_molecule_ids: set[str] = set()
 
     def add_molecule(node: dict, is_target: bool = False) -> str:
-        smiles = node.get("smiles") or node.get("mol") or node.get("smiles_str") or f"unknown-{len(molecules)}"
+        raw_smiles = node.get("smiles") or node.get("mol") or node.get("smiles_str") or f"unknown-{len(molecules)}"
+        try:
+            mol = Chem.MolFromSmiles(raw_smiles)
+            smiles = Chem.MolToSmiles(mol) if mol else raw_smiles
+        except Exception:
+            smiles = raw_smiles
+
         existing_id = molecule_ids_by_smiles.get(smiles)
         if existing_id:
             if node.get("in_stock") or node.get("is_solved"):
@@ -185,9 +193,14 @@ def _route_from_tree(tree: dict, index: int, raw: dict) -> Route:
         }
         return molecule_id
 
-    def add_step(product_id: str, precursor_ids: list[str], reaction_node: dict) -> None:
+    def add_step(product_id: str, precursor_ids: list[str], reaction_node: dict, path_ids: set[str]) -> None:
         if not precursor_ids:
             return
+        
+        # Deduplicate redundant nodes/cycles: if a precursor is already in the ancestral path
+        if any(p_id in path_ids for p_id in precursor_ids):
+            return
+            
         product_smiles = molecules[product_id]["smiles"]
         precursor_smiles = ".".join(molecules[item]["smiles"] for item in precursor_ids)
         metadata = reaction_node.get("metadata") if isinstance(reaction_node.get("metadata"), dict) else {}
@@ -213,11 +226,13 @@ def _route_from_tree(tree: dict, index: int, raw: dict) -> Route:
             }
         )
 
-    def visit_molecule(node: dict, is_target: bool = False) -> str:
+    def visit_molecule(node: dict, path_ids: set[str], is_target: bool = False) -> str:
         molecule_id = add_molecule(node, is_target=is_target)
         if molecule_id in expanded_molecule_ids:
             return molecule_id
         expanded_molecule_ids.add(molecule_id)
+        
+        new_path_ids = path_ids | {molecule_id}
 
         children = [child for child in (node.get("children") or node.get("precursors") or []) if isinstance(child, dict)]
         reaction_children = [child for child in children if child.get("is_reaction") or child.get("type") == "reaction"]
@@ -228,20 +243,20 @@ def _route_from_tree(tree: dict, index: int, raw: dict) -> Route:
                     for child in (reaction_node.get("children") or reaction_node.get("precursors") or [])
                     if isinstance(child, dict) and not (child.get("is_reaction") or child.get("type") == "reaction")
                 ]
-                precursor_ids = [visit_molecule(child) for child in precursor_nodes]
-                add_step(molecule_id, precursor_ids, reaction_node)
+                precursor_ids = [visit_molecule(child, new_path_ids) for child in precursor_nodes]
+                add_step(molecule_id, precursor_ids, reaction_node, new_path_ids)
         else:
             # Retain support for simplified trees that attach precursor molecules
             # directly to their product without an explicit reaction node.
             precursor_nodes = [
                 child for child in children if not (child.get("is_reaction") or child.get("type") == "reaction")
             ]
-            precursor_ids = [visit_molecule(child) for child in precursor_nodes]
+            precursor_ids = [visit_molecule(child, new_path_ids) for child in precursor_nodes]
             if precursor_ids:
-                add_step(molecule_id, precursor_ids, node)
+                add_step(molecule_id, precursor_ids, node, new_path_ids)
         return molecule_id
 
-    target_id = visit_molecule(tree, is_target=True)
+    target_id = visit_molecule(tree, set(), is_target=True)
     return route_from_dict(
         {
             "id": f"aizynth-route-{index}",

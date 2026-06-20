@@ -8,10 +8,10 @@ OrgSynFlow 的总目标是构建一个本地优先、可插拔的有机合成工
 
 当前产品方向：
 
-- React/Vite 前端作为主要且唯一的交互界面，地址为 `http://127.0.0.1:5173/`。
+- React/Vite 前端作为主要交互界面，地址为 `http://127.0.0.1:5173/`。
 - FastAPI 后端提供可测试接口，地址为 `http://127.0.0.1:8765/`。
 - CLI `run_cli.py` 保留为稳定自动化入口。
-- 所有的桌面客户端（如 Tkinter `desktop_app.py`、Streamlit）及其打包构建脚本（如 `build_exe.ps1` 等）已被永久废弃和删除。
+- Streamlit `app/main.py` 和 Tkinter `desktop_app.py` 是旧入口/调试入口，不是当前主要 UI。
 - 工作区应该像 notebook/Jupyter：用户可以创建多个工作区，每个工作区内有多个通用化学单元。
 - UI 中不要把单元硬分为“分子/反应/路线”三类；一个通用单元应能根据输入内容识别普通 SMILES、reaction SMILES 和多步路线。
 - 画布中的分子必须渲染为结构图，不能只显示标题或大号文本。
@@ -122,10 +122,6 @@ WSL 临时文件必须放在：
 - 如果修改 Git 仓库，完成时要提交；如果连接 GitHub，还要推送。
 - 不要回滚用户改动；如果测试或浏览器操作弄脏数据文件，只还原自己造成的测试痕迹。
 
-架构与项目精简经验：
-
-- 用户明确只使用 Web 界面（React/Vite），不再需要任何形式的桌面客户端或本地可执行文件打包产物。后续增加交互或 UI 新功能时，请仅针对 `web/` 目录的前端项目和对应的 FastAPI 后端进行开发，切勿重新引入或修改任何桌面 GUI（如 Tkinter/PyQt）及 `.exe` 打包逻辑。
-
 前端 UX 经验：
 
 - SMILES 块删除不能只依赖 React Flow 的临时节点状态；删除时必须同时移除相邻边，并用剩余 nodes/edges 重建 `cell.objects.molecules/reactions`，否则父级单元更新或页面刷新会把节点重新生成。当前选中块后会显示“删除 SMILES 块”按钮，删除结果可随工作区保存持久化。
@@ -161,9 +157,7 @@ WSL 临时文件必须放在：
 - 绿色“已完成”任务按钮不应只能查看旧结果；从任务面板点击已完成任务打开结果/路线候选窗口时，应在窗口底部保留“重新计算”入口，复用该任务原来的运行/重试逻辑。Gaussian 等需要参数的任务仍应保留“修改配置”入口。
 - Ketcher 引入的 `ketcher-react/dist/index.css` 含有大量全局样式，与项目自带的通用弹窗样式（如 `.modal-backdrop`、`.modal-header` 等）易发生类名冲突，导致弹窗不居中且 Wasm 交互错位。已将项目中所有 Modal 相关基础类名加前缀升级（如 `.osf-modal-backdrop`）。同时，对嵌入了复杂第三方组件的 Modal 容器，应避免使用 CSS Grid 布局，因为 Grid 布局会将第三方组件在运行时动态生成的 style/div 辅助节点强行作为网格项目进行排位，从而摧毁行高比例。必须统一使用 Flexbox 布局，并通过 `flex: 1` 和 `position: relative` 规范子容器的高度撑满与 Containing Block 定位基准。
 - TS 参数窗口曾使用未定义的 `osf-modal-window` 类，导致计算样式背景为完全透明，同时缺少阴影、裁剪和相对定位。TS 窗口应复用 `osf-config-modal` 基类，再由 `ts-config-modal` 覆盖尺寸和网格布局；不要新增没有基础视觉契约的 modal 类名。
-- 路线预测结果的展示不应只显示纯文本，当前已实现通过 `RouteCandidatePreview` 结合 `MoleculeDrawing` 和 SVG 路径直接在弹窗渲染反应合成树的预览，增强体验直观度。
-- Gaussian 优化的收敛过程图表可通过解析 log 文件中所有 `SCF Done:` 与 `Maximum Force` 提取，并在 `GaussianJobView` 渲染出迭代详情（类似 `temp/main.py` 的实现）。
-- FastAPI 后端需要显式映射所有管理器，如果新增管理器（例如 `TsWorkflowManager`），必须在 `api/main.py` 添加对应的 `GET / POST` 路由才能防止前端报 404 错误。
+
 化学结果表达经验：
 
 - 不要把 heuristic/demo 逻辑包装成真实模型结果。
@@ -190,11 +184,6 @@ WSL 临时文件必须放在：
 - 产率输出必须带 `method`、`confidence`、`applicability_domain`、`note`。
 - 结果弹窗不应默认展示大段原始 stdout/stderr/JSON。前端应优先展示结构化摘要、关键数值、警告和路径；原始日志放在可展开的“原始日志 / 原始数据”中。包含 XYZ/GJF 坐标的结果必须先渲染可交互 3D 分子视图。
 - 依赖隔离与运行环境统一：Gradio、py3Dmol 与 matplotlib 必须在 Windows (uv) 和 WSL (mamba) 中同时声明与安装。在过渡态库中通过 `core.gaussian_runner.find_gaussian_executable()` 代替硬编码的 `g16.exe` 路径，保证计算服务跨 Windows 和 WSL 均可自动发现和调用 Gaussian 可执行文件，并把中间结果输出至工程统一的工作目录下。
-- EAS TS 应用调试经验：`app/eas_ts_app.py` 如果直接用 `python app/eas_ts_app.py` 运行，`app/` 目录会作为工作目录，`from core.eas_ts_lib import *` 因 `core` 不在 sys.path 上而抛 `ModuleNotFoundError`。修复方式是在文件头加 `sys.path.insert(0, str(Path(__file__).resolve().parent.parent))`，同样适用于 `core/eas_ts_lib.py` 自身对 `core.gaussian_runner` 的引用。
-- WSL 下运行 Windows Gaussian：直接在 WSL bash 中以 Linux 路径调用 `g16.exe` 会报 `Thread and Process ID are zero in wsystem: No such file or directory`，传入 UNC 路径会报 `PGFIO/stdio: No such file or directory`。正确做法是：①将 OUT_DIR 映射到 `/mnt/c/...` 而非 `/home/...`；②用 `cmd.exe /c 'g16.exe input.gjf'` 而非直接 `subprocess.Popen(['g16.exe', ...])` 启动。
-- Gradio UI 锁死：若 Gradio 回调函数中含同步 `process.wait()`，整个 Gradio event loop 会被阻塞，UI 无响应。必须改为 generator 函数，用 `time.sleep(2)` + `process.poll()` 轮询，每次循环 `yield` 进度给 Gradio，既能实时更新界面，也能响应取消请求。
-- Conda/Miniforge 路径：本机 WSL 的 conda/mamba 安装位置为 `~/.local/opt/miniforge3`，而非 `~/miniconda3` 或 `~/anaconda3`。正确的初始化命令：`source ~/.local/opt/miniforge3/etc/profile.d/conda.sh && conda activate orgsynflow-chem`。
-- WSL Gradio 浏览器错误：WSL 无桌面环境时，Gradio 的 `inbrowser=True` 会触发 `gio: http://localhost:7861/: Operation not supported`，这是无害信息，不代表服务启动失败；可在 WSL 中用 `server_name="0.0.0.0"` 并在 Windows 浏览器访问 WSL 的端口。
 
 服务和启动经验：
 
@@ -217,16 +206,12 @@ WSL 临时文件必须放在：
 - 对组合节点内单个组分预测路线时，插入器必须保留所选 `MoleculeComponent`：复用其外层画布节点作为路线 target，不再创建重复 target 或 `target -> anchor` 伪反应边。
 - 路线每个 `precursor_id` 必须生成独立分子节点和独立的 `precursor -> product` 边，不能把同一步全部前体合并为点式伪分子；多组分节点的布局宽度按组件卡实际宽度估算，否则相邻节点会重叠并让正向箭头视觉上折返。
 - WSL 的 `/tmp` 在服务重启后可能被清空。AiZynthFinder 每次运行前必须自行 `mkdir -p /tmp/codex/orgsynflow`，不能依赖历史目录残留。
-- React Flow 的选中状态同步：在使用 React Flow 内置的 `onNodesChange` / `onEdgesChange` 交互（如 Shift + 点击反选、框选等）时，本地定义的 `selectedNodeId` 和 `selectedEdgeId` 需通过 `useEffect` 进行同步清空或更新。否则会导致“删除选中项”按钮在无选中状态下错误显示，且点击后可能误删未选中的历史节点或由于删除非现有节点导致状态不一致发生卡死。
 
 ## 3. Task Board
 
 当前状态：
 
-- [done] 2026-06-20 在 AiZynthFinder 和 ASKCOS 适配器中增加基于 RDKit Canonical SMILES 的路线去重和循环路径拦截（如果前体与目标或祖先节点完全一致，则自动剪除该冗余节点），以解决相同分子重复出现并导致冗余的问题。
-- [done] 2026-06-20 修复删除选中项按钮在无选中时显示以及点击卡住/误删的问题：更新 `web/src/App.tsx` 中的渲染判定条件和删除逻辑为仅限当前实际选中的节点和边；引入了 `useEffect` 用于同步 React Flow 的 selection 状态，确保在 deselect 时 `selectedNodeId` 和 `selectedEdgeId` 能够同步清空，并同步更新任务面板。
 - [done] 2026-06-20 合并 temp/ 目录下的 3 个过渡态搜索/绘图文件到 WSL 和 Windows 仓库，并更新 Python 依赖关系：安装/配置了 gradio、py3Dmol、matplotlib；测试均能正常 import 且编译成功。
-- [done] 2026-06-20 修复 EAS TS 应用合并后完全无效问题：诊断出三个根本原因：①`from core.eas_ts_lib import *` 因 sys.path 未包含项目根目录而失败；②Gradio 回调中 `process.wait()` 阻塞导致 UI 完全锁死；③WSL 下直接调用 `g16.exe` 产生 `wsystem` 错误/UNC 路径错误。已分别修复：添加 sys.path bootstrap、改 generator 函数 yield 进度、将 OUT_DIR 映射到 `/mnt/c/...` 并用 `cmd.exe /c` 包装 g16.exe 启动命令。验证：WSL 下 `conda activate orgsynflow-chem && python app/eas_ts_app.py` 可正常启动 Gradio 服务，无异常退出。
 - [done] 2026-06-20 增加 SMILES 块删除：选中块后可显式删除，同时清理相邻箭头、关联反应及选中/连线状态；保存工作区后刷新不会复活。
 - [done] 2026-06-20 修复组合节点组分级逆合成插入：AiZynthFinder reaction 节点不再误作分子；多个前体拆为独立结构；复用所选目标节点；路线和原反应箭头均保持前体到产物的正向顺序；多组分宽度与下游间距已校正。
 - [done] 2026-06-20 修复逆合成候选插入语义：从现有 SMILES 块预测路线时强制复用该产物块；同一步多个前体合并为一个点式 SMILES 反应物块，并只生成一条反应箭头指向产物。
@@ -348,5 +333,3 @@ WSL 临时文件必须放在：
 
 - [done] 2026-06-20 修复 CREST 不可用结果被前端误记为成功的问题：通用任务会根据 payload 的 `available/status` 推断失败状态并保留 `reason`；历史上已缓存为 `succeeded + unavailable` 的记录也会显示为失败、允许重试。实时 API 已通过 WSL CREST 3.0.2 对水分子完成构象搜索（return code 0），确认当前工具链可用。
 - [todo] Ketcher 绘图窗口仍未居中且无法使用。已尝试在 `web/src/styles.css` 中移除 `.osf-ketcher-host > div` 的 flex 布局并提交（commit e1b4eb0），但窗口仍表现异常，需要进一步调试布局和可能的全局 CSS 冲突。
-
-- [done] 2026-06-20 Fix canvas UI interactions: allow dragging blocks from sub-molecules, and add selected styling to single-molecule blocks.

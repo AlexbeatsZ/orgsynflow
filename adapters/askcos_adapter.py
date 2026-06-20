@@ -3,6 +3,8 @@ from __future__ import annotations
 import os
 import requests
 from dataclasses import dataclass
+from typing import Any
+from rdkit import Chem
 from core.route import Route, route_from_dict
 
 @dataclass(frozen=True)
@@ -126,8 +128,14 @@ def _route_from_tree(tree: dict, index: int, raw: dict) -> Route:
     molecules: dict[str, dict] = {}
     steps: list[dict] = []
 
-    def visit(node: dict, parent_id: str | None = None) -> str:
-        smiles = node.get("smiles") or node.get("mol") or node.get("smiles_str") or f"unknown-{len(molecules)}"
+    def visit(node: dict, path_ids: set[str], parent_id: str | None = None) -> str:
+        raw_smiles = node.get("smiles") or node.get("mol") or node.get("smiles_str") or f"unknown-{len(molecules)}"
+        try:
+            mol = Chem.MolFromSmiles(raw_smiles)
+            smiles = Chem.MolToSmiles(mol) if mol else raw_smiles
+        except Exception:
+            smiles = raw_smiles
+
         molecule_id = f"m{len(molecules) + 1}"
         if smiles in {item["smiles"] for item in molecules.values()}:
             for existing_id, existing in molecules.items():
@@ -142,9 +150,11 @@ def _route_from_tree(tree: dict, index: int, raw: dict) -> Route:
                 "in_stock": bool(node.get("in_stock") or node.get("is_solved") or node.get("as_stock", False)),
             }
 
+        new_path_ids = path_ids | {molecule_id}
+
         children = node.get("children") or node.get("precursors") or []
-        precursor_ids = [visit(child, molecule_id) for child in children if isinstance(child, dict)]
-        if precursor_ids:
+        precursor_ids = [visit(child, new_path_ids, molecule_id) for child in children if isinstance(child, dict)]
+        if precursor_ids and not any(p_id in path_ids for p_id in precursor_ids):
             steps.append(
                 {
                     "id": f"s{len(steps) + 1}",
@@ -157,7 +167,7 @@ def _route_from_tree(tree: dict, index: int, raw: dict) -> Route:
             )
         return molecule_id
 
-    target_id = visit(tree)
+    target_id = visit(tree, set())
     return route_from_dict(
         {
             "id": f"askcos-route-{index}",
