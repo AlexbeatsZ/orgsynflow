@@ -216,6 +216,7 @@ WSL 临时文件必须放在：
 - 路线每个 `precursor_id` 必须生成独立分子节点和独立的 `precursor -> product` 边，不能把同一步全部前体合并为点式伪分子；多组分节点的布局宽度按组件卡实际宽度估算，否则相邻节点会重叠并让正向箭头视觉上折返。
 - WSL 的 `/tmp` 在服务重启后可能被清空。AiZynthFinder 每次运行前必须自行 `mkdir -p /tmp/codex/orgsynflow`，不能依赖历史目录残留。
 - React Flow 的选中状态同步：在使用 React Flow 内置的 `onNodesChange` / `onEdgesChange` 交互（如 Shift + 点击反选、框选等）时，本地定义的 `selectedNodeId` 和 `selectedEdgeId` 需通过 `useEffect` 进行同步清空或更新。否则会导致“删除选中项”按钮在无选中状态下错误显示，且点击后可能误删未选中的历史节点或由于删除非现有节点导致状态不一致发生卡死。
+- 2026-06-20 事故记录：试图通过向 `chooseBestOrthogonalRoute` 传递子组分索引 (`targetComponentIndex`) 来解决箭头无法精确指向多分子块内特定分子的问题，但错误地估计了原 API 响应结构（凭空虚构了 `route.target_id` 属性），并忽视了当路径起点或终点位于其它障碍物（如相邻子分子扩展后的 margin）内部时，自定义的 A* 寻路算法会直接返回 null 而导致降级回直线的 fallback path。叠加新产生的节点由于位置被相对旧节点强行覆盖而形成重叠层叠，最终导致不但箭头被强行绘制为穿越相邻分子的反向直线（并看起来指向错误的位置），由于 DOM 层面多个节点在相交位置发生碰撞还破坏了画布点击事件响应（"点击分子没有反应"）。因此回滚了所有尝试性修改，待后续找到不破会 A* 寻路网格前提下的局部映射方案后再重试。
 
 ## 3. Task Board
 
