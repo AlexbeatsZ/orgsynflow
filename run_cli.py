@@ -9,6 +9,7 @@ from services.workbench import (
     analyze_target,
     calculate_molecule_descriptors,
     calculate_reaction_features,
+    check_feasibility,
     estimate_single_reaction_yield,
     gaussian_status,
     list_adapters,
@@ -87,6 +88,7 @@ def _build_parser() -> argparse.ArgumentParser:
     reaction_explain = subparsers.add_parser("reaction-explain", help="解释单步 reaction SMILES")
     reaction_explain.add_argument("reaction_smiles")
     reaction_explain.add_argument("--template")
+    reaction_explain.add_argument("--use-llm", action="store_true", help="使用 DeepSeek AI 增强反应解释")
     reaction_explain.add_argument("--format", choices=("text", "json"), default="text")
     reaction_explain.set_defaults(handler=_reaction_explain)
 
@@ -117,6 +119,13 @@ def _build_parser() -> argparse.ArgumentParser:
     reaction_features.add_argument("reaction_smiles")
     reaction_features.add_argument("--format", choices=("text", "json"), default="text")
     reaction_features.set_defaults(handler=_reaction_features)
+
+    feasibility = subparsers.add_parser("feasibility-check", help="AI 增强反应可行性校验")
+    feasibility.add_argument("reaction_smiles")
+    feasibility.add_argument("--template")
+    feasibility.add_argument("--use-llm", action="store_true", help="使用 DeepSeek AI 增强可行性评估")
+    feasibility.add_argument("--format", choices=("text", "json"), default="text")
+    feasibility.set_defaults(handler=_feasibility_check)
 
     return parser
 
@@ -205,7 +214,7 @@ def _gaussian_input(args: argparse.Namespace) -> dict[str, object]:
 def _reaction_explain(args: argparse.Namespace) -> dict[str, object]:
     return {
         "source": "reaction_explain",
-        **explain_single_reaction(args.reaction_smiles, args.template),
+        **explain_single_reaction(args.reaction_smiles, args.template, use_llm=getattr(args, "use_llm", False)),
     }
 
 
@@ -247,6 +256,17 @@ def _reaction_features(args: argparse.Namespace) -> dict[str, object]:
     return {
         "source": "reaction_feature_service",
         **calculate_reaction_features(args.reaction_smiles),
+    }
+
+
+def _feasibility_check(args: argparse.Namespace) -> dict[str, object]:
+    return {
+        "source": "feasibility_cli",
+        **check_feasibility(
+            args.reaction_smiles,
+            args.template,
+            use_llm=getattr(args, "use_llm", False),
+        ),
     }
 
 
@@ -361,6 +381,26 @@ def _emit(payload: dict[str, Any], output_format: str) -> None:
         print(f"- 适用域: {payload['applicability_domain']}")
         if payload.get("note"):
             print(f"- 说明: {payload['note']}")
+        return
+
+    if "feasibility_score" in payload and "risks" in payload:
+        print("反应可行性评估")
+        print(f"- 方法: {payload.get('method', 'heuristic')}")
+        if "llm_available" in payload:
+            print(f"- AI 可用: {payload['llm_available']}")
+            if payload.get("llm_reason"):
+                print(f"- AI 说明: {payload['llm_reason']}")
+        print(f"- 可行: {payload.get('feasible', True)}")
+        print(f"- 可行性评分: {payload.get('feasibility_score', 0)}")
+        print(f"- 置信度: {payload.get('confidence', '低')}")
+        if payload.get("risks"):
+            print("- 风险:")
+            for risk in payload["risks"]:
+                print(f"  * {risk}")
+        if payload.get("recommendations"):
+            print("- 建议:")
+            for rec in payload["recommendations"]:
+                print(f"  * {rec}")
         return
 
     if "available" in payload and "executable" in payload:

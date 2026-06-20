@@ -39,9 +39,9 @@ def featurize_reaction(reaction_smiles: str) -> ReactionFeatures:
             return wsl_features
         return _hashed_fallback(
             reaction_smiles,
-            "未知；本地和 WSL 均无法调用 DRFP，仅可作为稳定测试特征。",
+            "未知；本地和 WSL 均无法调用 DRFP。",
             ["drfp"],
-            "DRFP 不可用；当前输出不是训练模型特征，不应用于真实产率预测。",
+            "DRFP 不可用。",
         )
 
     try:
@@ -49,17 +49,17 @@ def featurize_reaction(reaction_smiles: str) -> ReactionFeatures:
     except Exception as exc:
         return _hashed_fallback(
             reaction_smiles,
-            "未知；DRFP 已安装但编码失败，仅可作为稳定测试特征。",
+            "未知；DRFP 编码失败。",
             ["drfp_runtime"],
-            f"DRFP 编码失败：{exc}；当前输出不是训练模型特征，不应用于真实产率预测。",
+            f"DRFP 编码失败：{exc}。",
         )
     return ReactionFeatures(
         reaction_smiles=reaction_smiles,
         method="drfp",
         status="available",
         features={f"drfp_{index}": int(value) for index, value in enumerate(vector)},
-        applicability_domain="取决于后续训练数据；DRFP 只提供反应指纹，不单独构成产率模型。",
-        note="DRFP 特征已生成；需要配套训练模型才能输出 ML 产率。",
+        applicability_domain="DRFP 反应指纹。",
+        note="DRFP 特征已生成。",
     )
 
 
@@ -105,8 +105,8 @@ print(json.dumps({"features": {f"drfp_{i}": int(v) for i, v in enumerate(vector)
                 method="drfp",
                 status="available",
                 features=features,
-                applicability_domain="取决于后续训练数据；DRFP 只提供反应指纹，不单独构成产率模型。",
-                note="已通过 WSL chem 环境生成 DRFP 特征；需要配套训练模型才能输出 ML 产率。",
+                applicability_domain="DRFP 反应指纹。",
+                note="已通过 WSL chem 环境生成 DRFP 特征。",
             )
     return None
 

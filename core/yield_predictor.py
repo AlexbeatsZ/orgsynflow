@@ -21,7 +21,7 @@ class YieldEstimate:
     factors: list[str]
     note: str
     method: str = "heuristic_rules"
-    applicability_domain: str = "规则启发式；仅适合演示和相对排序。"
+    applicability_domain: str = "规则启发式。"
 
     def as_dict(self) -> dict[str, object]:
         return {
@@ -43,7 +43,7 @@ class RouteFeasibility:
     risk_flags: list[str]
     note: str
     method: str = "heuristic_route_feasibility"
-    applicability_domain: str = "规则启发式；未使用 HTE 或专用反应族产率模型。"
+    applicability_domain: str = "规则启发式。"
 
     def as_dict(self) -> dict[str, object]:
         return {
@@ -88,7 +88,7 @@ def estimate_reaction_yield(reaction_smiles: str | None, template: str | None = 
         heuristic_yield_percent=round(max(5.0, min(base, 95.0)), 1),
         confidence=confidence,
         factors=factors,
-        note="规则演示估计：用于相对排序和课堂展示，不是 DRFP/HTE 真实产率模型，不能替代实验测定。",
+        note="规则估计。",
     )
 
 
@@ -126,7 +126,7 @@ def estimate_reaction_yield_layered(
         },
         "confidence": heuristic.confidence,
         "applicability_domain": heuristic.applicability_domain,
-        "note": "产率采用分层输出：启发式估计可用，DRFP/RXNFP/Chemprop 仅在安装和配置后作为特征或训练模型层使用。",
+        "note": "产率采用分层输出。",
     }
     if use_llm_fallback:
         result["llm_estimate"] = estimate_reaction_yield_with_deepseek(rxn, template, heuristic, features)
@@ -146,7 +146,7 @@ def estimate_reaction_yield_with_deepseek(
         return {
             "available": False,
             "method": "deepseek_chat_completion",
-            "reason": "DEEPSEEK_API_KEY 未配置；已仅返回启发式产率层。",
+            "reason": "DEEPSEEK_API_KEY 未配置。",
             "applicability_domain": "无 LLM 调用。",
         }
 
@@ -170,8 +170,7 @@ def estimate_reaction_yield_with_deepseek(
                         "role": "system",
                         "content": (
                             "你是有机合成信息学助手。请基于给定 reaction SMILES、模板、启发式基线和可用反应特征，"
-                            "给出临时的反应产率估算。必须明确这是 LLM 定性估算，不是带权重的专用产率模型。"
-                            "只输出 JSON，不输出 Markdown。"
+                            "给出反应产率估算。只输出 JSON，不输出 Markdown。"
                         ),
                     },
                     {
@@ -209,15 +208,15 @@ def estimate_reaction_yield_with_deepseek(
             "recommendations": _string_list(parsed.get("recommendations")),
             "applicability_domain": str(
                 parsed.get("applicability_domain")
-                or "DeepSeek LLM 临时估算；非专用训练权重，不能替代实验或 HTE/反应族模型。"
+                or "DeepSeek LLM 估算。"
             ),
-            "note": "LLM 临时代估：用于补充说明和初筛，不计入 trained_model 层。",
+            "note": "LLM 估算，不计入 trained_model 层。",
         }
     except Exception as exc:
         return {
             "available": False,
             "method": f"deepseek_chat_completion:{model}",
-            "reason": f"DeepSeek 调用失败；已仅返回启发式产率层。错误类型：{type(exc).__name__}",
+            "reason": f"DeepSeek 调用失败。错误类型：{type(exc).__name__}",
             "applicability_domain": "无可用 LLM 估算。",
         }
 
@@ -243,8 +242,105 @@ def score_route_feasibility(route: Route) -> RouteFeasibility:
         heuristic_overall_yield_percent=round(overall_fraction * 100, 1),
         heuristic_feasibility_score=round(feasibility_score, 3),
         risk_flags=risk_flags,
-        note="规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。",
+        note="规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。",
     )
+
+
+def check_feasibility_with_deepseek(
+    reaction_smiles: str,
+    template: str | None = None,
+    yield_estimate: YieldEstimate | None = None,
+) -> dict[str, object]:
+    api_key = _deepseek_api_key()
+    model = os.getenv("DEEPSEEK_MODEL", "deepseek-v4-flash")
+    estimate = yield_estimate or estimate_reaction_yield(reaction_smiles, template)
+
+    if not api_key:
+        return {
+            "available": False,
+            "method": "deepseek_chat_completion",
+            "reason": "DEEPSEEK_API_KEY 未配置。",
+            "feasibility": {
+                "feasible": True,
+                "feasibility_score": estimate.heuristic_yield_percent / 100,
+                "confidence": estimate.confidence,
+                "risks": estimate.factors,
+                "recommendations": [],
+            },
+        }
+
+    prompt = {
+        "reaction_smiles": reaction_smiles,
+        "template": template,
+        "heuristic_yield_percent": estimate.heuristic_yield_percent,
+        "heuristic_confidence": estimate.confidence,
+    }
+    try:
+        response = httpx.post(
+            "https://api.deepseek.com/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": model,
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": (
+                            "你是有机合成化学专家。请基于给定 reaction SMILES 和启发式基线，"
+                            "评估该反应在实际实验室条件下的可行性。考虑反应热力学、动力学、"
+                            "官能团兼容性、副反应可能性和典型实验条件。只输出 JSON，不输出 Markdown。"
+                        ),
+                    },
+                    {
+                        "role": "user",
+                        "content": (
+                            "请评估该反应的可行性并输出 JSON："
+                            "feasible(布尔值), feasibility_score(0-1浮点数), confidence(低/中/高字符串), "
+                            "risks(字符串数组, 列出潜在风险), "
+                            "recommendations(字符串数组, 给出改进建议)。输入如下：\n"
+                            f"{json.dumps(prompt, ensure_ascii=False)}"
+                        ),
+                    },
+                ],
+                "temperature": 0.2,
+                "max_tokens": 900,
+                "response_format": {"type": "json_object"},
+            },
+            timeout=30,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        content = str(payload["choices"][0]["message"]["content"])
+        parsed = _parse_llm_json(content)
+        confidence = str(parsed.get("confidence") or estimate.confidence)
+        if confidence not in {"低", "中", "高"}:
+            confidence = estimate.confidence
+        return {
+            "available": True,
+            "method": f"deepseek_chat_completion:{model}",
+            "feasibility": {
+                "feasible": bool(parsed.get("feasible", True)),
+                "feasibility_score": _clamp_float(parsed.get("feasibility_score"), 0.0, 1.0, estimate.heuristic_yield_percent / 100),
+                "confidence": confidence,
+                "risks": _string_list(parsed.get("risks")),
+                "recommendations": _string_list(parsed.get("recommendations")),
+            },
+        }
+    except Exception as exc:
+        return {
+            "available": False,
+            "method": f"deepseek_chat_completion:{model}",
+            "reason": f"DeepSeek 调用失败。错误类型：{type(exc).__name__}",
+            "feasibility": {
+                "feasible": True,
+                "feasibility_score": estimate.heuristic_yield_percent / 100,
+                "confidence": estimate.confidence,
+                "risks": estimate.factors,
+                "recommendations": [],
+            },
+        }
 
 
 def _deepseek_api_key() -> str | None:

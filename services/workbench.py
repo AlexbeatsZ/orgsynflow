@@ -26,14 +26,19 @@ from core.molecule import summarize_molecule
 from core.properties import calculate_descriptors, predict_properties
 from core.quantum import parse_quantum_log
 from core.reaction_features import featurize_reaction
-from core.reaction_explain import explain_reaction
+from core.reaction_explain import explain_reaction, explain_reaction_with_deepseek
 from core.reaction_mapping import map_reaction
 from core.report import render_report
 from core.route import Route, load_demo_routes
 from core.route_layout import layout_route
 from core.scoring import score_route
 from core.transition_state import plan_transition_state_search
-from core.yield_predictor import estimate_reaction_yield, estimate_reaction_yield_layered, score_route_feasibility
+from core.yield_predictor import (
+    check_feasibility_with_deepseek,
+    estimate_reaction_yield,
+    estimate_reaction_yield_layered,
+    score_route_feasibility,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -130,12 +135,44 @@ def analyze_target(
     }
 
 
-def explain_single_reaction(reaction_smiles: str, template: str | None = None) -> dict[str, object]:
+def explain_single_reaction(reaction_smiles: str, template: str | None = None, use_llm: bool = False) -> dict[str, object]:
+    if use_llm:
+        result = explain_reaction_with_deepseek(reaction_smiles, template)
+        yield_estimate = estimate_reaction_yield(reaction_smiles, template)
+        return {
+            **(result["explanation"] if isinstance(result.get("explanation"), dict) else {}),
+            "llm_available": result.get("available", False),
+            "llm_method": result.get("method"),
+            "llm_reason": result.get("reason"),
+            "yield_estimate": yield_estimate.as_dict(),
+        }
     explanation = explain_reaction(reaction_smiles, template)
     yield_estimate = estimate_reaction_yield(reaction_smiles, template)
     return {
         **explanation.as_dict(),
         "yield_estimate": yield_estimate.as_dict(),
+    }
+
+
+def check_feasibility(reaction_smiles: str, template: str | None = None, use_llm: bool = False) -> dict[str, object]:
+    if use_llm:
+        feasibility = check_feasibility_with_deepseek(reaction_smiles, template)
+        return {
+            "source": "feasibility_service",
+            "method": feasibility.get("method", "deepseek_chat_completion"),
+            "llm_available": feasibility.get("available", False),
+            "llm_reason": feasibility.get("reason"),
+            **((feasibility.get("feasibility") or {}) if isinstance(feasibility.get("feasibility"), dict) else {}),
+        }
+    yield_estimate = estimate_reaction_yield(reaction_smiles, template)
+    return {
+        "source": "feasibility_service",
+        "method": "heuristic_rules",
+        "feasible": True,
+        "feasibility_score": yield_estimate.heuristic_yield_percent / 100,
+        "confidence": yield_estimate.confidence,
+        "risks": yield_estimate.factors,
+        "recommendations": [],
     }
 
 

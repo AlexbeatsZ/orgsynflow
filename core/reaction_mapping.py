@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import json
+import re
 import shutil
 import subprocess
 from dataclasses import dataclass
+from typing import Any
 
 from core.reaction_explain import explain_reaction
 
@@ -118,3 +120,55 @@ def map_reaction(reaction_smiles: str) -> ReactionMapping:
         broken_bonds=explanation.broken_bonds,
         note=f"已通过 {method} 运行 RXNMapper (confidence={confidence_score:.3f})；成键/断键已成功识别。",
     )
+
+
+def mapped_atom_coordinates(mapped_reaction_smiles: str) -> dict[str, object]:
+    parts = mapped_reaction_smiles.split(">>")
+    if len(parts) != 2:
+        return {"error": "reaction SMILES 缺少 >> 分隔符"}
+
+    reactant_data = _parse_mapped_side(parts[0])
+    product_data = _parse_mapped_side(parts[1])
+
+    return {
+        "reactants": reactant_data,
+        "products": product_data,
+    }
+
+
+def _parse_mapped_side(smiles: str) -> dict[str, object]:
+    from rdkit import Chem
+    from rdkit.Chem import AllChem
+
+    mol = Chem.MolFromSmiles(smiles)
+    if mol is None:
+        return {"error": f"无法解析 SMILES", "xyz": "", "atoms": []}
+
+    mol = Chem.AddHs(mol)
+    params = AllChem.ETKDGv3()
+    params.randomSeed = 20260614
+    if AllChem.EmbedMolecule(mol, params) != 0:
+        return {"error": "3D 构象生成失败", "xyz": "", "atoms": []}
+    AllChem.UFFOptimizeMolecule(mol, maxIters=200)
+
+    conf = mol.GetConformer()
+    atoms_out: list[dict[str, object]] = []
+    xyz_lines: list[str] = []
+
+    for atom in mol.GetAtoms():
+        idx = atom.GetIdx()
+        pos = conf.GetAtomPosition(idx)
+        elem = atom.GetSymbol()
+        map_num = atom.GetAtomMapNum()
+        x, y, z = pos.x, pos.y, pos.z
+        xyz_lines.append(f"{elem:<2} {x:>12.6f} {y:>12.6f} {z:>12.6f}")
+        atoms_out.append({
+            "element": elem,
+            "x": round(x, 6),
+            "y": round(y, 6),
+            "z": round(z, 6),
+            "map_index": map_num,
+        })
+
+    xyz = f"{len(atoms_out)}\n{smiles}\n" + "\n".join(xyz_lines) + "\n"
+    return {"xyz": xyz, "atoms": atoms_out}

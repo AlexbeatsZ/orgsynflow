@@ -44,7 +44,7 @@ def predict_properties(smiles: str, include_opera: bool = False) -> PropertyPred
         rdkit=rdkit_summary,
         opera=opera,
         source="rdkit+optional-opera",
-        note="RDKit 字段是结构描述符；OPERA 字段是可选 QSAR 预测，需结合适用域判断。",
+        note="RDKit 结构描述符；OPERA 可选 QSAR 预测。",
     )
 
 

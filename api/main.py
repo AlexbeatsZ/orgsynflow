@@ -11,6 +11,7 @@ from services.workbench import (
     analyze_target,
     calculate_molecule_descriptors,
     calculate_reaction_features,
+    check_feasibility,
     compute_backend_status,
     estimate_single_reaction_yield,
     explain_single_reaction,
@@ -26,6 +27,7 @@ from services.workbench import (
 )
 from core.job_queue import gaussian_job_queue
 from core.molecule import molecule_svg
+from core.reaction_mapping import mapped_atom_coordinates
 from core.reaction_validation import validate_reaction_smiles
 from core.workspaces import (
     add_cell,
@@ -65,6 +67,17 @@ class RoutePredictRequest(BaseModel):
 class ReactionExplainRequest(BaseModel):
     reaction_smiles: str
     template: str | None = None
+    use_llm: bool = False
+
+
+class FeasibilityCheckRequest(BaseModel):
+    reaction_smiles: str
+    template: str | None = None
+    use_llm: bool = False
+
+
+class MappedCoordinatesRequest(BaseModel):
+    mapped_reaction_smiles: str
 
 
 class ReactionYieldRequest(ReactionExplainRequest):
@@ -317,7 +330,17 @@ def route_predict(request: RoutePredictRequest) -> dict[str, object]:
 
 @app.post("/reaction/explain")
 def reaction_explain(request: ReactionExplainRequest) -> dict[str, object]:
-    return explain_single_reaction(request.reaction_smiles, request.template)
+    return explain_single_reaction(request.reaction_smiles, request.template, use_llm=request.use_llm)
+
+
+@app.post("/reaction/feasibility-check")
+def reaction_feasibility_check(request: FeasibilityCheckRequest) -> dict[str, object]:
+    return check_feasibility(request.reaction_smiles, request.template, use_llm=request.use_llm)
+
+
+@app.post("/reaction/mapping-coordinates")
+def reaction_mapping_coordinates(request: MappedCoordinatesRequest) -> dict[str, object]:
+    return mapped_atom_coordinates(request.mapped_reaction_smiles)
 
 
 @app.post("/molecule/properties")

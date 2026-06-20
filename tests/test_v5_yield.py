@@ -12,7 +12,7 @@ def test_estimate_reaction_yield_returns_reasonable_range() -> None:
 
     assert 0 <= result.heuristic_yield_percent <= 100
     assert result.confidence in {"低", "中", "高"}
-    assert "规则演示估计" in result.note
+    assert "规则估计" in result.note
 
 
 def test_route_feasibility_scores_short_route_higher_than_longer_route() -> None:

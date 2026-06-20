@@ -626,6 +626,11 @@ function isValidation(result: any) {
 
 function ReactionMappingView({ result }: { result: any }) {
   const [svg, setSvg] = useState<string>("");
+  const [coords, setCoords] = useState<any>(null);
+  const viewerRefR = useRef<HTMLDivElement>(null);
+  const viewerRefP = useRef<HTMLDivElement>(null);
+  const [mol3dReady, setMol3dReady] = useState(false);
+
   useEffect(() => {
     if (result?.mapped_reaction_smiles) {
       fetch("/api/chem/render/molecule-svg", {
@@ -636,9 +641,68 @@ function ReactionMappingView({ result }: { result: any }) {
       .then(r => r.json())
       .then(d => { if (d.svg) setSvg(d.svg) })
       .catch(console.error);
+
+      fetch("/api/reaction/mapping-coordinates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mapped_reaction_smiles: result.mapped_reaction_smiles })
+      })
+      .then(r => r.json())
+      .then(d => setCoords(d))
+      .catch(console.error);
     }
   }, [result?.mapped_reaction_smiles]);
-  
+
+  useEffect(() => {
+    let cancelled = false;
+    void load3Dmol()
+      .then(() => { if (!cancelled) setMol3dReady(true); })
+      .catch(() => { if (!cancelled) setMol3dReady(false); });
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    if (!mol3dReady || !coords || !viewerRefR.current || !viewerRefP.current || !(window as any).$3Dmol) return;
+
+    const renderViewer = (ref: HTMLDivElement, data: any, label: string) => {
+      while (ref.firstChild) ref.removeChild(ref.firstChild);
+      const viewer = (window as any).$3Dmol.createViewer(ref, { backgroundColor: "#f8fafc" });
+      viewer.setBackgroundColor("#f8fafc");
+
+      if (data?.xyz) {
+        viewer.addModel(data.xyz, "xyz");
+        viewer.setStyle({}, { stick: { radius: 0.15 }, sphere: { scale: 0.28 } });
+
+        if (data.atoms && Array.isArray(data.atoms)) {
+          data.atoms.forEach((atom: any) => {
+            if (atom.map_index && atom.map_index > 0) {
+              viewer.addLabel(String(atom.map_index), {
+                position: { x: atom.x, y: atom.y, z: atom.z },
+                backgroundColor: "rgba(37,99,235,0.85)",
+                fontColor: "white",
+                fontSize: 12,
+                showBackground: true,
+              });
+            }
+          });
+        }
+
+        viewer.zoomTo();
+        viewer.render();
+      }
+
+      return viewer;
+    };
+
+    const viewerR = renderViewer(viewerRefR.current, coords.reactants, "reactants");
+    const viewerP = renderViewer(viewerRefP.current, coords.products, "products");
+
+    return () => {
+      if (viewerR?.clear) viewerR.clear();
+      if (viewerP?.clear) viewerP.clear();
+    };
+  }, [mol3dReady, coords]);
+
   return (
     <div className="reaction-mapping-view result-block">
       <h4>反应原子映射 (RXNMapper)</h4>
@@ -648,13 +712,41 @@ function ReactionMappingView({ result }: { result: any }) {
             <td style={{ width: "120px" }}>置信度</td>
             <td><strong>{result.confidence ?? "未知"}</strong></td>
           </tr>
+          <tr>
+            <td>映射方法</td>
+            <td>{result.method ?? "未知"}</td>
+          </tr>
+          <tr>
+            <td>状态</td>
+            <td>{result.status ?? "未知"}</td>
+          </tr>
         </tbody>
       </table>
+
+      {coords && !coords.error ? (
+        <div style={{ display: "flex", gap: "16px", marginBottom: "12px", flexWrap: "wrap" }}>
+          <div style={{ flex: 1, minWidth: "280px" }}>
+            <h5 style={{ margin: "0 0 6px 0", color: "#334155" }}>反应物 (Atom Mapping)</h5>
+            <div ref={viewerRefR} style={{ width: "100%", height: "320px", borderRadius: "8px", border: "1px solid #e2e8f0", position: "relative" }} />
+          </div>
+          <div style={{ flex: 1, minWidth: "280px" }}>
+            <h5 style={{ margin: "0 0 6px 0", color: "#334155" }}>产物 (Atom Mapping)</h5>
+            <div ref={viewerRefP} style={{ width: "100%", height: "320px", borderRadius: "8px", border: "1px solid #e2e8f0", position: "relative" }} />
+          </div>
+        </div>
+      ) : coords?.error ? (
+        <div style={{ color: "#b91c1c", margin: "8px 0" }}>3D 映射坐标生成失败: {coords.error}</div>
+      ) : (
+        <div style={{ color: "#64748b", margin: "8px 0" }}>正在加载 3D 映射结构...</div>
+      )}
+
       {svg ? (
         <div style={{ background: "white", padding: "12px", borderRadius: "8px", border: "1px solid #e2e8f0", overflowX: "auto" }} dangerouslySetInnerHTML={{ __html: svg }} />
       ) : (
-        <code>{result.mapped_reaction_smiles}</code>
+        <code style={{ fontSize: "11px" }}>{result.mapped_reaction_smiles}</code>
       )}
+
+      {result.note && <p style={{ color: "#64748b", fontSize: "13px", marginTop: "8px" }}>{result.note}</p>}
     </div>
   );
 }

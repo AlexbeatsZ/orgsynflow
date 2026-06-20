@@ -3,7 +3,7 @@
   "id": "example-workspace",
   "title": "Example workspace",
   "created_at": "2026-06-14T00:00:00+00:00",
-  "updated_at": "2026-06-20T11:15:52.371612+00:00",
+  "updated_at": "2026-06-20T12:17:28.617127+00:00",
   "cells": [
     {
       "id": "cell-example-molecule",
@@ -42,7 +42,7 @@
             },
             "measured": {
               "width": 368,
-              "height": 164
+              "height": 163
             }
           },
           {
@@ -113,17 +113,20 @@
             "id": "route-1781939635373-aizynth-route-1-step-s1-reactants",
             "type": "molecule",
             "position": {
-              "x": 679.3730783034619,
-              "y": 617.4455054878674
+              "x": 700,
+              "y": 620
             },
             "data": {
               "label": "CC(=O)O.CCC(=O)OC(C)=O",
-              "smiles": "CC(=O)O.CCC(=O)OC(C)=O"
+              "smiles": "CC(=O)O.CCC(=O)OC(C)=O",
+              "selectedComponentId": "route-1781939635373-aizynth-route-1-step-s1-reactants:component:1"
             },
             "measured": {
               "width": 368,
               "height": 142
-            }
+            },
+            "selected": true,
+            "dragging": false
           },
           {
             "id": "route-1781945982590-aizynth-route-2-molecule-m2",
@@ -150,15 +153,12 @@
             },
             "data": {
               "label": "Oc1ccc(O)cc1.CCCC(=O)O.CC(=O)O",
-              "smiles": "Oc1ccc(O)cc1.CCCC(=O)O.CC(=O)O",
-              "selectedComponentId": null
+              "smiles": "Oc1ccc(O)cc1.CCCC(=O)O.CC(=O)O"
             },
             "measured": {
               "width": 546,
               "height": 142
-            },
-            "selected": true,
-            "dragging": false
+            }
           }
         ],
         "edges": [
@@ -189,11 +189,11 @@
                   "y": 379.8630302013089
                 },
                 {
-                  "x": 1222.369935475816,
+                  "x": 1217.369935475816,
                   "y": 379.8630302013089
                 },
                 {
-                  "x": 1222.369935475816,
+                  "x": 1217.369935475816,
                   "y": 376.5554392637059
                 },
                 {
@@ -219,11 +219,11 @@
                   "y": 136.94934711613197
                 },
                 {
-                  "x": 564.7188534342898,
+                  "x": 559.7188534342898,
                   "y": 136.94934711613197
                 },
                 {
-                  "x": 564.7188534342898,
+                  "x": 559.7188534342898,
                   "y": 380.8630302013089
                 },
                 {
@@ -262,11 +262,11 @@
                   "y": 393.70399019566213
                 },
                 {
-                  "x": 564.7188534342898,
+                  "x": 559.7188534342898,
                   "y": 393.70399019566213
                 },
                 {
-                  "x": 564.7188534342898,
+                  "x": 559.7188534342898,
                   "y": 380.8630302013089
                 },
                 {
@@ -304,11 +304,11 @@
                   "y": 578.1090693097613
                 },
                 {
-                  "x": 564.7188534342898,
+                  "x": 559.7188534342898,
                   "y": 578.1090693097613
                 },
                 {
-                  "x": 564.7188534342898,
+                  "x": 559.7188534342898,
                   "y": 380.8630302013089
                 },
                 {
@@ -347,11 +347,11 @@
                 },
                 {
                   "x": 863.3730783034619,
-                  "y": 602.4455054878674
+                  "y": 597.4455054878674
                 },
                 {
                   "x": 843.7188534342898,
-                  "y": 602.4455054878674
+                  "y": 597.4455054878674
                 },
                 {
                   "x": 843.7188534342898,
@@ -417,7 +417,7 @@
             "type": "orthogonal",
             "source": "route-1781948747644-chemformer-route-2-step-chemformer-step-2-reactants",
             "target": "route-1781945982590-aizynth-route-2-molecule-m2",
-            "sourceHandle": "top",
+            "sourceHandle": "right",
             "targetHandle": "left",
             "label": "Chemformer 单步逆合成",
             "className": "canvas-edge",
@@ -435,19 +435,15 @@
             "data": {
               "routePoints": [
                 {
-                  "x": 324.7188534342898,
-                  "y": 937.3514587739214
+                  "x": -14.28114656571006,
+                  "y": 1038.3514587739214
                 },
                 {
-                  "x": 324.7188534342898,
-                  "y": 922.3514587739214
+                  "x": 291.7188534342898,
+                  "y": 1038.3514587739214
                 },
                 {
-                  "x": 296.7188534342898,
-                  "y": 922.3514587739214
-                },
-                {
-                  "x": 296.7188534342898,
+                  "x": 291.7188534342898,
                   "y": 898.3514587739214
                 },
                 {
@@ -4545,13 +4541,20 @@
             "id": "route-1781939707005-aizynth-route-2-molecule-m1",
             "type": "molecule",
             "position": {
-              "x": 2229.583487158625,
-              "y": 524
+              "x": 2100,
+              "y": 840
             },
             "data": {
               "label": "Target",
-              "smiles": "Brc1ccccc1"
-            }
+              "smiles": "Brc1ccccc1",
+              "selectedComponentId": null
+            },
+            "measured": {
+              "width": 190,
+              "height": 154
+            },
+            "selected": true,
+            "dragging": false
           },
           {
             "id": "route-1781939707005-aizynth-route-2-step-s1-reactants",
@@ -4563,6 +4566,10 @@
             "data": {
               "label": "c1ccccc1.O=C1CCC(=O)N1Br",
               "smiles": "c1ccccc1.O=C1CCC(=O)N1Br"
+            },
+            "measured": {
+              "width": 368,
+              "height": 142
             }
           },
           {
@@ -4575,6 +4582,10 @@
             "data": {
               "label": "Mol 2",
               "smiles": "O=C1C=CC(=O)N1Br"
+            },
+            "measured": {
+              "width": 190,
+              "height": 154
             }
           },
           {
@@ -4587,6 +4598,10 @@
             "data": {
               "label": "Mol 3",
               "smiles": "O=C(O)C=CC(=O)NBr"
+            },
+            "measured": {
+              "width": 190,
+              "height": 154
             }
           },
           {
@@ -4599,6 +4614,10 @@
             "data": {
               "label": "O=CC(=O)O.CC(=O)NBr",
               "smiles": "O=CC(=O)O.CC(=O)NBr"
+            },
+            "measured": {
+              "width": 368,
+              "height": 142
             }
           },
           {
@@ -4611,6 +4630,10 @@
             "data": {
               "label": "Mol 2",
               "smiles": "Clc1cccc(Cl)c1"
+            },
+            "measured": {
+              "width": 190,
+              "height": 154
             }
           },
           {
@@ -4623,6 +4646,10 @@
             "data": {
               "label": "Mol 2",
               "smiles": "O=C(O)C(=O)O"
+            },
+            "measured": {
+              "width": 190,
+              "height": 154
             }
           }
         ],
@@ -4650,19 +4677,19 @@
             "data": {
               "routePoints": [
                 {
-                  "x": 1477.1542944699265,
+                  "x": 1887.6632644629572,
                   "y": 645.0892088965719
                 },
                 {
-                  "x": 1804.074517165594,
+                  "x": 2209.583487158625,
                   "y": 645.0892088965719
                 },
                 {
-                  "x": 1804.074517165594,
+                  "x": 2209.583487158625,
                   "y": 595
                 },
                 {
-                  "x": 1819.074517165594,
+                  "x": 2229.583487158625,
                   "y": 595
                 }
               ]
@@ -4691,19 +4718,19 @@
             "data": {
               "routePoints": [
                 {
-                  "x": 257.4910300069693,
+                  "x": 668,
                   "y": 429.08882503561
                 },
                 {
-                  "x": 361.0529383215287,
+                  "x": 766.5619083145593,
                   "y": 429.08882503561
                 },
                 {
-                  "x": 361.0529383215287,
+                  "x": 766.5619083145593,
                   "y": 427.62297061394185
                 },
                 {
-                  "x": 376.0529383215287,
+                  "x": 786.5619083145593,
                   "y": 427.62297061394185
                 }
               ]
@@ -4733,19 +4760,19 @@
             "data": {
               "routePoints": [
                 {
-                  "x": 566.0529383215287,
+                  "x": 976.5619083145593,
                   "y": 427.62297061394185
                 },
                 {
-                  "x": 657.3243396748732,
+                  "x": 1062.833309667904,
                   "y": 427.62297061394185
                 },
                 {
-                  "x": 657.3243396748732,
+                  "x": 1062.833309667904,
                   "y": 364.4405295468257
                 },
                 {
-                  "x": 672.3243396748732,
+                  "x": 1082.833309667904,
                   "y": 364.4405295468257
                 }
               ]
@@ -4763,15 +4790,15 @@
               "targetComponentIndex": 1,
               "routePoints": [
                 {
-                  "x": 862.3243396748732,
+                  "x": 1272.833309667904,
                   "y": 364.4405295468257
                 },
                 {
-                  "x": 1381.1542944699265,
+                  "x": 1791.6632644629572,
                   "y": 364.4405295468257
                 },
                 {
-                  "x": 1381.1542944699265,
+                  "x": 1791.6632644629572,
                   "y": 582.0892088965719
                 }
               ]
@@ -4801,19 +4828,19 @@
               "targetComponentIndex": 0,
               "routePoints": [
                 {
-                  "x": 811.1542944699265,
+                  "x": 1221.6632644629572,
                   "y": 713.0892088965719
                 },
                 {
-                  "x": 1102.1542944699265,
+                  "x": 1507.6632644629572,
                   "y": 713.0892088965719
                 },
                 {
-                  "x": 1102.1542944699265,
+                  "x": 1507.6632644629572,
                   "y": 646.0892088965719
                 },
                 {
-                  "x": 1117.1542944699265,
+                  "x": 1527.6632644629572,
                   "y": 646.0892088965719
                 }
               ]
@@ -4840,7 +4867,25 @@
             "targetHandle": "left",
             "label": "AiZynth step",
             "data": {
-              "targetComponentIndex": 0
+              "targetComponentIndex": 0,
+              "routePoints": [
+                {
+                  "x": 230,
+                  "y": 429.08882503561
+                },
+                {
+                  "x": 288,
+                  "y": 429.08882503561
+                },
+                {
+                  "x": 288,
+                  "y": 430.08882503561
+                },
+                {
+                  "x": 308,
+                  "y": 430.08882503561
+                }
+              ]
             },
             "className": "canvas-edge",
             "interactionWidth": 18,
@@ -7090,10 +7135,9 @@
           "object_kind": "molecule",
           "object_label": "Target",
           "engine": "CREST",
-          "status": "failed",
-          "updated_at": "2026-06-20T10:30:59.756Z",
-          "payload": null,
-          "error": "页面刷新后无法恢复此同步任务，请重新计算。"
+          "status": "running",
+          "updated_at": "2026-06-20T12:07:17.584Z",
+          "payload": null
         },
         "reaction:rxn-route-1781939707005-aizynth-route-2-s1-0:transition-state-compute": {
           "task_id": "transition-state-compute",
@@ -7431,9 +7475,10 @@
           "object_kind": "molecule",
           "object_label": "Mol 2",
           "engine": "CREST",
-          "status": "running",
-          "updated_at": "2026-06-20T11:14:41.979Z",
-          "payload": null
+          "status": "failed",
+          "updated_at": "2026-06-20T12:07:02.237Z",
+          "payload": null,
+          "error": "页面刷新后无法恢复此同步任务，请重新计算。"
         },
         "molecule:route-1781939707005-aizynth-route-2-step-s1-reactants:component:1:molecule-descriptors": {
           "task_id": "molecule-descriptors",
@@ -7536,6 +7581,1707 @@
             ],
             "note": "已通过 rxnmapper_wsl 运行 RXNMapper (confidence=0.787)；成键/断键已成功识别。"
           }
+        }
+      }
+    },
+    {
+      "id": "cell-6abd01dc",
+      "type": "chem",
+      "title": "Chem cell",
+      "created_at": "2026-06-20T12:07:25.857833+00:00",
+      "updated_at": "2026-06-20T12:17:28.616652+00:00",
+      "canvas": {
+        "nodes": [
+          {
+            "id": "mol-29ff5925-9f7e-489a-8686-d7587d296433",
+            "type": "molecule",
+            "position": {
+              "x": 320,
+              "y": -60
+            },
+            "data": {
+              "label": "Brc1ccccc1",
+              "smiles": "Brc1ccccc1"
+            },
+            "measured": {
+              "width": 190,
+              "height": 142
+            }
+          },
+          {
+            "id": "route-1781957330459-aizynth-route-1-step-s1-reactants",
+            "type": "molecule",
+            "position": {
+              "x": -140,
+              "y": 120
+            },
+            "data": {
+              "label": "c1ccccc1.O=C1CCC(=O)N1Br",
+              "smiles": "c1ccccc1.O=C1CCC(=O)N1Br",
+              "selectedComponentId": null
+            },
+            "measured": {
+              "width": 368,
+              "height": 142
+            },
+            "selected": true,
+            "dragging": false
+          }
+        ],
+        "edges": [
+          {
+            "id": "rxn-route-1781957330459-aizynth-route-1-s1-0-edge",
+            "type": "orthogonal",
+            "source": "route-1781957330459-aizynth-route-1-step-s1-reactants",
+            "target": "mol-29ff5925-9f7e-489a-8686-d7587d296433",
+            "sourceHandle": "right",
+            "targetHandle": "left",
+            "label": "AiZynth step",
+            "className": "canvas-edge",
+            "interactionWidth": 18,
+            "markerEnd": {
+              "type": "arrowclosed",
+              "width": 15,
+              "height": 15,
+              "color": "#0f172a"
+            },
+            "style": {
+              "stroke": "#0f172a",
+              "strokeWidth": 3
+            },
+            "data": {
+              "routePoints": [
+                {
+                  "x": 148,
+                  "y": 171
+                },
+                {
+                  "x": 168,
+                  "y": 171
+                },
+                {
+                  "x": 168,
+                  "y": 11
+                },
+                {
+                  "x": 320,
+                  "y": 11
+                }
+              ]
+            },
+            "selected": false
+          }
+        ]
+      },
+      "objects": {
+        "molecules": [
+          {
+            "id": "mol-29ff5925-9f7e-489a-8686-d7587d296433",
+            "label": "Brc1ccccc1",
+            "smiles": "Brc1ccccc1"
+          },
+          {
+            "id": "route-1781957330459-aizynth-route-1-step-s1-reactants",
+            "label": "c1ccccc1.O=C1CCC(=O)N1Br",
+            "smiles": "c1ccccc1.O=C1CCC(=O)N1Br"
+          }
+        ],
+        "reactions": [
+          {
+            "id": "rxn-route-1781957330459-aizynth-route-1-s1-0",
+            "label": "AiZynth step",
+            "reaction_smiles": "c1ccccc1.O=C1CCC(=O)N1Br>>Brc1ccccc1",
+            "template": "AiZynth step"
+          }
+        ],
+        "routes": [
+          {
+            "id": "route-1781957330459-aizynth-route-1",
+            "label": "AiZynthFinder Route 1",
+            "route": {
+              "id": "aizynth-route-1",
+              "title": "AiZynthFinder Route 1",
+              "target_id": "m1",
+              "source": "aizynthfinder",
+              "depth": 1,
+              "precursor_count": 2,
+              "stock_count": 2,
+              "molecules": [
+                {
+                  "id": "m1",
+                  "name": "Target",
+                  "smiles": "Brc1ccccc1",
+                  "in_stock": false
+                },
+                {
+                  "id": "m2",
+                  "name": "Mol 2",
+                  "smiles": "c1ccccc1",
+                  "in_stock": true
+                },
+                {
+                  "id": "m3",
+                  "name": "Mol 3",
+                  "smiles": "O=C1CCC(=O)N1Br",
+                  "in_stock": true
+                }
+              ],
+              "steps": [
+                {
+                  "id": "s1",
+                  "product_id": "m1",
+                  "precursor_ids": [
+                    "m2",
+                    "m3"
+                  ],
+                  "reaction_smiles": "c1ccccc1.O=C1CCC(=O)N1Br>>Brc1ccccc1",
+                  "policy_score": 0.041600000113248825,
+                  "template": "AiZynth step"
+                }
+              ],
+              "layout": {
+                "nodes": {
+                  "m1": {
+                    "id": "m1",
+                    "label": "Target\nBrc1ccccc1",
+                    "x": 300,
+                    "y": 40,
+                    "in_stock": false
+                  },
+                  "m2": {
+                    "id": "m2",
+                    "label": "Mol 2\nc1ccccc1",
+                    "x": 40,
+                    "y": 40,
+                    "in_stock": true
+                  },
+                  "m3": {
+                    "id": "m3",
+                    "label": "Mol 3\nO=C1CCC(=O)N1Br",
+                    "x": 40,
+                    "y": 150,
+                    "in_stock": true
+                  }
+                },
+                "edges": [
+                  {
+                    "source_id": "m2",
+                    "target_id": "m1",
+                    "label": "AiZynth step"
+                  },
+                  {
+                    "source_id": "m3",
+                    "target_id": "m1",
+                    "label": "AiZynth step"
+                  }
+                ]
+              },
+              "metadata": {
+                "raw_score": null
+              }
+            }
+          }
+        ]
+      },
+      "results": {
+        "molecule:mol-29ff5925-9f7e-489a-8686-d7587d296433:retrosynthesis": {
+          "task_id": "retrosynthesis",
+          "task_label": "预测逆合成路线（AiZynthFinder）",
+          "object_id": "mol-29ff5925-9f7e-489a-8686-d7587d296433",
+          "object_kind": "molecule",
+          "object_label": "Brc1ccccc1",
+          "engine": "aizynthfinder",
+          "status": "succeeded",
+          "updated_at": "2026-06-20T12:08:47.487Z",
+          "payload": {
+            "available": true,
+            "status": "Loaded 3 route(s) from AiZynthFinder via WSL.",
+            "used_fallback": false,
+            "target_smiles": "Brc1ccccc1",
+            "candidates": [
+              {
+                "id": "aizynth-route-1",
+                "title": "AiZynthFinder Route 1",
+                "target_id": "m1",
+                "source": "aizynthfinder",
+                "depth": 1,
+                "precursor_count": 2,
+                "stock_count": 2,
+                "molecules": [
+                  {
+                    "id": "m1",
+                    "name": "Target",
+                    "smiles": "Brc1ccccc1",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "m2",
+                    "name": "Mol 2",
+                    "smiles": "c1ccccc1",
+                    "in_stock": true
+                  },
+                  {
+                    "id": "m3",
+                    "name": "Mol 3",
+                    "smiles": "O=C1CCC(=O)N1Br",
+                    "in_stock": true
+                  }
+                ],
+                "steps": [
+                  {
+                    "id": "s1",
+                    "product_id": "m1",
+                    "precursor_ids": [
+                      "m2",
+                      "m3"
+                    ],
+                    "reaction_smiles": "c1ccccc1.O=C1CCC(=O)N1Br>>Brc1ccccc1",
+                    "policy_score": 0.041600000113248825,
+                    "template": "AiZynth step"
+                  }
+                ],
+                "layout": {
+                  "nodes": {
+                    "m1": {
+                      "id": "m1",
+                      "label": "Target\nBrc1ccccc1",
+                      "x": 300,
+                      "y": 40,
+                      "in_stock": false
+                    },
+                    "m2": {
+                      "id": "m2",
+                      "label": "Mol 2\nc1ccccc1",
+                      "x": 40,
+                      "y": 40,
+                      "in_stock": true
+                    },
+                    "m3": {
+                      "id": "m3",
+                      "label": "Mol 3\nO=C1CCC(=O)N1Br",
+                      "x": 40,
+                      "y": 150,
+                      "in_stock": true
+                    }
+                  },
+                  "edges": [
+                    {
+                      "source_id": "m2",
+                      "target_id": "m1",
+                      "label": "AiZynth step"
+                    },
+                    {
+                      "source_id": "m3",
+                      "target_id": "m1",
+                      "label": "AiZynth step"
+                    }
+                  ]
+                },
+                "metadata": {
+                  "raw_score": null
+                }
+              },
+              {
+                "id": "aizynth-route-2",
+                "title": "AiZynthFinder Route 2",
+                "target_id": "m1",
+                "source": "aizynthfinder",
+                "depth": 1,
+                "precursor_count": 1,
+                "stock_count": 1,
+                "molecules": [
+                  {
+                    "id": "m1",
+                    "name": "Target",
+                    "smiles": "Brc1ccccc1",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "m2",
+                    "name": "Mol 2",
+                    "smiles": "Brc1ccc(Br)cc1",
+                    "in_stock": true
+                  }
+                ],
+                "steps": [
+                  {
+                    "id": "s1",
+                    "product_id": "m1",
+                    "precursor_ids": [
+                      "m2"
+                    ],
+                    "reaction_smiles": "Brc1ccc(Br)cc1>>Brc1ccccc1",
+                    "policy_score": 0.009399999864399433,
+                    "template": "AiZynth step"
+                  }
+                ],
+                "layout": {
+                  "nodes": {
+                    "m1": {
+                      "id": "m1",
+                      "label": "Target\nBrc1ccccc1",
+                      "x": 300,
+                      "y": 40,
+                      "in_stock": false
+                    },
+                    "m2": {
+                      "id": "m2",
+                      "label": "Mol 2\nBrc1ccc(Br)cc1",
+                      "x": 40,
+                      "y": 40,
+                      "in_stock": true
+                    }
+                  },
+                  "edges": [
+                    {
+                      "source_id": "m2",
+                      "target_id": "m1",
+                      "label": "AiZynth step"
+                    }
+                  ]
+                },
+                "metadata": {
+                  "raw_score": null
+                }
+              },
+              {
+                "id": "aizynth-route-3",
+                "title": "AiZynthFinder Route 3",
+                "target_id": "m1",
+                "source": "aizynthfinder",
+                "depth": 1,
+                "precursor_count": 1,
+                "stock_count": 1,
+                "molecules": [
+                  {
+                    "id": "m1",
+                    "name": "Target",
+                    "smiles": "Brc1ccccc1",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "m2",
+                    "name": "Mol 2",
+                    "smiles": "Nc1ccccc1Br",
+                    "in_stock": true
+                  }
+                ],
+                "steps": [
+                  {
+                    "id": "s1",
+                    "product_id": "m1",
+                    "precursor_ids": [
+                      "m2"
+                    ],
+                    "reaction_smiles": "Nc1ccccc1Br>>Brc1ccccc1",
+                    "policy_score": 0.07109999656677246,
+                    "template": "AiZynth step"
+                  }
+                ],
+                "layout": {
+                  "nodes": {
+                    "m1": {
+                      "id": "m1",
+                      "label": "Target\nBrc1ccccc1",
+                      "x": 300,
+                      "y": 40,
+                      "in_stock": false
+                    },
+                    "m2": {
+                      "id": "m2",
+                      "label": "Mol 2\nNc1ccccc1Br",
+                      "x": 40,
+                      "y": 40,
+                      "in_stock": true
+                    }
+                  },
+                  "edges": [
+                    {
+                      "source_id": "m2",
+                      "target_id": "m1",
+                      "label": "AiZynth step"
+                    }
+                  ]
+                },
+                "metadata": {
+                  "raw_score": null
+                }
+              }
+            ],
+            "route_scores": {
+              "aizynth-route-1": {
+                "route_id": "aizynth-route-1",
+                "route_score": 0.569,
+                "model_score": 0.042,
+                "stock_score": 1,
+                "step_score": 1,
+                "explanation": "model=0.04, stock=1.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
+              },
+              "aizynth-route-2": {
+                "route_id": "aizynth-route-2",
+                "route_score": 0.554,
+                "model_score": 0.009,
+                "stock_score": 1,
+                "step_score": 1,
+                "explanation": "model=0.01, stock=1.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
+              },
+              "aizynth-route-3": {
+                "route_id": "aizynth-route-3",
+                "route_score": 0.582,
+                "model_score": 0.071,
+                "stock_score": 1,
+                "step_score": 1,
+                "explanation": "model=0.07, stock=1.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
+              }
+            },
+            "feasibility": {
+              "aizynth-route-1": {
+                "route_id": "aizynth-route-1",
+                "heuristic_overall_yield_percent": 60,
+                "heuristic_feasibility_score": 0.78,
+                "estimated_overall_yield_percent": 60,
+                "route_feasibility_score": 0.78,
+                "method": "heuristic_route_feasibility",
+                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "risk_flags": [
+                  "s1: 反应类型置信度低"
+                ],
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+              },
+              "aizynth-route-2": {
+                "route_id": "aizynth-route-2",
+                "heuristic_overall_yield_percent": 57,
+                "heuristic_feasibility_score": 0.763,
+                "estimated_overall_yield_percent": 57,
+                "route_feasibility_score": 0.763,
+                "method": "heuristic_route_feasibility",
+                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "risk_flags": [
+                  "s1: 反应类型置信度低"
+                ],
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+              },
+              "aizynth-route-3": {
+                "route_id": "aizynth-route-3",
+                "heuristic_overall_yield_percent": 57,
+                "heuristic_feasibility_score": 0.763,
+                "estimated_overall_yield_percent": 57,
+                "route_feasibility_score": 0.763,
+                "method": "heuristic_route_feasibility",
+                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "risk_flags": [
+                  "s1: 反应类型置信度低"
+                ],
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+              }
+            },
+            "engine": "aizynthfinder"
+          }
+        },
+        "molecule:mol-29ff5925-9f7e-489a-8686-d7587d296433:molecule-properties": {
+          "task_id": "molecule-properties",
+          "task_label": "计算分子性质（RDKit + OPERA）",
+          "object_id": "mol-29ff5925-9f7e-489a-8686-d7587d296433",
+          "object_kind": "molecule",
+          "object_label": "Brc1ccccc1",
+          "engine": "RDKit + OPERA",
+          "status": "succeeded",
+          "updated_at": "2026-06-20T12:08:39.493Z",
+          "payload": {
+            "source": "rdkit+optional-opera",
+            "rdkit": {
+              "SMILES": "Brc1ccccc1",
+              "Canonical SMILES": "Brc1ccccc1",
+              "Formula": "C6H5Br",
+              "MW": 157.01,
+              "LogP": 2.449,
+              "TPSA": 0,
+              "HBD": 0,
+              "HBA": 0,
+              "Rotatable bonds": 0,
+              "Ring count": 1,
+              "Aromatic rings": 1
+            },
+            "opera": {
+              "available": true,
+              "status": "available",
+              "source": "OPERA CLI via WSL",
+              "properties": {
+                "melting_point": "-30",
+                "boiling_point": "156",
+                "logp": "2.99",
+                "water_solubility": "-2.55",
+                "vapor_pressure": "0.62"
+              },
+              "applicability_domain": {
+                "melting_point_ad": "1",
+                "boiling_point_ad": "1",
+                "logp_ad": "1",
+                "water_solubility_ad": "1",
+                "vapor_pressure_ad": "1"
+              },
+              "reason": null
+            },
+            "note": "RDKit 字段是结构描述符；OPERA 字段是可选 QSAR 预测，需结合适用域判断。"
+          }
+        },
+        "molecule:mol-29ff5925-9f7e-489a-8686-d7587d296433:molecule-descriptors": {
+          "task_id": "molecule-descriptors",
+          "task_label": "计算分子描述符（RDKit）",
+          "object_id": "mol-29ff5925-9f7e-489a-8686-d7587d296433",
+          "object_kind": "molecule",
+          "object_label": "Brc1ccccc1",
+          "engine": "RDKit",
+          "status": "succeeded",
+          "updated_at": "2026-06-20T12:08:00.289Z",
+          "payload": {
+            "source": "rdkit+mordred_optional",
+            "descriptors": {
+              "canonical_smiles": "Brc1ccccc1",
+              "formula": "C6H5Br",
+              "molecular_weight": 157.01,
+              "logp": 2.4491000000000005,
+              "tpsa": 0,
+              "hbd": 0,
+              "hba": 0,
+              "rotatable_bonds": 0,
+              "ring_count": 1,
+              "aromatic_ring_count": 1
+            },
+            "unavailable": [
+              "mordred"
+            ]
+          }
+        },
+        "reaction:rxn-route-1781957330459-aizynth-route-1-s1-0:reaction-validation": {
+          "task_id": "reaction-validation",
+          "task_label": "校验反应可行性",
+          "object_id": "rxn-route-1781957330459-aizynth-route-1-s1-0",
+          "object_kind": "reaction",
+          "object_label": "AiZynth step",
+          "status": "succeeded",
+          "updated_at": "2026-06-20T12:09:04.147Z",
+          "payload": {
+            "reaction_smiles": "c1ccccc1.O=C1CCC(=O)N1Br>>Brc1ccccc1",
+            "valid": true,
+            "status": "valid",
+            "errors": [],
+            "warnings": [
+              "Element counts are not balanced; check missing reagents, salts, or byproducts."
+            ],
+            "element_balance": {
+              "available": true,
+              "reactants": {
+                "C": 10,
+                "O": 2,
+                "N": 1,
+                "Br": 1
+              },
+              "products": {
+                "Br": 1,
+                "C": 6
+              },
+              "delta": {
+                "C": -4,
+                "N": -1,
+                "O": -2
+              },
+              "balanced": false
+            },
+            "explanation": {
+              "reaction_smiles": "c1ccccc1.O=C1CCC(=O)N1Br>>Brc1ccccc1",
+              "reaction_type": "通用转化",
+              "formed_bonds": [
+                "待原子映射确认"
+              ],
+              "broken_bonds": [
+                "待原子映射确认"
+              ],
+              "reaction_center": [
+                "反应物与产物结构差异区域"
+              ],
+              "summary": "当前使用规则保底解释；后续可接入 RXNMapper 进行原子映射并精确定位成键和断键。"
+            },
+            "feasibility": {
+              "method": "layered_heuristic_plus_optional_features",
+              "status": "features_available",
+              "heuristic": {
+                "heuristic_yield_percent": 60,
+                "predicted_yield_percent": 60,
+                "method": "heuristic_rules",
+                "confidence": "低",
+                "applicability_domain": "规则启发式；仅适合演示和相对排序。",
+                "factors": [
+                  "当前反应类型未匹配到专门规则。",
+                  "存在卤素或潜在离去基，需关注副反应。",
+                  "多组分前体明确，适合做单步路线验证。"
+                ],
+                "note": "规则演示估计：用于相对排序和课堂展示，不是 DRFP/HTE 真实产率模型，不能替代实验测定。"
+              },
+              "ml_features": {
+                "reaction_smiles": "c1ccccc1.O=C1CCC(=O)N1Br>>Brc1ccccc1",
+                "method": "drfp",
+                "status": "available",
+                "features": {
+                  "drfp_0": 0,
+                  "drfp_1": 0,
+                  "drfp_2": 0,
+                  "drfp_3": 0,
+                  "drfp_4": 0,
+                  "drfp_5": 1,
+                  "drfp_6": 0,
+                  "drfp_7": 0,
+                  "drfp_8": 0,
+                  "drfp_9": 1,
+                  "drfp_10": 1,
+                  "drfp_11": 0,
+                  "drfp_12": 0,
+                  "drfp_13": 0,
+                  "drfp_14": 0,
+                  "drfp_15": 0,
+                  "drfp_16": 0,
+                  "drfp_17": 0,
+                  "drfp_18": 0,
+                  "drfp_19": 0,
+                  "drfp_20": 0,
+                  "drfp_21": 0,
+                  "drfp_22": 0,
+                  "drfp_23": 0,
+                  "drfp_24": 0,
+                  "drfp_25": 0,
+                  "drfp_26": 0,
+                  "drfp_27": 0,
+                  "drfp_28": 0,
+                  "drfp_29": 0,
+                  "drfp_30": 0,
+                  "drfp_31": 0,
+                  "drfp_32": 0,
+                  "drfp_33": 0,
+                  "drfp_34": 0,
+                  "drfp_35": 1,
+                  "drfp_36": 0,
+                  "drfp_37": 1,
+                  "drfp_38": 0,
+                  "drfp_39": 0,
+                  "drfp_40": 1,
+                  "drfp_41": 0,
+                  "drfp_42": 0,
+                  "drfp_43": 0,
+                  "drfp_44": 0,
+                  "drfp_45": 0,
+                  "drfp_46": 0,
+                  "drfp_47": 0,
+                  "drfp_48": 0,
+                  "drfp_49": 0,
+                  "drfp_50": 0,
+                  "drfp_51": 0,
+                  "drfp_52": 0,
+                  "drfp_53": 0,
+                  "drfp_54": 0,
+                  "drfp_55": 0,
+                  "drfp_56": 1,
+                  "drfp_57": 0,
+                  "drfp_58": 0,
+                  "drfp_59": 0,
+                  "drfp_60": 0,
+                  "drfp_61": 1,
+                  "drfp_62": 0,
+                  "drfp_63": 0,
+                  "drfp_64": 1,
+                  "drfp_65": 0,
+                  "drfp_66": 0,
+                  "drfp_67": 1,
+                  "drfp_68": 0,
+                  "drfp_69": 0,
+                  "drfp_70": 0,
+                  "drfp_71": 1,
+                  "drfp_72": 0,
+                  "drfp_73": 0,
+                  "drfp_74": 0,
+                  "drfp_75": 0,
+                  "drfp_76": 0,
+                  "drfp_77": 0,
+                  "drfp_78": 0,
+                  "drfp_79": 0,
+                  "drfp_80": 0,
+                  "drfp_81": 0,
+                  "drfp_82": 0,
+                  "drfp_83": 0,
+                  "drfp_84": 0,
+                  "drfp_85": 0,
+                  "drfp_86": 0,
+                  "drfp_87": 0,
+                  "drfp_88": 0,
+                  "drfp_89": 0,
+                  "drfp_90": 1,
+                  "drfp_91": 0,
+                  "drfp_92": 1,
+                  "drfp_93": 0,
+                  "drfp_94": 0,
+                  "drfp_95": 0,
+                  "drfp_96": 1,
+                  "drfp_97": 0,
+                  "drfp_98": 0,
+                  "drfp_99": 1,
+                  "drfp_100": 0,
+                  "drfp_101": 0,
+                  "drfp_102": 0,
+                  "drfp_103": 0,
+                  "drfp_104": 0,
+                  "drfp_105": 0,
+                  "drfp_106": 0,
+                  "drfp_107": 0,
+                  "drfp_108": 0,
+                  "drfp_109": 0,
+                  "drfp_110": 0,
+                  "drfp_111": 0,
+                  "drfp_112": 0,
+                  "drfp_113": 0,
+                  "drfp_114": 0,
+                  "drfp_115": 0,
+                  "drfp_116": 1,
+                  "drfp_117": 0,
+                  "drfp_118": 0,
+                  "drfp_119": 0,
+                  "drfp_120": 0,
+                  "drfp_121": 0,
+                  "drfp_122": 0,
+                  "drfp_123": 0,
+                  "drfp_124": 0,
+                  "drfp_125": 0,
+                  "drfp_126": 0,
+                  "drfp_127": 0,
+                  "drfp_128": 0,
+                  "drfp_129": 0,
+                  "drfp_130": 0,
+                  "drfp_131": 0,
+                  "drfp_132": 0,
+                  "drfp_133": 0,
+                  "drfp_134": 0,
+                  "drfp_135": 0,
+                  "drfp_136": 0,
+                  "drfp_137": 0,
+                  "drfp_138": 1,
+                  "drfp_139": 0,
+                  "drfp_140": 0,
+                  "drfp_141": 0,
+                  "drfp_142": 0,
+                  "drfp_143": 0,
+                  "drfp_144": 0,
+                  "drfp_145": 0,
+                  "drfp_146": 0,
+                  "drfp_147": 0,
+                  "drfp_148": 0,
+                  "drfp_149": 0,
+                  "drfp_150": 0,
+                  "drfp_151": 0,
+                  "drfp_152": 0,
+                  "drfp_153": 0,
+                  "drfp_154": 0,
+                  "drfp_155": 0,
+                  "drfp_156": 0,
+                  "drfp_157": 0,
+                  "drfp_158": 0,
+                  "drfp_159": 0,
+                  "drfp_160": 0,
+                  "drfp_161": 0,
+                  "drfp_162": 0,
+                  "drfp_163": 0,
+                  "drfp_164": 0,
+                  "drfp_165": 0,
+                  "drfp_166": 0,
+                  "drfp_167": 0,
+                  "drfp_168": 0,
+                  "drfp_169": 0,
+                  "drfp_170": 0,
+                  "drfp_171": 0,
+                  "drfp_172": 1,
+                  "drfp_173": 0,
+                  "drfp_174": 0,
+                  "drfp_175": 0,
+                  "drfp_176": 0,
+                  "drfp_177": 1,
+                  "drfp_178": 0,
+                  "drfp_179": 0,
+                  "drfp_180": 0,
+                  "drfp_181": 1,
+                  "drfp_182": 0,
+                  "drfp_183": 0,
+                  "drfp_184": 0,
+                  "drfp_185": 0,
+                  "drfp_186": 0,
+                  "drfp_187": 0,
+                  "drfp_188": 0,
+                  "drfp_189": 0,
+                  "drfp_190": 0,
+                  "drfp_191": 0,
+                  "drfp_192": 0,
+                  "drfp_193": 0,
+                  "drfp_194": 0,
+                  "drfp_195": 1,
+                  "drfp_196": 0,
+                  "drfp_197": 0,
+                  "drfp_198": 0,
+                  "drfp_199": 0,
+                  "drfp_200": 1,
+                  "drfp_201": 0,
+                  "drfp_202": 0,
+                  "drfp_203": 0,
+                  "drfp_204": 0,
+                  "drfp_205": 0,
+                  "drfp_206": 0,
+                  "drfp_207": 0,
+                  "drfp_208": 0,
+                  "drfp_209": 1,
+                  "drfp_210": 0,
+                  "drfp_211": 0,
+                  "drfp_212": 0,
+                  "drfp_213": 0,
+                  "drfp_214": 0,
+                  "drfp_215": 0,
+                  "drfp_216": 0,
+                  "drfp_217": 0,
+                  "drfp_218": 1,
+                  "drfp_219": 1,
+                  "drfp_220": 0,
+                  "drfp_221": 0,
+                  "drfp_222": 0,
+                  "drfp_223": 0,
+                  "drfp_224": 0,
+                  "drfp_225": 0,
+                  "drfp_226": 0,
+                  "drfp_227": 0,
+                  "drfp_228": 0,
+                  "drfp_229": 0,
+                  "drfp_230": 0,
+                  "drfp_231": 0,
+                  "drfp_232": 0,
+                  "drfp_233": 0,
+                  "drfp_234": 0,
+                  "drfp_235": 0,
+                  "drfp_236": 0,
+                  "drfp_237": 0,
+                  "drfp_238": 0,
+                  "drfp_239": 0,
+                  "drfp_240": 0,
+                  "drfp_241": 0,
+                  "drfp_242": 0,
+                  "drfp_243": 1,
+                  "drfp_244": 0,
+                  "drfp_245": 1,
+                  "drfp_246": 0,
+                  "drfp_247": 0,
+                  "drfp_248": 0,
+                  "drfp_249": 0,
+                  "drfp_250": 0,
+                  "drfp_251": 0,
+                  "drfp_252": 0,
+                  "drfp_253": 0,
+                  "drfp_254": 0,
+                  "drfp_255": 0
+                },
+                "applicability_domain": "取决于后续训练数据；DRFP 只提供反应指纹，不单独构成产率模型。",
+                "unavailable": [],
+                "note": "已通过 WSL chem 环境生成 DRFP 特征；需要配套训练模型才能输出 ML 产率。"
+              },
+              "trained_model": {
+                "available": false,
+                "method": "chemprop_or_rxn_yields_placeholder",
+                "reason": "当前未配置训练好的产率模型权重；不会输出伪 ML 产率。",
+                "predicted_yield": null
+              },
+              "confidence": "低",
+              "applicability_domain": "规则启发式；仅适合演示和相对排序。",
+              "note": "产率采用分层输出：启发式估计可用，DRFP/RXNFP/Chemprop 仅在安装和配置后作为特征或训练模型层使用。"
+            }
+          }
+        },
+        "reaction:rxn-route-1781957330459-aizynth-route-1-s1-0:reaction-explanation": {
+          "task_id": "reaction-explanation",
+          "task_label": "解释反应",
+          "object_id": "rxn-route-1781957330459-aizynth-route-1-s1-0",
+          "object_kind": "reaction",
+          "object_label": "AiZynth step",
+          "status": "succeeded",
+          "updated_at": "2026-06-20T12:10:51.712Z",
+          "payload": {
+            "reaction_smiles": "c1ccccc1.O=C1CCC(=O)N1Br>>Brc1ccccc1",
+            "reaction_type": "通用转化",
+            "formed_bonds": [
+              "待原子映射确认"
+            ],
+            "broken_bonds": [
+              "待原子映射确认"
+            ],
+            "reaction_center": [
+              "反应物与产物结构差异区域"
+            ],
+            "summary": "当前使用规则保底解释；后续可接入 RXNMapper 进行原子映射并精确定位成键和断键。",
+            "yield_estimate": {
+              "heuristic_yield_percent": 60,
+              "predicted_yield_percent": 60,
+              "method": "heuristic_rules",
+              "confidence": "低",
+              "applicability_domain": "规则启发式；仅适合演示和相对排序。",
+              "factors": [
+                "当前反应类型未匹配到专门规则。",
+                "存在卤素或潜在离去基，需关注副反应。",
+                "多组分前体明确，适合做单步路线验证。"
+              ],
+              "note": "规则演示估计：用于相对排序和课堂展示，不是 DRFP/HTE 真实产率模型，不能替代实验测定。"
+            }
+          }
+        },
+        "reaction:rxn-route-1781957330459-aizynth-route-1-s1-0:reaction-mapping": {
+          "task_id": "reaction-mapping",
+          "task_label": "映射反应原子（RXNMapper）",
+          "object_id": "rxn-route-1781957330459-aizynth-route-1-s1-0",
+          "object_kind": "reaction",
+          "object_label": "AiZynth step",
+          "engine": "RXNMapper",
+          "status": "succeeded",
+          "updated_at": "2026-06-20T12:11:09.296Z",
+          "payload": {
+            "reaction_smiles": "c1ccccc1.O=C1CCC(=O)N1Br>>Brc1ccccc1",
+            "mapped_reaction_smiles": "O=C1CCC(=O)N1[Br:1].[cH:2]1[cH:3][cH:4][cH:5][cH:6][cH:7]1>>[Br:1][c:2]1[cH:3][cH:4][cH:5][cH:6][cH:7]1",
+            "method": "rxnmapper_wsl",
+            "status": "mapped",
+            "confidence": "中",
+            "reaction_center": [
+              "反应物与产物结构差异区域"
+            ],
+            "formed_bonds": [
+              "待原子映射确认"
+            ],
+            "broken_bonds": [
+              "待原子映射确认"
+            ],
+            "note": "已通过 rxnmapper_wsl 运行 RXNMapper (confidence=0.565)；成键/断键已成功识别。"
+          }
+        },
+        "molecule:route-1781957330459-aizynth-route-1-step-s1-reactants:component:1:retrosynthesis": {
+          "task_id": "retrosynthesis",
+          "task_label": "预测逆合成路线（AiZynthFinder）",
+          "object_id": "route-1781957330459-aizynth-route-1-step-s1-reactants:component:1",
+          "object_kind": "molecule",
+          "object_label": "组分 2",
+          "engine": "aizynthfinder",
+          "status": "succeeded",
+          "updated_at": "2026-06-20T12:17:28.594Z",
+          "payload": {
+            "available": true,
+            "status": "Loaded 3 route(s) from AiZynthFinder via WSL.",
+            "used_fallback": false,
+            "target_smiles": "O=C1CCC(=O)N1Br",
+            "candidates": [
+              {
+                "id": "aizynth-route-1",
+                "title": "AiZynthFinder Route 1",
+                "target_id": "m1",
+                "source": "aizynthfinder",
+                "depth": 3,
+                "precursor_count": 2,
+                "stock_count": 2,
+                "molecules": [
+                  {
+                    "id": "m1",
+                    "name": "Target",
+                    "smiles": "O=C1CCC(=O)N1Br",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "m2",
+                    "name": "Mol 2",
+                    "smiles": "O=C1C=CC(=O)N1Br",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "m3",
+                    "name": "Mol 3",
+                    "smiles": "O=C(O)C=CC(=O)NBr",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "m4",
+                    "name": "Mol 4",
+                    "smiles": "O=CC(=O)O",
+                    "in_stock": true
+                  },
+                  {
+                    "id": "m5",
+                    "name": "Mol 5",
+                    "smiles": "CC(=O)NBr",
+                    "in_stock": true
+                  }
+                ],
+                "steps": [
+                  {
+                    "id": "s1",
+                    "product_id": "m3",
+                    "precursor_ids": [
+                      "m4",
+                      "m5"
+                    ],
+                    "reaction_smiles": "O=CC(=O)O.CC(=O)NBr>>O=C(O)C=CC(=O)NBr",
+                    "policy_score": 0.004600000102072954,
+                    "template": "AiZynth step"
+                  },
+                  {
+                    "id": "s2",
+                    "product_id": "m2",
+                    "precursor_ids": [
+                      "m3"
+                    ],
+                    "reaction_smiles": "O=C(O)C=CC(=O)NBr>>O=C1C=CC(=O)N1Br",
+                    "policy_score": 0.004399999976158142,
+                    "template": "AiZynth step"
+                  },
+                  {
+                    "id": "s3",
+                    "product_id": "m1",
+                    "precursor_ids": [
+                      "m2"
+                    ],
+                    "reaction_smiles": "O=C1C=CC(=O)N1Br>>O=C1CCC(=O)N1Br",
+                    "policy_score": 0.00279999990016222,
+                    "template": "AiZynth step"
+                  }
+                ],
+                "layout": {
+                  "nodes": {
+                    "m1": {
+                      "id": "m1",
+                      "label": "Target\nO=C1CCC(=O)N1Br",
+                      "x": 820,
+                      "y": 40,
+                      "in_stock": false
+                    },
+                    "m2": {
+                      "id": "m2",
+                      "label": "Mol 2\nO=C1C=CC(=O)N1Br",
+                      "x": 560,
+                      "y": 40,
+                      "in_stock": false
+                    },
+                    "m3": {
+                      "id": "m3",
+                      "label": "Mol 3\nO=C(O)C=CC(=O)NBr",
+                      "x": 300,
+                      "y": 40,
+                      "in_stock": false
+                    },
+                    "m4": {
+                      "id": "m4",
+                      "label": "Mol 4\nO=CC(=O)O",
+                      "x": 40,
+                      "y": 40,
+                      "in_stock": true
+                    },
+                    "m5": {
+                      "id": "m5",
+                      "label": "Mol 5\nCC(=O)NBr",
+                      "x": 40,
+                      "y": 150,
+                      "in_stock": true
+                    }
+                  },
+                  "edges": [
+                    {
+                      "source_id": "m4",
+                      "target_id": "m3",
+                      "label": "AiZynth step"
+                    },
+                    {
+                      "source_id": "m5",
+                      "target_id": "m3",
+                      "label": "AiZynth step"
+                    },
+                    {
+                      "source_id": "m3",
+                      "target_id": "m2",
+                      "label": "AiZynth step"
+                    },
+                    {
+                      "source_id": "m2",
+                      "target_id": "m1",
+                      "label": "AiZynth step"
+                    }
+                  ]
+                },
+                "metadata": {
+                  "raw_score": null
+                }
+              },
+              {
+                "id": "aizynth-route-2",
+                "title": "AiZynthFinder Route 2",
+                "target_id": "m1",
+                "source": "aizynthfinder",
+                "depth": 5,
+                "precursor_count": 3,
+                "stock_count": 2,
+                "molecules": [
+                  {
+                    "id": "m1",
+                    "name": "Target",
+                    "smiles": "O=C1CCC(=O)N1Br",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "m2",
+                    "name": "Mol 2",
+                    "smiles": "O=C(O)CCC(=O)NBr",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "m3",
+                    "name": "Mol 3",
+                    "smiles": "O=C(CCC(=O)OCc1ccccc1)NBr",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "m4",
+                    "name": "Mol 4",
+                    "smiles": "OCc1ccccc1",
+                    "in_stock": true
+                  },
+                  {
+                    "id": "m5",
+                    "name": "Mol 5",
+                    "smiles": "CCOC(=O)CCC(=O)NBr",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "m6",
+                    "name": "Mol 6",
+                    "smiles": "CCO",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "m7",
+                    "name": "Mol 7",
+                    "smiles": "CC(=O)O",
+                    "in_stock": true
+                  },
+                  {
+                    "id": "m8",
+                    "name": "Mol 8",
+                    "smiles": "COC(=O)CCC(=O)NBr",
+                    "in_stock": false
+                  }
+                ],
+                "steps": [
+                  {
+                    "id": "s1",
+                    "product_id": "m6",
+                    "precursor_ids": [
+                      "m7"
+                    ],
+                    "reaction_smiles": "CC(=O)O>>CCO",
+                    "policy_score": 0.09149999916553497,
+                    "template": "AiZynth step"
+                  },
+                  {
+                    "id": "s2",
+                    "product_id": "m5",
+                    "precursor_ids": [
+                      "m6",
+                      "m8"
+                    ],
+                    "reaction_smiles": "CCO.COC(=O)CCC(=O)NBr>>CCOC(=O)CCC(=O)NBr",
+                    "policy_score": 0.0015999999595806003,
+                    "template": "AiZynth step"
+                  },
+                  {
+                    "id": "s3",
+                    "product_id": "m3",
+                    "precursor_ids": [
+                      "m4",
+                      "m5"
+                    ],
+                    "reaction_smiles": "OCc1ccccc1.CCOC(=O)CCC(=O)NBr>>O=C(CCC(=O)OCc1ccccc1)NBr",
+                    "policy_score": 0.00430000014603138,
+                    "template": "AiZynth step"
+                  },
+                  {
+                    "id": "s4",
+                    "product_id": "m2",
+                    "precursor_ids": [
+                      "m3"
+                    ],
+                    "reaction_smiles": "O=C(CCC(=O)OCc1ccccc1)NBr>>O=C(O)CCC(=O)NBr",
+                    "policy_score": 0.08150000125169754,
+                    "template": "AiZynth step"
+                  },
+                  {
+                    "id": "s5",
+                    "product_id": "m1",
+                    "precursor_ids": [
+                      "m2"
+                    ],
+                    "reaction_smiles": "O=C(O)CCC(=O)NBr>>O=C1CCC(=O)N1Br",
+                    "policy_score": 0.03610000014305115,
+                    "template": "AiZynth step"
+                  }
+                ],
+                "layout": {
+                  "nodes": {
+                    "m1": {
+                      "id": "m1",
+                      "label": "Target\nO=C1CCC(=O)N1Br",
+                      "x": 1340,
+                      "y": 40,
+                      "in_stock": false
+                    },
+                    "m2": {
+                      "id": "m2",
+                      "label": "Mol 2\nO=C(O)CCC(=O)NBr",
+                      "x": 1080,
+                      "y": 40,
+                      "in_stock": false
+                    },
+                    "m3": {
+                      "id": "m3",
+                      "label": "Mol 3\nO=C(CCC(=O)OCc1ccccc1)NBr",
+                      "x": 820,
+                      "y": 40,
+                      "in_stock": false
+                    },
+                    "m4": {
+                      "id": "m4",
+                      "label": "Mol 4\nOCc1ccccc1",
+                      "x": 560,
+                      "y": 40,
+                      "in_stock": true
+                    },
+                    "m5": {
+                      "id": "m5",
+                      "label": "Mol 5\nCCOC(=O)CCC(=O)NBr",
+                      "x": 560,
+                      "y": 150,
+                      "in_stock": false
+                    },
+                    "m6": {
+                      "id": "m6",
+                      "label": "Mol 6\nCCO",
+                      "x": 300,
+                      "y": 40,
+                      "in_stock": false
+                    },
+                    "m8": {
+                      "id": "m8",
+                      "label": "Mol 8\nCOC(=O)CCC(=O)NBr",
+                      "x": 300,
+                      "y": 150,
+                      "in_stock": false
+                    },
+                    "m7": {
+                      "id": "m7",
+                      "label": "Mol 7\nCC(=O)O",
+                      "x": 40,
+                      "y": 40,
+                      "in_stock": true
+                    }
+                  },
+                  "edges": [
+                    {
+                      "source_id": "m7",
+                      "target_id": "m6",
+                      "label": "AiZynth step"
+                    },
+                    {
+                      "source_id": "m6",
+                      "target_id": "m5",
+                      "label": "AiZynth step"
+                    },
+                    {
+                      "source_id": "m8",
+                      "target_id": "m5",
+                      "label": "AiZynth step"
+                    },
+                    {
+                      "source_id": "m4",
+                      "target_id": "m3",
+                      "label": "AiZynth step"
+                    },
+                    {
+                      "source_id": "m5",
+                      "target_id": "m3",
+                      "label": "AiZynth step"
+                    },
+                    {
+                      "source_id": "m3",
+                      "target_id": "m2",
+                      "label": "AiZynth step"
+                    },
+                    {
+                      "source_id": "m2",
+                      "target_id": "m1",
+                      "label": "AiZynth step"
+                    }
+                  ]
+                },
+                "metadata": {
+                  "raw_score": null
+                }
+              },
+              {
+                "id": "aizynth-route-3",
+                "title": "AiZynthFinder Route 3",
+                "target_id": "m1",
+                "source": "aizynthfinder",
+                "depth": 6,
+                "precursor_count": 3,
+                "stock_count": 2,
+                "molecules": [
+                  {
+                    "id": "m1",
+                    "name": "Target",
+                    "smiles": "O=C1CCC(=O)N1Br",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "m2",
+                    "name": "Mol 2",
+                    "smiles": "O=C(O)CCC(=O)NBr",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "m3",
+                    "name": "Mol 3",
+                    "smiles": "O=C(CCC(=O)OCc1ccccc1)NBr",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "m4",
+                    "name": "Mol 4",
+                    "smiles": "OCc1ccccc1",
+                    "in_stock": true
+                  },
+                  {
+                    "id": "m5",
+                    "name": "Mol 5",
+                    "smiles": "CCOC(=O)CCC(=O)NBr",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "m6",
+                    "name": "Mol 6",
+                    "smiles": "CCO",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "m7",
+                    "name": "Mol 7",
+                    "smiles": "CC(=O)O",
+                    "in_stock": true
+                  },
+                  {
+                    "id": "m8",
+                    "name": "Mol 8",
+                    "smiles": "COC(=O)CCC(=O)NBr",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "m9",
+                    "name": "Mol 9",
+                    "smiles": "COC(=O)C=CC(=O)NBr",
+                    "in_stock": false
+                  }
+                ],
+                "steps": [
+                  {
+                    "id": "s1",
+                    "product_id": "m6",
+                    "precursor_ids": [
+                      "m7"
+                    ],
+                    "reaction_smiles": "CC(=O)O>>CCO",
+                    "policy_score": 0.09149999916553497,
+                    "template": "AiZynth step"
+                  },
+                  {
+                    "id": "s2",
+                    "product_id": "m8",
+                    "precursor_ids": [
+                      "m9"
+                    ],
+                    "reaction_smiles": "COC(=O)C=CC(=O)NBr>>COC(=O)CCC(=O)NBr",
+                    "policy_score": 0.003800000064074993,
+                    "template": "AiZynth step"
+                  },
+                  {
+                    "id": "s3",
+                    "product_id": "m5",
+                    "precursor_ids": [
+                      "m6",
+                      "m8"
+                    ],
+                    "reaction_smiles": "CCO.COC(=O)CCC(=O)NBr>>CCOC(=O)CCC(=O)NBr",
+                    "policy_score": 0.0015999999595806003,
+                    "template": "AiZynth step"
+                  },
+                  {
+                    "id": "s4",
+                    "product_id": "m3",
+                    "precursor_ids": [
+                      "m4",
+                      "m5"
+                    ],
+                    "reaction_smiles": "OCc1ccccc1.CCOC(=O)CCC(=O)NBr>>O=C(CCC(=O)OCc1ccccc1)NBr",
+                    "policy_score": 0.00430000014603138,
+                    "template": "AiZynth step"
+                  },
+                  {
+                    "id": "s5",
+                    "product_id": "m2",
+                    "precursor_ids": [
+                      "m3"
+                    ],
+                    "reaction_smiles": "O=C(CCC(=O)OCc1ccccc1)NBr>>O=C(O)CCC(=O)NBr",
+                    "policy_score": 0.08150000125169754,
+                    "template": "AiZynth step"
+                  },
+                  {
+                    "id": "s6",
+                    "product_id": "m1",
+                    "precursor_ids": [
+                      "m2"
+                    ],
+                    "reaction_smiles": "O=C(O)CCC(=O)NBr>>O=C1CCC(=O)N1Br",
+                    "policy_score": 0.03610000014305115,
+                    "template": "AiZynth step"
+                  }
+                ],
+                "layout": {
+                  "nodes": {
+                    "m1": {
+                      "id": "m1",
+                      "label": "Target\nO=C1CCC(=O)N1Br",
+                      "x": 1340,
+                      "y": 40,
+                      "in_stock": false
+                    },
+                    "m2": {
+                      "id": "m2",
+                      "label": "Mol 2\nO=C(O)CCC(=O)NBr",
+                      "x": 1080,
+                      "y": 40,
+                      "in_stock": false
+                    },
+                    "m3": {
+                      "id": "m3",
+                      "label": "Mol 3\nO=C(CCC(=O)OCc1ccccc1)NBr",
+                      "x": 820,
+                      "y": 40,
+                      "in_stock": false
+                    },
+                    "m4": {
+                      "id": "m4",
+                      "label": "Mol 4\nOCc1ccccc1",
+                      "x": 560,
+                      "y": 40,
+                      "in_stock": true
+                    },
+                    "m5": {
+                      "id": "m5",
+                      "label": "Mol 5\nCCOC(=O)CCC(=O)NBr",
+                      "x": 560,
+                      "y": 150,
+                      "in_stock": false
+                    },
+                    "m6": {
+                      "id": "m6",
+                      "label": "Mol 6\nCCO",
+                      "x": 300,
+                      "y": 40,
+                      "in_stock": false
+                    },
+                    "m8": {
+                      "id": "m8",
+                      "label": "Mol 8\nCOC(=O)CCC(=O)NBr",
+                      "x": 300,
+                      "y": 150,
+                      "in_stock": false
+                    },
+                    "m7": {
+                      "id": "m7",
+                      "label": "Mol 7\nCC(=O)O",
+                      "x": 40,
+                      "y": 40,
+                      "in_stock": true
+                    },
+                    "m9": {
+                      "id": "m9",
+                      "label": "Mol 9\nCOC(=O)C=CC(=O)NBr",
+                      "x": 40,
+                      "y": 150,
+                      "in_stock": false
+                    }
+                  },
+                  "edges": [
+                    {
+                      "source_id": "m7",
+                      "target_id": "m6",
+                      "label": "AiZynth step"
+                    },
+                    {
+                      "source_id": "m9",
+                      "target_id": "m8",
+                      "label": "AiZynth step"
+                    },
+                    {
+                      "source_id": "m6",
+                      "target_id": "m5",
+                      "label": "AiZynth step"
+                    },
+                    {
+                      "source_id": "m8",
+                      "target_id": "m5",
+                      "label": "AiZynth step"
+                    },
+                    {
+                      "source_id": "m4",
+                      "target_id": "m3",
+                      "label": "AiZynth step"
+                    },
+                    {
+                      "source_id": "m5",
+                      "target_id": "m3",
+                      "label": "AiZynth step"
+                    },
+                    {
+                      "source_id": "m3",
+                      "target_id": "m2",
+                      "label": "AiZynth step"
+                    },
+                    {
+                      "source_id": "m2",
+                      "target_id": "m1",
+                      "label": "AiZynth step"
+                    }
+                  ]
+                },
+                "metadata": {
+                  "raw_score": null
+                }
+              }
+            ],
+            "route_scores": {
+              "aizynth-route-1": {
+                "route_id": "aizynth-route-1",
+                "route_score": 0.418,
+                "model_score": 0.004,
+                "stock_score": 1,
+                "step_score": 0.333,
+                "explanation": "model=0.00, stock=1.00, steps=0.33; V1 score uses model confidence, purchasable precursors, and route length."
+              },
+              "aizynth-route-2": {
+                "route_id": "aizynth-route-2",
+                "route_score": 0.293,
+                "model_score": 0.043,
+                "stock_score": 0.667,
+                "step_score": 0.2,
+                "explanation": "model=0.04, stock=0.67, steps=0.20; V1 score uses model confidence, purchasable precursors, and route length."
+              },
+              "aizynth-route-3": {
+                "route_id": "aizynth-route-3",
+                "route_score": 0.283,
+                "model_score": 0.036,
+                "stock_score": 0.667,
+                "step_score": 0.167,
+                "explanation": "model=0.04, stock=0.67, steps=0.17; V1 score uses model confidence, purchasable precursors, and route length."
+              }
+            },
+            "feasibility": {
+              "aizynth-route-1": {
+                "route_id": "aizynth-route-1",
+                "heuristic_overall_yield_percent": 19.5,
+                "heuristic_feasibility_score": 0.457,
+                "estimated_overall_yield_percent": 19.5,
+                "route_feasibility_score": 0.457,
+                "method": "heuristic_route_feasibility",
+                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "risk_flags": [
+                  "s1: 反应类型置信度低",
+                  "s2: 反应类型置信度低",
+                  "s3: 反应类型置信度低"
+                ],
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+              },
+              "aizynth-route-2": {
+                "route_id": "aizynth-route-2",
+                "heuristic_overall_yield_percent": 6.7,
+                "heuristic_feasibility_score": 0.267,
+                "estimated_overall_yield_percent": 6.7,
+                "route_feasibility_score": 0.267,
+                "method": "heuristic_route_feasibility",
+                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "risk_flags": [
+                  "s1: 反应类型置信度低",
+                  "s2: 反应类型置信度低",
+                  "s3: 反应类型置信度低",
+                  "s4: 反应类型置信度低",
+                  "s5: 反应类型置信度低"
+                ],
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+              },
+              "aizynth-route-3": {
+                "route_id": "aizynth-route-3",
+                "heuristic_overall_yield_percent": 3.8,
+                "heuristic_feasibility_score": 0.246,
+                "estimated_overall_yield_percent": 3.8,
+                "route_feasibility_score": 0.246,
+                "method": "heuristic_route_feasibility",
+                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "risk_flags": [
+                  "s1: 反应类型置信度低",
+                  "s2: 反应类型置信度低",
+                  "s3: 反应类型置信度低",
+                  "s4: 反应类型置信度低",
+                  "s5: 反应类型置信度低",
+                  "s6: 反应类型置信度低"
+                ],
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+              }
+            },
+            "engine": "aizynthfinder"
+          }
+        },
+        "molecule:mol-29ff5925-9f7e-489a-8686-d7587d296433:xtb-geometry-energy": {
+          "task_id": "xtb-geometry-energy",
+          "task_label": "计算几何优化与能量（xTB）",
+          "object_id": "mol-29ff5925-9f7e-489a-8686-d7587d296433",
+          "object_kind": "molecule",
+          "object_label": "Brc1ccccc1",
+          "engine": "xTB",
+          "status": "succeeded",
+          "updated_at": "2026-06-20T12:15:46.473Z",
+          "payload": {
+            "available": true,
+            "status": "available",
+            "source": "xTB CLI via WSL",
+            "work_dir": "/tmp/codex/orgsynflow/xtb_jobs/20260620_201538",
+            "stdout": "      -----------------------------------------------------------      \n     |                   =====================                   |     \n     |                           x T B                           |     \n     |                   =====================                   |     \n     |                         S. Grimme                         |     \n     |          Mulliken Center for Theoretical Chemistry        |     \n     |                    University of Bonn                     |     \n      -----------------------------------------------------------      \n\n   * xtb version 6.7.1 (edcfbbe) compiled by 'conda@5dfe00f5fb80' on 2026-06-10\n\n   xtb is free software: you can redistribute it and/or modify it under\n   the terms of the GNU Lesser General Public License as published by\n   the Free Software Foundation, either version 3 of the License, or\n   (at your option) any later version.\n   \n   xtb is distributed in the hope that it will be useful,\n   but WITHOUT ANY WARRANTY; without even the implied warranty of\n   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n   GNU Lesser General Public License for more details.\n   \n   Cite this work as:\n   * C. Bannwarth, E. Caldeweyher, S. Ehlert, A. Hansen, P. Pracht,\n     J. Seibert, S. Spicher, S. Grimme, WIREs Comput. Mol. Sci., 2020, 11,\n     e01493. DOI: 10.1002/wcms.1493\n   \n   for GFN2-xTB:\n   * C. Bannwarth, S. Ehlert and S. Grimme., J. Chem. Theory Comput., 2019,\n     15, 1652-1671. DOI: 10.1021/acs.jctc.8b01176\n   for GFN1-xTB:\n   * S. Grimme, C. Bannwarth, P. Shushkov, J. Chem. Theory Comput., 2017,\n     13, 1989-2009. DOI: 10.1021/acs.jctc.7b00118\n   for GFN0-xTB:\n   * P. Pracht, E. Caldeweyher, S. Ehlert, S. Grimme, ChemRxiv, 2019, preprint.\n     DOI: 10.26434/chemrxiv.8326202.v1\n   for GFN-FF:\n   * S. Spicher and S. Grimme, Angew. Chem. Int. Ed., 2020, 59, 15665-15673.\n     DOI: 10.1002/anie.202004239\n   \n   for ALPB and GBSA implicit solvation:\n   * S. Ehlert, M. Stahn, S. Spicher, S. Grimme, J. Chem. Theory Comput.,\n     2021, 17, 4250-4261. DOI: 10.1021/acs.jctc.1c00471\n   \n   for ddCOSMO and CPCM-X implicit solvation:\n   * M. Stahn, S. Ehlert, S. Grimme, J. Phys. Chem. A,\n     2023, XX, XXXX-XXXX. DOI: 10.1021/acs.jpca.3c04382\n   \n   for DFT-D4:\n   * E. Caldeweyher, C. Bannwarth and S. Grimme, J. Chem. Phys., 2017,\n     147, 034112. DOI: 10.1063/1.4993215\n   * E. Caldeweyher, S. Ehlert, A. Hansen, H. Neugebauer, S. Spicher,\n     C. Bannwarth and S. Grimme, J. Chem. Phys., 2019, 150, 154122.\n     DOI: 10.1063/1.5090222\n   * E. Caldeweyher, J.-M. Mewes, S. Ehlert and S. Grimme, Phys. Chem. Chem. Phys.\n     2020, 22, 8499-8512. DOI: 10.1039/D0CP00502A\n   \n   for sTDA-xTB:\n   * S. Grimme and C. Bannwarth, J. Chem. Phys., 2016, 145, 054103.\n     DOI: 10.1063/1.4959605\n   \n   in the mass-spec context:\n   * V. Asgeirsson, C. Bauer and S. Grimme, Chem. Sci., 2017, 8, 4879.\n     DOI: 10.1039/c7sc00601b\n   * J. Koopman and S. Grimme, ACS Omega 2019, 4, 12, 15120-15133.\n     DOI: 10.1021/acsomega.9b02011\n   \n   for metadynamics refer to:\n   * S. Grimme, J. Chem. Theory Comput., 2019, 155, 2847-2862\n     DOI: 10.1021/acs.jctc.9b00143\n   \n   for SPH calculations refer to:\n   * S. Spicher and S. Grimme, J. Chem. Theory Comput., 2021, 17, 1701-1714\n     DOI: 10.1021/acs.jctc.0c01306\n   \n   for ONIOM refer to:\n   * C. Plett, A. Katbashev, S. Ehlert, S. Grimme, M. Bursch,\n     Phys. Chem. Chem. Phys., 2023, 25, 17860-17868. DOI: 10.1039/D3CP02178E\n   \n   for DIPRO refer to:\n   * J. Kohn, N. Gildemeister, S. Grimme, D. Fazzi, A. Hansen,\n     J. Chem. Phys., 2023, just accepted.\n   \n   for PTB refer to:\n   * S. Grimme, M. Mueller, A. Hansen, J. Chem. Phys., 2023, 158, 124111.\n     DOI: 10.1063/5.0137838\n   \n   with help from (in alphabetical order)\n   P. Atkinson, C. Bannwarth, F. Bohle, G. Brandenburg, E. Caldeweyher\n   M. Checinski, S. Dohm, S. Ehlert, S. Ehrlich, I. Gerasimov, C. Hölzer\n   A. Katbashev, J. Kohn, J. Koopman, C. Lavigne, S. Lehtola, F. März, M. Müller,\n   F. Musil, H. Neugebauer, J. Pisarek, C. Plett, P. Pracht, F. Pultar,\n   J. Seibert, P. Shushkov, S. Spicher, M. Stahn, M. Steiner, T. Strunk,\n   J. Stückrath, T. Rose, and J. Unsleber\n   \n * started run on 2026/06/20 at 20:15:58.463     \n   ID    Z sym.   atoms\n    1   35 Br     1\n    2    6 C      2-7\n    3    1 H      8-12\n\n           -------------------------------------------------\n          |                Calculation Setup                |\n           -------------------------------------------------\n\n          program call               : /home/meta/.local/opt/miniforge3/envs/orgsynflow-chem/bin/xtb input.xyz\n          coordinate file            : input.xyz\n          omp threads                :                    32\n\n\n           -------------------------------------------------\n          |                 G F N 2 - x T B                 |\n           -------------------------------------------------\n\n        Reference                      10.1021/acs.jctc.8b01176\n      * Hamiltonian:\n        H0-scaling (s, p, d)           1.850000    2.230000    2.230000\n        zeta-weighting                 0.500000\n      * Dispersion:\n        s8                             2.700000\n        a1                             0.520000\n        a2                             5.000000\n        s9                             5.000000\n      * Repulsion:\n        kExp                           1.500000    1.000000\n        rExp                           1.000000\n      * Coulomb:\n        alpha                          2.000000\n        third order                    shell-resolved\n        anisotropic                    true\n        a3                             3.000000\n        a5                             4.000000\n        cn-shift                       1.200000\n        cn-exp                         4.000000\n        max-rad                        5.000000\n\n\n          ...................................................\n          :                      SETUP                      :\n          :.................................................:\n          :  # basis functions                  39          :\n          :  # atomic orbitals                  38          :\n          :  # shells                           20          :\n          :  # electrons                        36          :\n          :  max. iterations                   250          :\n          :  Hamiltonian                  GFN2-xTB          :\n          :  restarted?                      false          :\n          :  GBSA solvation                  false          :\n          :  PC potential                    false          :\n          :  electronic temp.          300.0000000     K    :\n          :  accuracy                    1.0000000          :\n          :  -> integral cutoff          0.2500000E+02      :\n          :  -> integral neglect         0.1000000E-07      :\n          :  -> SCF convergence          0.1000000E-05 Eh   :\n          :  -> wf. convergence          0.1000000E-03 e    :\n          :  Broyden damping             0.4000000          :\n          :  net charge                          0          :\n          :  unpaired electrons                  0          :\n          ...................................................\n\n iter      E             dE          RMSdq      gap      omega  full diag\n   1    -19.7215757 -0.197216E+02  0.582E+00    4.41       0.0  T\n   2    -19.7398393 -0.182636E-01  0.375E+00    3.97       1.0  T\n   3    -19.7243043  0.155351E-01  0.163E+00    3.99       1.0  T\n   4    -19.7443171 -0.200129E-01  0.539E-01    4.03       1.0  T\n   5    -19.7444379 -0.120736E-03  0.367E-01    4.02       1.0  T\n   6    -19.7446985 -0.260583E-03  0.177E-01    4.02       1.0  T\n   7    -19.7447687 -0.702370E-04  0.141E-01    4.01       1.0  T\n   8    -19.7448138 -0.451411E-04  0.338E-02    4.03       1.0  T\n   9    -19.7448188 -0.496622E-05  0.172E-02    4.03       1.7  T\n  10    -19.7448200 -0.120392E-05  0.531E-03    4.02       5.4  T\n  11    -19.7448200 -0.207668E-07  0.181E-03    4.02      15.9  T\n  12    -19.7448200 -0.283124E-08  0.111E-04    4.02     260.1  T\n  13    -19.7448200 -0.659739E-11  0.238E-05    4.02    1212.9  T\n\n   *** convergence criteria satisfied after 13 iterations ***\n\n         #    Occupation            Energy/Eh            Energy/eV\n      -------------------------------------------------------------\n         1        2.0000           -0.8361713             -22.7534\n       ...           ...                  ...                  ...\n        12        2.0000           -0.4965035             -13.5105\n        13        2.0000           -0.4485066             -12.2045\n        14        2.0000           -0.4474323             -12.1753\n        15        2.0000           -0.4436102             -12.0712\n        16        2.0000           -0.4248090             -11.5596\n        17        2.0000           -0.4102319             -11.1630\n        18        2.0000           -0.3997762             -10.8785 (HOMO)\n        19                         -0.2518789              -6.8540 (LUMO)\n        20                         -0.2494303              -6.7873\n        21                         -0.2058207              -5.6007\n        22                         -0.1279933              -3.4829\n        23                          0.0343932               0.9359\n       ...                                ...                  ...\n        38                          0.6086283              16.5616\n      -------------------------------------------------------------\n                  HL-Gap            0.1478973 Eh            4.0245 eV\n             Fermi-level           -0.3258276 Eh           -8.8662 eV\n\n SCC (total)                   0 d,  0 h,  0 min,  6.991 sec\n SCC setup                      ...        0 min,  0.021 sec (  0.302%)\n Dispersion                     ...        0 min,  0.087 sec (  1.244%)\n classical contributions        ...        0 min,  0.014 sec (  0.203%)\n integral evaluation            ...        0 min,  0.048 sec (  0.685%)\n iterations                     ...        0 min,  6.512 sec ( 93.143%)\n molecular gradient             ...        0 min,  0.309 sec (  4.419%)\n printout                       ...        0 min,  0.000 sec (  0.003%)\n\n         :::::::::::::::::::::::::::::::::::::::::::::::::::::\n         ::                     SUMMARY                     ::\n         :::::::::::::::::::::::::::::::::::::::::::::::::::::\n         :: total energy             -19.459741636162 Eh    ::\n         :: gradient norm              0.032827907817 Eh/a0 ::\n         :: HOMO-LUMO gap              4.024489029149 eV    ::\n         ::.................................................::\n         :: SCC energy               -19.744808476387 Eh    ::\n         :: -> isotropic ES            0.005058648482 Eh    ::\n         :: -> anisotropic ES          0.000562356793 Eh    ::\n         :: -> anisotropic XC          0.010657885804 Eh    ::\n         :: -> dispersion             -0.010038895110 Eh    ::\n         :: repulsion energy           0.285066840225 Eh    ::\n         :: add. restraining           0.000000000000 Eh    ::\n         :: total charge               0.000000000000 e     ::\n         :::::::::::::::::::::::::::::::::::::::::::::::::::::\n\n           -------------------------------------------------\n          |                Property Printout                |\n           -------------------------------------------------\n\n    * Orbital Energies and Occupations\n\n         #    Occupation            Energy/Eh            Energy/eV\n      -------------------------------------------------------------\n         1        2.0000           -0.8361713             -22.7534\n       ...           ...                  ...                  ...\n         6        2.0000           -0.5867197             -15.9655\n         7        2.0000           -0.5472303             -14.8909\n         8        2.0000           -0.5170527             -14.0697\n         9        2.0000           -0.5146286             -14.0038\n        10        2.0000           -0.5012001             -13.6383\n        11        2.0000           -0.4977875             -13.5455\n        12        2.0000           -0.4965035             -13.5105\n        13        2.0000           -0.4485066             -12.2045\n        14        2.0000           -0.4474323             -12.1753\n        15        2.0000           -0.4436102             -12.0712\n        16        2.0000           -0.4248090             -11.5596\n        17        2.0000           -0.4102319             -11.1630\n        18        2.0000           -0.3997762             -10.8785 (HOMO)\n        19                         -0.2518789              -6.8540 (LUMO)\n        20                         -0.2494303              -6.7873\n        21                         -0.2058207              -5.6007\n        22                         -0.1279933              -3.4829\n        23                          0.0343932               0.9359\n        24                          0.0400846               1.0908\n        25                          0.0420724               1.1448\n        26                          0.0795514               2.1647\n        27                          0.1040911               2.8325\n        28                          0.1210588               3.2942\n        29                          0.1515764               4.1246\n       ...                                ...                  ...\n        38                          0.6086283              16.5616\n      -------------------------------------------------------------\n                  HL-Gap            0.1478973 Eh            4.0245 eV\n             Fermi-level           -0.3258276 Eh           -8.8662 eV\n\n     #   Z          covCN         q      C6AA      α(0)\n     1  35 Br       1.038    -0.169   189.717    22.208\n     2   6 C        2.901     0.083    26.140     8.383\n     3   6 C        2.971    -0.034    28.839     8.809\n     4   6 C        2.910    -0.027    28.685     8.782\n     5   6 C        2.910    -0.030    28.742     8.791\n     6   6 C        2.910    -0.027    28.685     8.782\n     7   6 C        2.971    -0.034    28.839     8.809\n     8   1 H        0.925     0.052     2.290     2.366\n     9   1 H        0.925     0.045     2.379     2.412\n    10   1 H        0.925     0.042     2.420     2.433\n    11   1 H        0.925     0.045     2.379     2.412\n    12   1 H        0.925     0.052     2.290     2.366\n\n Mol. C6AA /au·bohr⁶  :       2846.614199\n Mol. C8AA /au·bohr⁸  :      94745.531833\n Mol. α(0) /au        :         86.553286\n\n\nWiberg/Mayer (AO) data.\nlargest (>0.10) Wiberg bond orders for each atom\n\n ---------------------------------------------------------------------------\n     #   Z sym  total        # sym  WBO       # sym  WBO       # sym  WBO\n ---------------------------------------------------------------------------\n     1  35 Br   1.120 --     2 C    0.985\n     2   6 C    3.936 --     7 C    1.409     3 C    1.409     1 Br   0.985\n                             5 C    0.103\n     3   6 C    3.989 --     4 C    1.439     2 C    1.409     8 H    0.969\n                             6 C    0.111\n     4   6 C    3.991 --     3 C    1.439     5 C    1.437     9 H    0.970\n                             7 C    0.111\n     5   6 C    3.991 --     6 C    1.437     4 C    1.437    10 H    0.971\n                             2 C    0.103\n     6   6 C    3.991 --     7 C    1.439     5 C    1.437    11 H    0.970\n                             3 C    0.111\n     7   6 C    3.989 --     6 C    1.439     2 C    1.409    12 H    0.969\n                             4 C    0.111\n     8   1 H    0.997 --     3 C    0.969\n     9   1 H    0.998 --     4 C    0.970\n    10   1 H    0.997 --     5 C    0.971\n    11   1 H    0.998 --     6 C    0.970\n    12   1 H    0.997 --     7 C    0.969\n ---------------------------------------------------------------------------\n\nTopologies differ in total number of bonds\nWriting topology from bond orders to xtbtopo.mol\n\nmolecular dipole:\n                 x           y           z       tot (Debye)\n q only:       -0.938       0.065       0.024\n   full:       -1.355       0.094       0.034       3.453\nmolecular quadrupole (traceless):\n                xx          xy          yy          xz          yz          zz\n q only:       -5.451       0.691       4.610       0.135      -0.370       0.841\n  q+dip:       -9.692       1.326       9.712       0.183      -0.941      -0.020\n   full:       -9.936       1.216       7.740       0.272      -0.550       2.196\n\n\n           -------------------------------------------------\n          | TOTAL ENERGY              -19.459741636162 Eh   |\n          | GRADIENT NORM               0.032827907817 Eh/α |\n          | HOMO-LUMO GAP               4.024489029149 eV   |\n           -------------------------------------------------\n\n------------------------------------------------------------------------\n * finished run on 2026/06/20 at 20:16:06.048     \n------------------------------------------------------------------------\n total:\n * wall-time:     0 d,  0 h,  0 min,  7.585 sec\n *  cpu-time:     0 d,  0 h,  1 min, 22.802 sec\n * ratio c/w:    10.916 speedup\n SCF:\n * wall-time:     0 d,  0 h,  0 min,  6.992 sec\n *  cpu-time:     0 d,  0 h,  1 min, 18.800 sec\n * ratio c/w:    11.271 speedup\n\n",
+            "stderr": "normal termination of xtb\nNote: The following floating-point exceptions are signalling: IEEE_DENORMAL\n",
+            "data": {
+              "returncode": 0,
+              "total_energy_hartree": -19.459741636162,
+              "input_xyz": "12\nBrc1ccccc1\nBr     3.232944    -0.223775    -0.082000\nC      1.328276    -0.091939    -0.033688\nC      0.548768    -1.247527     0.096882\nC     -0.846319    -1.150371     0.132210\nC     -1.463350     0.101289     0.037115\nC     -0.685451     1.256395    -0.093359\nC      0.709715     1.160419    -0.128798\nH      1.022037    -2.218186     0.170797\nH     -1.448487    -2.044049     0.233163\nH     -2.542757     0.176003     0.064485\nH     -1.163157     2.224818    -0.166930\nH      1.307783     2.056925    -0.229879\n"
+            },
+            "reason": null
+          }
+        },
+        "molecule:mol-29ff5925-9f7e-489a-8686-d7587d296433:crest-conformers": {
+          "task_id": "crest-conformers",
+          "task_label": "搜索低能构象（CREST）",
+          "object_id": "mol-29ff5925-9f7e-489a-8686-d7587d296433",
+          "object_kind": "molecule",
+          "object_label": "Brc1ccccc1",
+          "engine": "CREST",
+          "status": "running",
+          "updated_at": "2026-06-20T12:15:55.684Z",
+          "payload": null
         }
       }
     }
@@ -10359,6 +12105,1195 @@
       },
       "used_fallback": false,
       "engine": "chemformer"
+    },
+    {
+      "id": "rcs-1781957327385",
+      "target_smiles": "Brc1ccccc1",
+      "status": "Loaded 3 route(s) from AiZynthFinder via WSL.",
+      "created_at": "2026-06-20T12:08:47.385Z",
+      "candidates": [
+        {
+          "id": "aizynth-route-1",
+          "title": "AiZynthFinder Route 1",
+          "target_id": "m1",
+          "source": "aizynthfinder",
+          "depth": 1,
+          "precursor_count": 2,
+          "stock_count": 2,
+          "molecules": [
+            {
+              "id": "m1",
+              "name": "Target",
+              "smiles": "Brc1ccccc1",
+              "in_stock": false
+            },
+            {
+              "id": "m2",
+              "name": "Mol 2",
+              "smiles": "c1ccccc1",
+              "in_stock": true
+            },
+            {
+              "id": "m3",
+              "name": "Mol 3",
+              "smiles": "O=C1CCC(=O)N1Br",
+              "in_stock": true
+            }
+          ],
+          "steps": [
+            {
+              "id": "s1",
+              "product_id": "m1",
+              "precursor_ids": [
+                "m2",
+                "m3"
+              ],
+              "reaction_smiles": "c1ccccc1.O=C1CCC(=O)N1Br>>Brc1ccccc1",
+              "policy_score": 0.041600000113248825,
+              "template": "AiZynth step"
+            }
+          ],
+          "layout": {
+            "nodes": {
+              "m1": {
+                "id": "m1",
+                "label": "Target\nBrc1ccccc1",
+                "x": 300,
+                "y": 40,
+                "in_stock": false
+              },
+              "m2": {
+                "id": "m2",
+                "label": "Mol 2\nc1ccccc1",
+                "x": 40,
+                "y": 40,
+                "in_stock": true
+              },
+              "m3": {
+                "id": "m3",
+                "label": "Mol 3\nO=C1CCC(=O)N1Br",
+                "x": 40,
+                "y": 150,
+                "in_stock": true
+              }
+            },
+            "edges": [
+              {
+                "source_id": "m2",
+                "target_id": "m1",
+                "label": "AiZynth step"
+              },
+              {
+                "source_id": "m3",
+                "target_id": "m1",
+                "label": "AiZynth step"
+              }
+            ]
+          },
+          "metadata": {
+            "raw_score": null
+          }
+        },
+        {
+          "id": "aizynth-route-2",
+          "title": "AiZynthFinder Route 2",
+          "target_id": "m1",
+          "source": "aizynthfinder",
+          "depth": 1,
+          "precursor_count": 1,
+          "stock_count": 1,
+          "molecules": [
+            {
+              "id": "m1",
+              "name": "Target",
+              "smiles": "Brc1ccccc1",
+              "in_stock": false
+            },
+            {
+              "id": "m2",
+              "name": "Mol 2",
+              "smiles": "Brc1ccc(Br)cc1",
+              "in_stock": true
+            }
+          ],
+          "steps": [
+            {
+              "id": "s1",
+              "product_id": "m1",
+              "precursor_ids": [
+                "m2"
+              ],
+              "reaction_smiles": "Brc1ccc(Br)cc1>>Brc1ccccc1",
+              "policy_score": 0.009399999864399433,
+              "template": "AiZynth step"
+            }
+          ],
+          "layout": {
+            "nodes": {
+              "m1": {
+                "id": "m1",
+                "label": "Target\nBrc1ccccc1",
+                "x": 300,
+                "y": 40,
+                "in_stock": false
+              },
+              "m2": {
+                "id": "m2",
+                "label": "Mol 2\nBrc1ccc(Br)cc1",
+                "x": 40,
+                "y": 40,
+                "in_stock": true
+              }
+            },
+            "edges": [
+              {
+                "source_id": "m2",
+                "target_id": "m1",
+                "label": "AiZynth step"
+              }
+            ]
+          },
+          "metadata": {
+            "raw_score": null
+          }
+        },
+        {
+          "id": "aizynth-route-3",
+          "title": "AiZynthFinder Route 3",
+          "target_id": "m1",
+          "source": "aizynthfinder",
+          "depth": 1,
+          "precursor_count": 1,
+          "stock_count": 1,
+          "molecules": [
+            {
+              "id": "m1",
+              "name": "Target",
+              "smiles": "Brc1ccccc1",
+              "in_stock": false
+            },
+            {
+              "id": "m2",
+              "name": "Mol 2",
+              "smiles": "Nc1ccccc1Br",
+              "in_stock": true
+            }
+          ],
+          "steps": [
+            {
+              "id": "s1",
+              "product_id": "m1",
+              "precursor_ids": [
+                "m2"
+              ],
+              "reaction_smiles": "Nc1ccccc1Br>>Brc1ccccc1",
+              "policy_score": 0.07109999656677246,
+              "template": "AiZynth step"
+            }
+          ],
+          "layout": {
+            "nodes": {
+              "m1": {
+                "id": "m1",
+                "label": "Target\nBrc1ccccc1",
+                "x": 300,
+                "y": 40,
+                "in_stock": false
+              },
+              "m2": {
+                "id": "m2",
+                "label": "Mol 2\nNc1ccccc1Br",
+                "x": 40,
+                "y": 40,
+                "in_stock": true
+              }
+            },
+            "edges": [
+              {
+                "source_id": "m2",
+                "target_id": "m1",
+                "label": "AiZynth step"
+              }
+            ]
+          },
+          "metadata": {
+            "raw_score": null
+          }
+        }
+      ],
+      "route_scores": {
+        "aizynth-route-1": {
+          "route_id": "aizynth-route-1",
+          "route_score": 0.569,
+          "model_score": 0.042,
+          "stock_score": 1,
+          "step_score": 1,
+          "explanation": "model=0.04, stock=1.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
+        },
+        "aizynth-route-2": {
+          "route_id": "aizynth-route-2",
+          "route_score": 0.554,
+          "model_score": 0.009,
+          "stock_score": 1,
+          "step_score": 1,
+          "explanation": "model=0.01, stock=1.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
+        },
+        "aizynth-route-3": {
+          "route_id": "aizynth-route-3",
+          "route_score": 0.582,
+          "model_score": 0.071,
+          "stock_score": 1,
+          "step_score": 1,
+          "explanation": "model=0.07, stock=1.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
+        }
+      },
+      "feasibility": {
+        "aizynth-route-1": {
+          "route_id": "aizynth-route-1",
+          "heuristic_overall_yield_percent": 60,
+          "heuristic_feasibility_score": 0.78,
+          "estimated_overall_yield_percent": 60,
+          "route_feasibility_score": 0.78,
+          "method": "heuristic_route_feasibility",
+          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "risk_flags": [
+            "s1: 反应类型置信度低"
+          ],
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+        },
+        "aizynth-route-2": {
+          "route_id": "aizynth-route-2",
+          "heuristic_overall_yield_percent": 57,
+          "heuristic_feasibility_score": 0.763,
+          "estimated_overall_yield_percent": 57,
+          "route_feasibility_score": 0.763,
+          "method": "heuristic_route_feasibility",
+          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "risk_flags": [
+            "s1: 反应类型置信度低"
+          ],
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+        },
+        "aizynth-route-3": {
+          "route_id": "aizynth-route-3",
+          "heuristic_overall_yield_percent": 57,
+          "heuristic_feasibility_score": 0.763,
+          "estimated_overall_yield_percent": 57,
+          "route_feasibility_score": 0.763,
+          "method": "heuristic_route_feasibility",
+          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "risk_flags": [
+            "s1: 反应类型置信度低"
+          ],
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+        }
+      },
+      "used_fallback": false,
+      "engine": "aizynthfinder"
+    },
+    {
+      "id": "rcs-1781957694373",
+      "target_smiles": "O=C1CCC(=O)N1Br",
+      "status": "Chemformer 已返回 2 个单步逆合成候选。",
+      "created_at": "2026-06-20T12:14:54.373Z",
+      "candidates": [
+        {
+          "id": "chemformer-route-1",
+          "title": "Chemformer 单步候选 #10",
+          "target_id": "chemformer-1-target",
+          "source": "chemformer",
+          "depth": 1,
+          "precursor_count": 2,
+          "stock_count": 0,
+          "molecules": [
+            {
+              "id": "chemformer-1-target",
+              "name": "目标产物",
+              "smiles": "O=C1CCC(=O)N1Br",
+              "in_stock": false
+            },
+            {
+              "id": "chemformer-1-precursor-1",
+              "name": "反应物 1",
+              "smiles": "O=C1CCC(=O)N1",
+              "in_stock": false
+            },
+            {
+              "id": "chemformer-1-precursor-2",
+              "name": "反应物 2",
+              "smiles": "C=O",
+              "in_stock": false
+            }
+          ],
+          "steps": [
+            {
+              "id": "chemformer-step-1",
+              "product_id": "chemformer-1-target",
+              "precursor_ids": [
+                "chemformer-1-precursor-1",
+                "chemformer-1-precursor-2"
+              ],
+              "reaction_smiles": "O=C1CCC(=O)N1.C=O>>O=C1CCC(=O)N1Br",
+              "policy_score": null,
+              "template": "Chemformer 单步逆合成"
+            }
+          ],
+          "layout": {
+            "nodes": {
+              "chemformer-1-target": {
+                "id": "chemformer-1-target",
+                "label": "目标产物\nO=C1CCC(=O)N1Br",
+                "x": 300,
+                "y": 40,
+                "in_stock": false
+              },
+              "chemformer-1-precursor-1": {
+                "id": "chemformer-1-precursor-1",
+                "label": "反应物 1\nO=C1CCC(=O)N1",
+                "x": 40,
+                "y": 40,
+                "in_stock": false
+              },
+              "chemformer-1-precursor-2": {
+                "id": "chemformer-1-precursor-2",
+                "label": "反应物 2\nC=O",
+                "x": 40,
+                "y": 150,
+                "in_stock": false
+              }
+            },
+            "edges": [
+              {
+                "source_id": "chemformer-1-precursor-1",
+                "target_id": "chemformer-1-target",
+                "label": "Chemformer 单步逆合成"
+              },
+              {
+                "source_id": "chemformer-1-precursor-2",
+                "target_id": "chemformer-1-target",
+                "label": "Chemformer 单步逆合成"
+              }
+            ]
+          },
+          "metadata": {
+            "rank": 10,
+            "log_likelihood": -3.808612823486328,
+            "prediction_type": "single_step"
+          }
+        },
+        {
+          "id": "chemformer-route-2",
+          "title": "Chemformer 单步候选 #11",
+          "target_id": "chemformer-2-target",
+          "source": "chemformer",
+          "depth": 1,
+          "precursor_count": 2,
+          "stock_count": 0,
+          "molecules": [
+            {
+              "id": "chemformer-2-target",
+              "name": "目标产物",
+              "smiles": "O=C1CCC(=O)N1Br",
+              "in_stock": false
+            },
+            {
+              "id": "chemformer-2-precursor-1",
+              "name": "反应物 1",
+              "smiles": "O=C1CCC(=O)N1",
+              "in_stock": false
+            },
+            {
+              "id": "chemformer-2-precursor-2",
+              "name": "反应物 2",
+              "smiles": "O=C(O)CBr",
+              "in_stock": false
+            }
+          ],
+          "steps": [
+            {
+              "id": "chemformer-step-2",
+              "product_id": "chemformer-2-target",
+              "precursor_ids": [
+                "chemformer-2-precursor-1",
+                "chemformer-2-precursor-2"
+              ],
+              "reaction_smiles": "O=C1CCC(=O)N1.O=C(O)CBr>>O=C1CCC(=O)N1Br",
+              "policy_score": null,
+              "template": "Chemformer 单步逆合成"
+            }
+          ],
+          "layout": {
+            "nodes": {
+              "chemformer-2-target": {
+                "id": "chemformer-2-target",
+                "label": "目标产物\nO=C1CCC(=O)N1Br",
+                "x": 300,
+                "y": 40,
+                "in_stock": false
+              },
+              "chemformer-2-precursor-1": {
+                "id": "chemformer-2-precursor-1",
+                "label": "反应物 1\nO=C1CCC(=O)N1",
+                "x": 40,
+                "y": 40,
+                "in_stock": false
+              },
+              "chemformer-2-precursor-2": {
+                "id": "chemformer-2-precursor-2",
+                "label": "反应物 2\nO=C(O)CBr",
+                "x": 40,
+                "y": 150,
+                "in_stock": false
+              }
+            },
+            "edges": [
+              {
+                "source_id": "chemformer-2-precursor-1",
+                "target_id": "chemformer-2-target",
+                "label": "Chemformer 单步逆合成"
+              },
+              {
+                "source_id": "chemformer-2-precursor-2",
+                "target_id": "chemformer-2-target",
+                "label": "Chemformer 单步逆合成"
+              }
+            ]
+          },
+          "metadata": {
+            "rank": 11,
+            "log_likelihood": -4.079602241516113,
+            "prediction_type": "single_step"
+          }
+        }
+      ],
+      "route_scores": {
+        "chemformer-route-1": {
+          "route_id": "chemformer-route-1",
+          "route_score": 0.448,
+          "model_score": 0.55,
+          "stock_score": 0,
+          "step_score": 1,
+          "explanation": "model=0.55, stock=0.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
+        },
+        "chemformer-route-2": {
+          "route_id": "chemformer-route-2",
+          "route_score": 0.448,
+          "model_score": 0.55,
+          "stock_score": 0,
+          "step_score": 1,
+          "explanation": "model=0.55, stock=0.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
+        }
+      },
+      "feasibility": {
+        "chemformer-route-1": {
+          "route_id": "chemformer-route-1",
+          "heuristic_overall_yield_percent": 60,
+          "heuristic_feasibility_score": 0.48,
+          "estimated_overall_yield_percent": 60,
+          "route_feasibility_score": 0.48,
+          "method": "heuristic_route_feasibility",
+          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "risk_flags": [
+            "chemformer-step-1: 反应类型置信度低"
+          ],
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+        },
+        "chemformer-route-2": {
+          "route_id": "chemformer-route-2",
+          "heuristic_overall_yield_percent": 60,
+          "heuristic_feasibility_score": 0.48,
+          "estimated_overall_yield_percent": 60,
+          "route_feasibility_score": 0.48,
+          "method": "heuristic_route_feasibility",
+          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "risk_flags": [
+            "chemformer-step-2: 反应类型置信度低"
+          ],
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+        }
+      },
+      "used_fallback": false,
+      "engine": "chemformer"
+    },
+    {
+      "id": "rcs-1781957848460",
+      "target_smiles": "O=C1CCC(=O)N1Br",
+      "status": "Loaded 3 route(s) from AiZynthFinder via WSL.",
+      "created_at": "2026-06-20T12:17:28.460Z",
+      "candidates": [
+        {
+          "id": "aizynth-route-1",
+          "title": "AiZynthFinder Route 1",
+          "target_id": "m1",
+          "source": "aizynthfinder",
+          "depth": 3,
+          "precursor_count": 2,
+          "stock_count": 2,
+          "molecules": [
+            {
+              "id": "m1",
+              "name": "Target",
+              "smiles": "O=C1CCC(=O)N1Br",
+              "in_stock": false
+            },
+            {
+              "id": "m2",
+              "name": "Mol 2",
+              "smiles": "O=C1C=CC(=O)N1Br",
+              "in_stock": false
+            },
+            {
+              "id": "m3",
+              "name": "Mol 3",
+              "smiles": "O=C(O)C=CC(=O)NBr",
+              "in_stock": false
+            },
+            {
+              "id": "m4",
+              "name": "Mol 4",
+              "smiles": "O=CC(=O)O",
+              "in_stock": true
+            },
+            {
+              "id": "m5",
+              "name": "Mol 5",
+              "smiles": "CC(=O)NBr",
+              "in_stock": true
+            }
+          ],
+          "steps": [
+            {
+              "id": "s1",
+              "product_id": "m3",
+              "precursor_ids": [
+                "m4",
+                "m5"
+              ],
+              "reaction_smiles": "O=CC(=O)O.CC(=O)NBr>>O=C(O)C=CC(=O)NBr",
+              "policy_score": 0.004600000102072954,
+              "template": "AiZynth step"
+            },
+            {
+              "id": "s2",
+              "product_id": "m2",
+              "precursor_ids": [
+                "m3"
+              ],
+              "reaction_smiles": "O=C(O)C=CC(=O)NBr>>O=C1C=CC(=O)N1Br",
+              "policy_score": 0.004399999976158142,
+              "template": "AiZynth step"
+            },
+            {
+              "id": "s3",
+              "product_id": "m1",
+              "precursor_ids": [
+                "m2"
+              ],
+              "reaction_smiles": "O=C1C=CC(=O)N1Br>>O=C1CCC(=O)N1Br",
+              "policy_score": 0.00279999990016222,
+              "template": "AiZynth step"
+            }
+          ],
+          "layout": {
+            "nodes": {
+              "m1": {
+                "id": "m1",
+                "label": "Target\nO=C1CCC(=O)N1Br",
+                "x": 820,
+                "y": 40,
+                "in_stock": false
+              },
+              "m2": {
+                "id": "m2",
+                "label": "Mol 2\nO=C1C=CC(=O)N1Br",
+                "x": 560,
+                "y": 40,
+                "in_stock": false
+              },
+              "m3": {
+                "id": "m3",
+                "label": "Mol 3\nO=C(O)C=CC(=O)NBr",
+                "x": 300,
+                "y": 40,
+                "in_stock": false
+              },
+              "m4": {
+                "id": "m4",
+                "label": "Mol 4\nO=CC(=O)O",
+                "x": 40,
+                "y": 40,
+                "in_stock": true
+              },
+              "m5": {
+                "id": "m5",
+                "label": "Mol 5\nCC(=O)NBr",
+                "x": 40,
+                "y": 150,
+                "in_stock": true
+              }
+            },
+            "edges": [
+              {
+                "source_id": "m4",
+                "target_id": "m3",
+                "label": "AiZynth step"
+              },
+              {
+                "source_id": "m5",
+                "target_id": "m3",
+                "label": "AiZynth step"
+              },
+              {
+                "source_id": "m3",
+                "target_id": "m2",
+                "label": "AiZynth step"
+              },
+              {
+                "source_id": "m2",
+                "target_id": "m1",
+                "label": "AiZynth step"
+              }
+            ]
+          },
+          "metadata": {
+            "raw_score": null
+          }
+        },
+        {
+          "id": "aizynth-route-2",
+          "title": "AiZynthFinder Route 2",
+          "target_id": "m1",
+          "source": "aizynthfinder",
+          "depth": 5,
+          "precursor_count": 3,
+          "stock_count": 2,
+          "molecules": [
+            {
+              "id": "m1",
+              "name": "Target",
+              "smiles": "O=C1CCC(=O)N1Br",
+              "in_stock": false
+            },
+            {
+              "id": "m2",
+              "name": "Mol 2",
+              "smiles": "O=C(O)CCC(=O)NBr",
+              "in_stock": false
+            },
+            {
+              "id": "m3",
+              "name": "Mol 3",
+              "smiles": "O=C(CCC(=O)OCc1ccccc1)NBr",
+              "in_stock": false
+            },
+            {
+              "id": "m4",
+              "name": "Mol 4",
+              "smiles": "OCc1ccccc1",
+              "in_stock": true
+            },
+            {
+              "id": "m5",
+              "name": "Mol 5",
+              "smiles": "CCOC(=O)CCC(=O)NBr",
+              "in_stock": false
+            },
+            {
+              "id": "m6",
+              "name": "Mol 6",
+              "smiles": "CCO",
+              "in_stock": false
+            },
+            {
+              "id": "m7",
+              "name": "Mol 7",
+              "smiles": "CC(=O)O",
+              "in_stock": true
+            },
+            {
+              "id": "m8",
+              "name": "Mol 8",
+              "smiles": "COC(=O)CCC(=O)NBr",
+              "in_stock": false
+            }
+          ],
+          "steps": [
+            {
+              "id": "s1",
+              "product_id": "m6",
+              "precursor_ids": [
+                "m7"
+              ],
+              "reaction_smiles": "CC(=O)O>>CCO",
+              "policy_score": 0.09149999916553497,
+              "template": "AiZynth step"
+            },
+            {
+              "id": "s2",
+              "product_id": "m5",
+              "precursor_ids": [
+                "m6",
+                "m8"
+              ],
+              "reaction_smiles": "CCO.COC(=O)CCC(=O)NBr>>CCOC(=O)CCC(=O)NBr",
+              "policy_score": 0.0015999999595806003,
+              "template": "AiZynth step"
+            },
+            {
+              "id": "s3",
+              "product_id": "m3",
+              "precursor_ids": [
+                "m4",
+                "m5"
+              ],
+              "reaction_smiles": "OCc1ccccc1.CCOC(=O)CCC(=O)NBr>>O=C(CCC(=O)OCc1ccccc1)NBr",
+              "policy_score": 0.00430000014603138,
+              "template": "AiZynth step"
+            },
+            {
+              "id": "s4",
+              "product_id": "m2",
+              "precursor_ids": [
+                "m3"
+              ],
+              "reaction_smiles": "O=C(CCC(=O)OCc1ccccc1)NBr>>O=C(O)CCC(=O)NBr",
+              "policy_score": 0.08150000125169754,
+              "template": "AiZynth step"
+            },
+            {
+              "id": "s5",
+              "product_id": "m1",
+              "precursor_ids": [
+                "m2"
+              ],
+              "reaction_smiles": "O=C(O)CCC(=O)NBr>>O=C1CCC(=O)N1Br",
+              "policy_score": 0.03610000014305115,
+              "template": "AiZynth step"
+            }
+          ],
+          "layout": {
+            "nodes": {
+              "m1": {
+                "id": "m1",
+                "label": "Target\nO=C1CCC(=O)N1Br",
+                "x": 1340,
+                "y": 40,
+                "in_stock": false
+              },
+              "m2": {
+                "id": "m2",
+                "label": "Mol 2\nO=C(O)CCC(=O)NBr",
+                "x": 1080,
+                "y": 40,
+                "in_stock": false
+              },
+              "m3": {
+                "id": "m3",
+                "label": "Mol 3\nO=C(CCC(=O)OCc1ccccc1)NBr",
+                "x": 820,
+                "y": 40,
+                "in_stock": false
+              },
+              "m4": {
+                "id": "m4",
+                "label": "Mol 4\nOCc1ccccc1",
+                "x": 560,
+                "y": 40,
+                "in_stock": true
+              },
+              "m5": {
+                "id": "m5",
+                "label": "Mol 5\nCCOC(=O)CCC(=O)NBr",
+                "x": 560,
+                "y": 150,
+                "in_stock": false
+              },
+              "m6": {
+                "id": "m6",
+                "label": "Mol 6\nCCO",
+                "x": 300,
+                "y": 40,
+                "in_stock": false
+              },
+              "m8": {
+                "id": "m8",
+                "label": "Mol 8\nCOC(=O)CCC(=O)NBr",
+                "x": 300,
+                "y": 150,
+                "in_stock": false
+              },
+              "m7": {
+                "id": "m7",
+                "label": "Mol 7\nCC(=O)O",
+                "x": 40,
+                "y": 40,
+                "in_stock": true
+              }
+            },
+            "edges": [
+              {
+                "source_id": "m7",
+                "target_id": "m6",
+                "label": "AiZynth step"
+              },
+              {
+                "source_id": "m6",
+                "target_id": "m5",
+                "label": "AiZynth step"
+              },
+              {
+                "source_id": "m8",
+                "target_id": "m5",
+                "label": "AiZynth step"
+              },
+              {
+                "source_id": "m4",
+                "target_id": "m3",
+                "label": "AiZynth step"
+              },
+              {
+                "source_id": "m5",
+                "target_id": "m3",
+                "label": "AiZynth step"
+              },
+              {
+                "source_id": "m3",
+                "target_id": "m2",
+                "label": "AiZynth step"
+              },
+              {
+                "source_id": "m2",
+                "target_id": "m1",
+                "label": "AiZynth step"
+              }
+            ]
+          },
+          "metadata": {
+            "raw_score": null
+          }
+        },
+        {
+          "id": "aizynth-route-3",
+          "title": "AiZynthFinder Route 3",
+          "target_id": "m1",
+          "source": "aizynthfinder",
+          "depth": 6,
+          "precursor_count": 3,
+          "stock_count": 2,
+          "molecules": [
+            {
+              "id": "m1",
+              "name": "Target",
+              "smiles": "O=C1CCC(=O)N1Br",
+              "in_stock": false
+            },
+            {
+              "id": "m2",
+              "name": "Mol 2",
+              "smiles": "O=C(O)CCC(=O)NBr",
+              "in_stock": false
+            },
+            {
+              "id": "m3",
+              "name": "Mol 3",
+              "smiles": "O=C(CCC(=O)OCc1ccccc1)NBr",
+              "in_stock": false
+            },
+            {
+              "id": "m4",
+              "name": "Mol 4",
+              "smiles": "OCc1ccccc1",
+              "in_stock": true
+            },
+            {
+              "id": "m5",
+              "name": "Mol 5",
+              "smiles": "CCOC(=O)CCC(=O)NBr",
+              "in_stock": false
+            },
+            {
+              "id": "m6",
+              "name": "Mol 6",
+              "smiles": "CCO",
+              "in_stock": false
+            },
+            {
+              "id": "m7",
+              "name": "Mol 7",
+              "smiles": "CC(=O)O",
+              "in_stock": true
+            },
+            {
+              "id": "m8",
+              "name": "Mol 8",
+              "smiles": "COC(=O)CCC(=O)NBr",
+              "in_stock": false
+            },
+            {
+              "id": "m9",
+              "name": "Mol 9",
+              "smiles": "COC(=O)C=CC(=O)NBr",
+              "in_stock": false
+            }
+          ],
+          "steps": [
+            {
+              "id": "s1",
+              "product_id": "m6",
+              "precursor_ids": [
+                "m7"
+              ],
+              "reaction_smiles": "CC(=O)O>>CCO",
+              "policy_score": 0.09149999916553497,
+              "template": "AiZynth step"
+            },
+            {
+              "id": "s2",
+              "product_id": "m8",
+              "precursor_ids": [
+                "m9"
+              ],
+              "reaction_smiles": "COC(=O)C=CC(=O)NBr>>COC(=O)CCC(=O)NBr",
+              "policy_score": 0.003800000064074993,
+              "template": "AiZynth step"
+            },
+            {
+              "id": "s3",
+              "product_id": "m5",
+              "precursor_ids": [
+                "m6",
+                "m8"
+              ],
+              "reaction_smiles": "CCO.COC(=O)CCC(=O)NBr>>CCOC(=O)CCC(=O)NBr",
+              "policy_score": 0.0015999999595806003,
+              "template": "AiZynth step"
+            },
+            {
+              "id": "s4",
+              "product_id": "m3",
+              "precursor_ids": [
+                "m4",
+                "m5"
+              ],
+              "reaction_smiles": "OCc1ccccc1.CCOC(=O)CCC(=O)NBr>>O=C(CCC(=O)OCc1ccccc1)NBr",
+              "policy_score": 0.00430000014603138,
+              "template": "AiZynth step"
+            },
+            {
+              "id": "s5",
+              "product_id": "m2",
+              "precursor_ids": [
+                "m3"
+              ],
+              "reaction_smiles": "O=C(CCC(=O)OCc1ccccc1)NBr>>O=C(O)CCC(=O)NBr",
+              "policy_score": 0.08150000125169754,
+              "template": "AiZynth step"
+            },
+            {
+              "id": "s6",
+              "product_id": "m1",
+              "precursor_ids": [
+                "m2"
+              ],
+              "reaction_smiles": "O=C(O)CCC(=O)NBr>>O=C1CCC(=O)N1Br",
+              "policy_score": 0.03610000014305115,
+              "template": "AiZynth step"
+            }
+          ],
+          "layout": {
+            "nodes": {
+              "m1": {
+                "id": "m1",
+                "label": "Target\nO=C1CCC(=O)N1Br",
+                "x": 1340,
+                "y": 40,
+                "in_stock": false
+              },
+              "m2": {
+                "id": "m2",
+                "label": "Mol 2\nO=C(O)CCC(=O)NBr",
+                "x": 1080,
+                "y": 40,
+                "in_stock": false
+              },
+              "m3": {
+                "id": "m3",
+                "label": "Mol 3\nO=C(CCC(=O)OCc1ccccc1)NBr",
+                "x": 820,
+                "y": 40,
+                "in_stock": false
+              },
+              "m4": {
+                "id": "m4",
+                "label": "Mol 4\nOCc1ccccc1",
+                "x": 560,
+                "y": 40,
+                "in_stock": true
+              },
+              "m5": {
+                "id": "m5",
+                "label": "Mol 5\nCCOC(=O)CCC(=O)NBr",
+                "x": 560,
+                "y": 150,
+                "in_stock": false
+              },
+              "m6": {
+                "id": "m6",
+                "label": "Mol 6\nCCO",
+                "x": 300,
+                "y": 40,
+                "in_stock": false
+              },
+              "m8": {
+                "id": "m8",
+                "label": "Mol 8\nCOC(=O)CCC(=O)NBr",
+                "x": 300,
+                "y": 150,
+                "in_stock": false
+              },
+              "m7": {
+                "id": "m7",
+                "label": "Mol 7\nCC(=O)O",
+                "x": 40,
+                "y": 40,
+                "in_stock": true
+              },
+              "m9": {
+                "id": "m9",
+                "label": "Mol 9\nCOC(=O)C=CC(=O)NBr",
+                "x": 40,
+                "y": 150,
+                "in_stock": false
+              }
+            },
+            "edges": [
+              {
+                "source_id": "m7",
+                "target_id": "m6",
+                "label": "AiZynth step"
+              },
+              {
+                "source_id": "m9",
+                "target_id": "m8",
+                "label": "AiZynth step"
+              },
+              {
+                "source_id": "m6",
+                "target_id": "m5",
+                "label": "AiZynth step"
+              },
+              {
+                "source_id": "m8",
+                "target_id": "m5",
+                "label": "AiZynth step"
+              },
+              {
+                "source_id": "m4",
+                "target_id": "m3",
+                "label": "AiZynth step"
+              },
+              {
+                "source_id": "m5",
+                "target_id": "m3",
+                "label": "AiZynth step"
+              },
+              {
+                "source_id": "m3",
+                "target_id": "m2",
+                "label": "AiZynth step"
+              },
+              {
+                "source_id": "m2",
+                "target_id": "m1",
+                "label": "AiZynth step"
+              }
+            ]
+          },
+          "metadata": {
+            "raw_score": null
+          }
+        }
+      ],
+      "route_scores": {
+        "aizynth-route-1": {
+          "route_id": "aizynth-route-1",
+          "route_score": 0.418,
+          "model_score": 0.004,
+          "stock_score": 1,
+          "step_score": 0.333,
+          "explanation": "model=0.00, stock=1.00, steps=0.33; V1 score uses model confidence, purchasable precursors, and route length."
+        },
+        "aizynth-route-2": {
+          "route_id": "aizynth-route-2",
+          "route_score": 0.293,
+          "model_score": 0.043,
+          "stock_score": 0.667,
+          "step_score": 0.2,
+          "explanation": "model=0.04, stock=0.67, steps=0.20; V1 score uses model confidence, purchasable precursors, and route length."
+        },
+        "aizynth-route-3": {
+          "route_id": "aizynth-route-3",
+          "route_score": 0.283,
+          "model_score": 0.036,
+          "stock_score": 0.667,
+          "step_score": 0.167,
+          "explanation": "model=0.04, stock=0.67, steps=0.17; V1 score uses model confidence, purchasable precursors, and route length."
+        }
+      },
+      "feasibility": {
+        "aizynth-route-1": {
+          "route_id": "aizynth-route-1",
+          "heuristic_overall_yield_percent": 19.5,
+          "heuristic_feasibility_score": 0.457,
+          "estimated_overall_yield_percent": 19.5,
+          "route_feasibility_score": 0.457,
+          "method": "heuristic_route_feasibility",
+          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "risk_flags": [
+            "s1: 反应类型置信度低",
+            "s2: 反应类型置信度低",
+            "s3: 反应类型置信度低"
+          ],
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+        },
+        "aizynth-route-2": {
+          "route_id": "aizynth-route-2",
+          "heuristic_overall_yield_percent": 6.7,
+          "heuristic_feasibility_score": 0.267,
+          "estimated_overall_yield_percent": 6.7,
+          "route_feasibility_score": 0.267,
+          "method": "heuristic_route_feasibility",
+          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "risk_flags": [
+            "s1: 反应类型置信度低",
+            "s2: 反应类型置信度低",
+            "s3: 反应类型置信度低",
+            "s4: 反应类型置信度低",
+            "s5: 反应类型置信度低"
+          ],
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+        },
+        "aizynth-route-3": {
+          "route_id": "aizynth-route-3",
+          "heuristic_overall_yield_percent": 3.8,
+          "heuristic_feasibility_score": 0.246,
+          "estimated_overall_yield_percent": 3.8,
+          "route_feasibility_score": 0.246,
+          "method": "heuristic_route_feasibility",
+          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "risk_flags": [
+            "s1: 反应类型置信度低",
+            "s2: 反应类型置信度低",
+            "s3: 反应类型置信度低",
+            "s4: 反应类型置信度低",
+            "s5: 反应类型置信度低",
+            "s6: 反应类型置信度低"
+          ],
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+        }
+      },
+      "used_fallback": false,
+      "engine": "aizynthfinder"
     }
   ],
   "jobs": []

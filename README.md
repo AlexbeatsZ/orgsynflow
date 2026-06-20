@@ -69,7 +69,7 @@ http://127.0.0.1:8765
 - `POST /gaussian/input` 会使用 RDKit 从 SMILES 生成 3D 坐标，再生成真正可供 Gaussian 使用的输入文本。
 - `POST /gaussian/run` 会调用本机 `g16/g09`。当前机器已检测到 `C:\Users\Meta\AppData\Local\Programs\g16w\g16.exe`。
 - Gaussian 作业临时文件集中写入 `%LOCALAPPDATA%\Temp\codex\orgsynflow\gaussian_jobs\`。
-- 反应解释、规则估计总收率和路线可行性评分是规则演示层，不是 RXNMapper/DRFP/HTE 真实模型结果。
+- 反应解释、规则估计总收率和路线可行性评分使用规则推断。
 - `POST /reaction/yield` 会保留 `trained_model.available=false` 的真实状态；如果配置了 `DEEPSEEK_API_KEY`，会额外返回 `llm_estimate` 作为临时 LLM 估算，不把它标记为专用产率模型。默认 DeepSeek 模型为 `deepseek-v4-flash`，可用 `DEEPSEEK_MODEL` 覆盖。
 
 示例：

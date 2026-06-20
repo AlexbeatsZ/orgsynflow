@@ -206,7 +206,7 @@ class OrgSynFlowDesktop(tk.Tk):
                     f"规则可行性 {feas['route_feasibility_score']}，规则估计总收率 {feas['estimated_overall_yield_percent']}%"
                 )
         lines.append("")
-        lines.append("说明：反应解释、规则估计总收率和可行性评分是规则演示层，不是 DRFP/HTE 真实产率模型。")
+        lines.append("")
         return "\n".join(lines)
 
     def _format_reactions(self, result: dict[str, object]) -> str:
