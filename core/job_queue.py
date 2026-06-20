@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import threading
 import uuid
-from collections import deque
+from collections import OrderedDict, deque
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -32,6 +32,7 @@ class GaussianJob:
         log_snapshot = _read_log_snapshot(self.work_dir)
         return {
             "job_id": self.job_id,
+            "engine": "Gaussian",
             "workspace_id": self.workspace_id,
             "cell_id": self.cell_id,
             "object_id": self.object_id,
@@ -146,6 +147,9 @@ class GaussianJobQueue:
                     job.status = "failed"
                     job.error = str(exc)
                     job.finished_at = _now()
+            finally:
+                with self._lock:
+                    self._cancel_events.pop(job.job_id, None)
 
 
 def _now() -> str:
@@ -166,13 +170,26 @@ def _read_log_snapshot(work_dir: str | None) -> dict[str, Any]:
     if not candidates:
         return {}
     log_path = candidates[0]
-    text = log_path.read_text(encoding="utf-8", errors="ignore")
-    tail = text[-12000:]
-    return {
+    stat = log_path.stat()
+    cache_key = str(log_path.resolve())
+    cached = _log_snapshot_cache.get(cache_key)
+    if cached and cached[0] == stat.st_mtime_ns and cached[1] == stat.st_size:
+        _log_snapshot_cache.move_to_end(cache_key)
+        return cached[2]
+    with log_path.open("rb") as stream:
+        if stat.st_size > _LOG_SNAPSHOT_PARSE_BYTES:
+            stream.seek(-_LOG_SNAPSHOT_PARSE_BYTES, 2)
+        text = stream.read().decode("utf-8", errors="ignore")
+    snapshot = {
         "log_path": str(log_path),
-        "log_tail": tail,
+        "log_tail": text[-12000:],
         "log_progress": parse_gaussian_log_progress(text),
     }
+    _log_snapshot_cache[cache_key] = (stat.st_mtime_ns, stat.st_size, snapshot)
+    _log_snapshot_cache.move_to_end(cache_key)
+    while len(_log_snapshot_cache) > _LOG_SNAPSHOT_CACHE_LIMIT:
+        _log_snapshot_cache.popitem(last=False)
+    return snapshot
 
 
 gaussian_job_queue = GaussianJobQueue()
@@ -193,12 +210,14 @@ class CrestJob:
     def as_dict(self) -> dict[str, Any]:
         return {
             "job_id": self.job_id,
+            "engine": "CREST",
             "status": self.status,
             "created_at": self.created_at,
             "started_at": self.started_at,
             "finished_at": self.finished_at,
             "result": self.result,
             "error": self.error,
+            "work_dir": self.result.get("work_dir") if self.result else None,
         }
 
 
@@ -207,6 +226,7 @@ class CrestJobManager:
         self._jobs: dict[str, CrestJob] = {}
         self._cancel_events: dict[str, threading.Event] = {}
         self._lock = threading.Lock()
+        self._compute_slot = threading.Semaphore(1)
 
     def submit(self, xyz_text: str, timeout_seconds: int = 1800) -> dict[str, Any]:
         job = CrestJob(xyz_text, timeout_seconds=timeout_seconds)
@@ -222,6 +242,10 @@ class CrestJobManager:
             if job is None:
                 return None
             return job.as_dict()
+
+    def list(self) -> list[dict[str, Any]]:
+        with self._lock:
+            return [job.as_dict() for job in sorted(self._jobs.values(), key=lambda item: item.created_at, reverse=True)]
 
     def cancel(self, job_id: str) -> dict[str, Any] | None:
         with self._lock:
@@ -242,21 +266,38 @@ class CrestJobManager:
             return job.as_dict()
 
     def _run(self, job: CrestJob) -> None:
+        with self._compute_slot:
+            self._run_in_slot(job)
+
+    def _run_in_slot(self, job: CrestJob) -> None:
         cancel_event = threading.Event()
         with self._lock:
+            if job.status != "queued":
+                return
             job.status = "running"
             job.started_at = datetime.now(timezone.utc).isoformat()
             self._cancel_events[job.job_id] = cancel_event
 
-        from adapters.xtb_adapter import run_crest_job  # deferred import to avoid circular dependency
-        result = run_crest_job(job.xyz_text, timeout_seconds=job.timeout_seconds, cancel_event=cancel_event)
+        try:
+            from adapters.xtb_adapter import run_crest_job  # deferred import to avoid circular dependency
+            result = run_crest_job(job.xyz_text, timeout_seconds=job.timeout_seconds, cancel_event=cancel_event)
+        except Exception as exc:
+            with self._lock:
+                job.finished_at = datetime.now(timezone.utc).isoformat()
+                if cancel_event.is_set() or job.status == "cancelled":
+                    job.status = "cancelled"
+                else:
+                    job.status = "failed"
+                    job.error = str(exc)
+                self._cancel_events.pop(job.job_id, None)
+            return
 
         with self._lock:
             job.finished_at = datetime.now(timezone.utc).isoformat()
             job.result = result.as_dict()
-            if result.status == "cancelled":
+            if cancel_event.is_set() or job.status == "cancelled" or result.status == "cancelled":
                 job.status = "cancelled"
-                job.error = result.reason
+                job.error = result.reason or job.error or "用户已强制终止 CREST 进程。"
             elif result.status == "failed" or result.status == "unavailable":
                 job.status = "failed"
                 job.error = result.reason or "CREST 计算失败。"
@@ -266,4 +307,9 @@ class CrestJobManager:
 
 
 crest_manager = CrestJobManager()
+
+
+_LOG_SNAPSHOT_CACHE_LIMIT = 128
+_LOG_SNAPSHOT_PARSE_BYTES = 2_000_000
+_log_snapshot_cache: OrderedDict[str, tuple[int, int, dict[str, Any]]] = OrderedDict()
 

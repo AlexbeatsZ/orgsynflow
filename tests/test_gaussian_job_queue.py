@@ -3,7 +3,7 @@ from __future__ import annotations
 import time
 from types import SimpleNamespace
 
-from core.job_queue import GaussianJobQueue
+from core.job_queue import CrestJobManager, GaussianJobQueue
 
 
 class FakeRunResult:
@@ -48,3 +48,27 @@ def test_running_gaussian_job_can_be_cancelled(monkeypatch, tmp_path) -> None:
 
     assert queue.get(job_id)["status"] == "cancelled"
     assert queue.get(job_id)["error"] == "Gaussian 进程已被强制结束。"
+
+
+def test_cancelled_queued_crest_job_never_starts(monkeypatch) -> None:
+    manager = CrestJobManager()
+
+    class DeferredThread:
+        def __init__(self, target, args, daemon):
+            self.target = target
+            self.args = args
+
+        def start(self) -> None:
+            pass
+
+    monkeypatch.setattr("core.job_queue.threading.Thread", DeferredThread)
+    submitted = manager.submit("0\n\n")
+    job = manager._jobs[submitted["job_id"]]
+    manager.cancel(job.job_id)
+
+    listed = manager.list()
+
+    manager._run(job)
+
+    assert manager.get(job.job_id)["status"] == "cancelled"
+    assert listed[0]["engine"] == "CREST"

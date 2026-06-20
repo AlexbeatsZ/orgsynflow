@@ -125,6 +125,7 @@ export interface CachedResult {
 
 export interface GaussianJob {
   job_id: string;
+  engine?: "Gaussian" | "CREST";
   workspace_id?: string;
   cell_id?: string;
   object_id?: string;

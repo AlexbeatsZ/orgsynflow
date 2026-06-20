@@ -88,7 +88,7 @@ scripts\orgsynflow-toggle.ps1
 Log Location:
 
 ```text
-%LOCALAPPDATA%\Temp\codex\orgsynflow\
+%LOCALAPPDATA%\Temp\.agents\orgsynflow\
 ```
 
 WSL Mirror Path:
@@ -122,7 +122,7 @@ Local Workspace Conventions:
 
 - Prefer `uv` when running Python on Windows.
 - Prefer `scoop` when downloading/installing programs on Windows, but do not install global tools without user confirmation.
-- Centralize Windows temporary files, backups, and logs under `%LOCALAPPDATA%\Temp\codex\`.
+- Centralize Windows temporary files, backups, and logs under `%LOCALAPPDATA%\Temp\.agents\`.
 - Centralize WSL temporary files under `/tmp/codex/`.
 - If modifying a Git repository, commit changes upon completion; if connected to GitHub, push changes as well.
 - Do not roll back user changes; if testing or browser operations dirty data files, revert only the test artifacts caused by yourself.
@@ -240,11 +240,16 @@ Data & Testing Lessons:
 - React Flow selection sync: When using React Flow's built-in `onNodesChange` / `onEdgesChange` interactions (like Shift+Click toggle, box selection, etc.), the locally tracked `selectedNodeId` and `selectedEdgeId` must be synced or cleared via `useEffect`. Otherwise, the "Delete Selected" button may show incorrectly when nothing is selected, and clicking it could delete untargeted nodes or crash due to deleting non-existent nodes.
 - When updating the workspace via `onUpdate` to add new components (like adding SMILES via the input box), do not pass an empty `canvas: { nodes: [], edges: [] }` state, otherwise React Flow will reset all previously dragged nodes to default grid positions, causing the layout to fall apart.
 - Orthogonal path search algorithm must avoid using O(N log N) `Array.sort` inside the while-loop for A*/Dijkstra-style priority queues. `runOrthogonalSearch` caused severe UI lag on layout changes. Using an O(log N) binary insertion sort to maintain the priority queue eliminates the lag.
+- Full obstacle-grid routing is still unsuitable for every drag frame: it evaluates 16 endpoint combinations per edge and its routing graph expands rapidly with node count. During dragging, and permanently at 24 or more nodes, use the bounded four-candidate orthogonal router in `web/src/canvasRoutingFast.ts`; keep detailed routing for small stationary canvases only. Edge selection must not trigger route recomputation.
+- WSL CREST jobs must `cd` into their unique work directory before invoking CREST. `setsid` must include `--wait`; without it, `wsl.exe` returns while CREST continues detached and the API falsely reports success before output exists. Store the session process-group ID and kill that exact group on cancellation. Use microseconds plus a UUID in work-directory names to prevent simultaneous jobs from colliding.
+- CREST and Gaussian jobs share the `/jobs` recovery surface. Persist the CREST `job_id` as soon as submission succeeds so page refresh can recover the running task. CREST execution is serialized to avoid multiple CPU-heavy searches exhausting the machine.
+- Polling Gaussian logs must cache snapshots by path/mtime/size and parse at most the latest 2 MB. Re-reading and reparsing every completed log for every five-second `/jobs` poll makes long sessions progressively slower. Stop frontend job polling when no queued/running jobs remain.
 
 ## 3. Task Board
 
 Current Status:
 
+- [done] 2026-06-20 Optimized large-canvas routing and stabilized CREST/Gaussian tasks: drag-time and 24+ node canvases use bounded fast orthogonal routing; selection no longer reroutes edges; unchanged Gaussian logs are cached; CREST WSL execution now uses unique working directories, waits for the real process, supports process-group cancellation, returns `crest_best.xyz`, is serialized, and persists through the unified `/jobs` queue across page refreshes.
 - [done] 2026-06-20 Fixed UI layout wipeout ("completely falls apart") when adding new molecules, by preserving the canvas state instead of resetting it to empty arrays during `onUpdate`.
 - [done] 2026-06-20 Fixed inexplicable UI lag during edge layout updates by replacing O(N log N) `Array.sort` inside the `runOrthogonalSearch` queue loop with O(log N) binary insertion sort.
 - [done] 2026-06-20 Added Chemformer single-step retrosynthesis option: reuses the local Conda sidecar and checkpoint of `chem-ai/work-4`, returning Top 5 valid candidates without demo fallback. AiZynthFinder, ASKCOS, and Chemformer candidates uniformly display molecular structures, `+`, and reaction arrows. A one-click script automatically manages 8000/8765/5173 services and logs to `%LOCALAPPDATA%\Temp\.agents\orgsynflow`.
@@ -336,6 +341,7 @@ To Be Enhanced:
 
 Most Recent Verification Baseline:
 
+- 2026-06-20 Performance/computation stability validation: the production fast-router benchmark processed 100 nodes, 140 edges, and 16 endpoint candidates per edge in 7.8 ms. Non-external regression suite passed 36 tests; focused computation suite passed 13 tests; `npm run build` succeeded. Real WSL CREST water search completed with a 5-line lowest-conformer XYZ; forced CREST cancellation left no `crest`/`xtb` process; real Gaussian H2 HF/STO-3G completed at `-1.1174874251 Ha`. Live API `/jobs` listed the CREST job with `engine=CREST`, recovered it through `/jobs/{id}`, and completed with `lowest_conformer_xyz`. The full suite still hangs in pre-existing external WSL detection tests and was terminated after 15 passing tests without failures.
 - 2026-06-20 SMILES block delete regression: `cd web; npm run build` succeeded; in browser, deleting the first connected node in a 4-node/2-edge scenario resulted in 3 nodes/1 edge, and persisted after saving and refreshing. Workspace file restored from `%LOCALAPPDATA%\Temp\codex\orgsynflow-smiles-delete-test\` after testing, and verified 4 nodes/2 edges with identical SHA256 before testing.
 - 2026-06-20 Component-level route regression: `uv run pytest -q tests/test_aizynth_adapter.py tests/test_route_layout.py` passed with 3; `cd web; npm run build` succeeded. Real AiZynthFinder execution in isolated workspace returned 1 step and 2 precursors; adding to canvas yielded two independent precursor nodes at `x=40`, reused group target at `x=300`, and original downstream product moved to `x=738`; two new edges were precursor → group target, and original edge was group target → product, with all markers at endpoints. Deleted isolated workspace after testing.
 - `uv run pytest -q`: 36 passed.
@@ -382,4 +388,3 @@ Most Recent Verification Baseline:
 - 2026-06-20 Removed demo-only disclaimers: Cleaned up "仅适合演示" / "不是真实模型" / "不能替代实验" style warnings from source files and data files. Simplified applicability_domain and note fields to factual descriptions in yield_predictor, reaction_features, properties, desktop_app, README, run_cli, plan, AIREADME, tests, and example-workspace.json.
 - 2026-06-20 Added AI-powered reaction explanation and feasibility check: Added explain_reaction_with_deepseek() and check_feasibility_with_deepseek() using DeepSeek API. Added --use-llm flag to reaction-explain CLI, new feasibility-check CLI command. Added /reaction/feasibility-check API endpoint.
 - 2026-06-20 Added 3D reaction atom mapping preview: Added mapped_atom_coordinates() to generate 3D XYZ with atom mapping indices from RXNMapper output. Added /reaction/mapping-coordinates API endpoint. Updated ReactionMappingView to render two interactive 3Dmol viewers (reactants products) with blue numbered labels showing atom mapping indices. Frontend build verified.
-

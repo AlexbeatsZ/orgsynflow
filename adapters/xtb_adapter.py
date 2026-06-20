@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import os
 import shutil
 import shlex
-import signal
 import subprocess
+import time
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -148,7 +148,8 @@ def _run_wsl(
     timeout_seconds: int,
     cancel_event: Any = None,
 ) -> SemiempiricalJobResult:
-    wsl_work_dir = f"/tmp/codex/orgsynflow/{kind}/{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    token = f"{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}-{uuid.uuid4().hex[:8]}"
+    wsl_work_dir = f"/tmp/codex/orgsynflow/{kind}/{token}"
     cmd_args = shlex.quote(executable)
     if kind == "crest_jobs":
         cmd_args += " input.xyz --gfn2 --chrg 0"
@@ -159,12 +160,21 @@ def _run_wsl(
         f"work_dir={shlex.quote(wsl_work_dir)}\n"
         'mkdir -p "$work_dir"\n'
         'cat > "$work_dir/input.xyz"\n'
+        'cd "$work_dir"\n'
+        'printf "%s\\n" "$$" > .orgsynflow-process-group\n'
         f"{cmd_args}\n"
+        'status=$?\n'
+        'if [ -f crest_best.xyz ]; then\n'
+        '  printf "\\n__ORGSYNFLOW_CREST_BEST_XYZ_BEGIN__\\n"\n'
+        '  cat crest_best.xyz\n'
+        '  printf "\\n__ORGSYNFLOW_CREST_BEST_XYZ_END__\\n"\n'
+        'fi\n'
+        'exit "$status"\n'
     )
 
     try:
         process = subprocess.Popen(
-            ["wsl", "-e", "bash", "-c", script],
+            ["wsl", "-e", "setsid", "--wait", "bash", "-c", script],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -172,10 +182,14 @@ def _run_wsl(
             encoding="utf-8",
             errors="replace",
         )
+        if process.stdin is not None:
+            process.stdin.write(xyz_text)
+            process.stdin.close()
+            process.stdin = None
         try:
-            stdout_data, stderr_data = process.communicate(input=xyz_text, timeout=timeout_seconds)
+            stdout_data, stderr_data = _wait_with_cancel(process, timeout_seconds, cancel_event)
         except _CancelledError:
-            _terminate_process(process)
+            _terminate_wsl_process(process, wsl_work_dir)
             return SemiempiricalJobResult(
                 available=True,
                 status="cancelled",
@@ -184,7 +198,7 @@ def _run_wsl(
                 reason="用户已强制终止 CREST 进程。",
             )
         except subprocess.TimeoutExpired:
-            _terminate_process(process)
+            _terminate_wsl_process(process, wsl_work_dir)
             return SemiempiricalJobResult(
                 available=True,
                 status="failed",
@@ -200,15 +214,16 @@ def _run_wsl(
             work_dir=wsl_work_dir,
             reason=str(exc),
         )
+    clean_stdout, crest_data = _extract_crest_best_xyz(stdout_data or "")
     return SemiempiricalJobResult(
         available=True,
         status="available" if process.returncode == 0 else "failed",
         source=source,
         work_dir=wsl_work_dir,
-        stdout=stdout_data or "",
+        stdout=clean_stdout,
         stderr=stderr_data or "",
-        data={"returncode": process.returncode, **_parse_cli_output(stdout_data or "")},
-        reason=None if process.returncode == 0 else ((stderr_data or "").strip() or (stdout_data or "").strip()),
+        data={"returncode": process.returncode, **_parse_cli_output(clean_stdout), **crest_data},
+        reason=None if process.returncode == 0 else ((stderr_data or "").strip() or clean_stdout.strip()),
     )
 
 
@@ -221,32 +236,19 @@ def _wait_with_cancel(
     timeout_seconds: int,
     cancel_event: Any,
 ) -> tuple[str, str]:
-    cancelled = threading_imported = False
-    try:
-        import threading
-        threading_imported = True
-    except ImportError:
-        pass
-    if cancel_event is not None and threading_imported and isinstance(cancel_event, threading.Event):
-        deadline = datetime.now().timestamp() + timeout_seconds
-        remaining = timeout_seconds
-        while remaining > 0:
+    if cancel_event is not None and callable(getattr(cancel_event, "is_set", None)):
+        deadline = time.monotonic() + timeout_seconds
+        while True:
             if cancel_event.is_set():
-                cancelled = True
                 raise _CancelledError()
-            poll_timeout = min(remaining, 1.0)
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise subprocess.TimeoutExpired(process.args, timeout_seconds)
             try:
-                stdout_data, stderr_data = process.communicate(timeout=poll_timeout)
+                stdout_data, stderr_data = process.communicate(timeout=min(remaining, 0.5))
                 return stdout_data, stderr_data
             except subprocess.TimeoutExpired:
-                remaining = deadline - datetime.now().timestamp()
                 continue
-        try:
-            process.kill()
-        except Exception:
-            pass
-        stdout_data, stderr_data = process.communicate()
-        return stdout_data, stderr_data
     try:
         stdout_data, stderr_data = process.communicate(timeout=timeout_seconds)
         return stdout_data, stderr_data
@@ -267,6 +269,41 @@ def _terminate_process(process: subprocess.Popen) -> None:
             process.wait(timeout=5)
         except Exception:
             pass
+
+
+def _terminate_wsl_process(process: subprocess.Popen, work_dir: str) -> None:
+    pid_file = f"{work_dir}/.orgsynflow-process-group"
+    quoted_pid_file = shlex.quote(pid_file)
+    stop_script = (
+        f"pid_file={quoted_pid_file}; "
+        'if [ -r "$pid_file" ]; then '
+        'pid=$(cat "$pid_file"); '
+        'kill -TERM -- "-$pid" 2>/dev/null || true; '
+        'sleep 1; '
+        'kill -KILL -- "-$pid" 2>/dev/null || true; '
+        "fi"
+    )
+    try:
+        subprocess.run(
+            ["wsl", "-e", "bash", "-c", stop_script],
+            check=False,
+            capture_output=True,
+            timeout=5,
+        )
+    except Exception:
+        pass
+    _terminate_process(process)
+
+
+def _extract_crest_best_xyz(stdout: str) -> tuple[str, dict[str, object]]:
+    begin = "__ORGSYNFLOW_CREST_BEST_XYZ_BEGIN__"
+    end = "__ORGSYNFLOW_CREST_BEST_XYZ_END__"
+    if begin not in stdout or end not in stdout:
+        return stdout, {}
+    prefix, remainder = stdout.split(begin, 1)
+    xyz, suffix = remainder.split(end, 1)
+    clean_stdout = (prefix.rstrip() + "\n" + suffix.lstrip()).strip()
+    return clean_stdout, {"lowest_conformer_xyz": xyz.strip() + "\n"}
 
 
 def _which(names: tuple[str, ...]) -> str | None:

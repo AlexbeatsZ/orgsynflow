@@ -429,12 +429,14 @@ def submit_gaussian_job(request: GaussianJobRequest) -> dict[str, object]:
 
 @app.get("/jobs")
 def list_jobs() -> dict[str, object]:
-    return {"jobs": gaussian_job_queue.list()}
+    jobs = [*gaussian_job_queue.list(), *crest_manager.list()]
+    jobs.sort(key=lambda item: str(item.get("created_at", "")), reverse=True)
+    return {"jobs": jobs}
 
 
 @app.get("/jobs/{job_id}")
 def get_job(job_id: str) -> dict[str, object]:
-    job = gaussian_job_queue.get(job_id)
+    job = gaussian_job_queue.get(job_id) or crest_manager.get(job_id)
     if job is None:
         raise HTTPException(status_code=404, detail=f"Job not found: {job_id}")
     return job
@@ -442,7 +444,7 @@ def get_job(job_id: str) -> dict[str, object]:
 
 @app.post("/jobs/{job_id}/cancel")
 def cancel_job(job_id: str) -> dict[str, object]:
-    job = gaussian_job_queue.cancel(job_id)
+    job = gaussian_job_queue.cancel(job_id) or crest_manager.cancel(job_id)
     if job is None:
         raise HTTPException(status_code=404, detail=f"Job not found: {job_id}")
     return job

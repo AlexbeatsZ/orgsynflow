@@ -85,8 +85,10 @@ import type {
   TsCoordinate,
   TsWorkflow,
 } from "./types";
+import { findFastOrthogonalPath } from "./canvasRoutingFast";
 
 const CANVAS_GRID_SIZE = 20;
+export const FAST_ROUTING_NODE_THRESHOLD = 24;
 
 type SelectedObject =
   | { kind: "cell"; cell: WorkspaceCell }
@@ -234,6 +236,9 @@ export function App() {
   const [modal, setModal] = useState<ModalState>(null);
   const [workspaceMenuOpen, setWorkspaceMenuOpen] = useState(false);
   const [unitRailOpen, setUnitRailOpen] = useState(true);
+  const refreshJobsInFlight = useRef(false);
+  const refreshComputeStatusInFlight = useRef(false);
+  const hasActiveGaussianJobs = jobs.some((job) => job.status === "queued" || job.status === "running");
 
   useEffect(() => {
     workspaceRef.current = workspace;
@@ -246,9 +251,10 @@ export function App() {
   }, []);
 
   useEffect(() => {
+    if (!hasActiveGaussianJobs) return;
     const timer = window.setInterval(refreshJobs, 5000);
     return () => window.clearInterval(timer);
-  }, []);
+  }, [hasActiveGaussianJobs]);
 
   useEffect(() => {
     const timer = window.setInterval(refreshComputeStatus, 30000);
@@ -264,9 +270,15 @@ export function App() {
   }
 
   async function refreshJobs() {
-    const nextJobs = await listJobs();
-    setJobs(nextJobs);
-    await syncGaussianTaskRecords(nextJobs);
+    if (refreshJobsInFlight.current) return;
+    refreshJobsInFlight.current = true;
+    try {
+      const nextJobs = await listJobs();
+      setJobs(nextJobs);
+      await syncGaussianTaskRecords(nextJobs);
+    } finally {
+      refreshJobsInFlight.current = false;
+    }
   }
 
   async function loadWorkspace(id: string) {
@@ -357,10 +369,14 @@ export function App() {
   }
 
   async function refreshComputeStatus() {
+    if (refreshComputeStatusInFlight.current) return;
+    refreshComputeStatusInFlight.current = true;
     try {
       setComputeStatus(await getComputeStatus());
     } catch {
       setComputeStatus(null);
+    } finally {
+      refreshComputeStatusInFlight.current = false;
     }
   }
 
@@ -1383,13 +1399,18 @@ function CellDetail({
   const [relationSourceId, setRelationSourceId] = useState("");
   const [relationTargetId, setRelationTargetId] = useState("");
   const [reactionTaskId, setReactionTaskId] = useState(cell.objects.reactions?.[0]?.id ?? "");
+  const [isDraggingNode, setIsDraggingNode] = useState(false);
   const nodeTypes = useMemo(() => ({ molecule: MoleculeNode }), []);
   const edgeTypes = useMemo(() => ({ orthogonal: OrthogonalEdge }), []);
   const molecules = cell.objects.molecules ?? [];
   const linkingActive = connectMode || shiftConnectMode;
+  const baseRoutedEdges = useMemo(
+    () => routeEdgesForNodes(edges, nodes, isDraggingNode),
+    [edges, nodes, isDraggingNode],
+  );
   const routedEdges = useMemo(
-    () => routeEdgesForNodes(edges, nodes).map((edge) => ({ ...edge, selected: edge.id === selectedEdgeId })),
-    [edges, nodes, selectedEdgeId],
+    () => baseRoutedEdges.map((edge) => ({ ...edge, selected: edge.id === selectedEdgeId })),
+    [baseRoutedEdges, selectedEdgeId],
   );
 
   useEffect(() => {
@@ -1759,6 +1780,7 @@ function CellDetail({
           deleteKeyCode={["Backspace", "Delete"]}
           fitView
           onNodesDelete={(deletedNodes) => removeNodes(deletedNodes.map((node) => node.id))}
+          onNodeDragStart={() => setIsDraggingNode(true)}
           onEdgeClick={(_, edge) => {
             setSelectedEdgeId(edge.id);
             const reaction = reactionFromEdge(cell, edge);
@@ -1771,6 +1793,7 @@ function CellDetail({
           }}
           onEdgesDelete={() => setSelectedEdgeId(null)}
           onNodeDragStop={(_, __, draggedNodes) => {
+            setIsDraggingNode(false);
             const draggedMap = new Map((draggedNodes || []).map((n: Node) => [n.id, n]));
             const nextNodes = nodes.map((n) => draggedMap.get(n.id) || n);
             onUpdate({
@@ -2689,7 +2712,7 @@ function MoleculeTasks({
   }
 
   async function forceCancelCrest() {
-    const jobId = crestJobIdRef.current;
+    const jobId = crestJobIdRef.current ?? recordFor(crestTask)?.job_id ?? null;
     if (!jobId) return;
     try {
       await cancelCrestJob(jobId);
@@ -2729,7 +2752,7 @@ function MoleculeTasks({
   const gaussianRecord = recordFor(gaussianTask);
   const canCancelGaussian = Boolean(gaussianRecord?.job_id && taskStatusForRecord(gaussianRecord) === "running");
   const crestRecord = recordFor(crestTask);
-  const canCancelCrest = Boolean(crestJobIdRef.current && taskStatusForRecord(crestRecord) === "running");
+  const canCancelCrest = Boolean((crestJobIdRef.current || crestRecord?.job_id) && taskStatusForRecord(crestRecord) === "running");
 
   return (
     <div className="task-group">
@@ -2742,8 +2765,24 @@ function MoleculeTasks({
       <TaskButton definition={crestTask} record={recordFor(crestTask)} onRun={() => void runTask(crestTask, async () => {
         const job = await runCrest(targetSmiles, 1800) as any;
         crestJobIdRef.current = job?.job_id ?? null;
+        await persistTaskRecord(selected.cell.id, taskResultKey(crestTask), {
+          task_id: crestTask.id,
+          task_label: crestTask.label,
+          object_id: crestTask.objectId,
+          object_kind: crestTask.objectKind,
+          object_label: crestTask.objectLabel,
+          engine: crestTask.engine,
+          status: "running",
+          updated_at: new Date().toISOString(),
+          payload: job,
+          job_id: job?.job_id,
+        });
+        await refreshJobs();
         return pollCrestResult(job.job_id);
-      }, { title: crestTask.label })} openModal={openModal} />
+      }, {
+        title: crestTask.label,
+        statusFromResult: (result) => gaussianTaskStatus(String((result as any)?.status ?? (result as any)?.result?.status ?? "failed")),
+      })} openModal={openModal} />
       <TaskButton
         definition={routeTask}
         record={recordFor(routeTask)}
@@ -4024,7 +4063,12 @@ function endpointOverridesForNode(node: Node, componentIndex: number | undefined
   return overrides;
 }
 
-function normalizeEdge(edge: Edge, nodeMap?: Map<string, Node>, usedHandles?: Map<string, { incoming: Set<Side>; outgoing: Set<Side> }>): Edge {
+function normalizeEdge(
+  edge: Edge,
+  nodeMap?: Map<string, Node>,
+  usedHandles?: Map<string, { incoming: Set<Side>; outgoing: Set<Side> }>,
+  forceFast = false,
+): Edge {
   const sourceNode = nodeMap?.get(edge.source);
   const targetNode = nodeMap?.get(edge.target);
   
@@ -4050,7 +4094,7 @@ function normalizeEdge(edge: Edge, nodeMap?: Map<string, Node>, usedHandles?: Ma
   const forbiddenTargetHandles = usedHandles?.get(edge.target)?.outgoing ?? new Set<Side>();
 
   const route = nodeMap && sourceNode && targetNode
-    ? chooseBestOrthogonalRoute(sourceNode, targetNode, [...nodeMap.values()], endpointOverrides, forbiddenSourceHandles, forbiddenTargetHandles)
+    ? chooseBestOrthogonalRoute(sourceNode, targetNode, [...nodeMap.values()], endpointOverrides, forbiddenSourceHandles, forbiddenTargetHandles, forceFast)
     : {
         sourceHandle: normalizeMoleculeHandleId(edge.sourceHandle, "right"),
         targetHandle: normalizeMoleculeHandleId(edge.targetHandle, "left"),
@@ -4108,10 +4152,11 @@ function makeCanvasEdge(edge: Partial<Edge> & { source: string; target: string }
   };
 }
 
-function routeEdgesForNodes(edges: Edge[], nodes: Node[]): Edge[] {
+export function routeEdgesForNodes(edges: Edge[], nodes: Node[], forceFast = false): Edge[] {
   const nodeMap = new Map(nodes.map((node) => [node.id, node]));
   const usedHandles = new Map<string, { incoming: Set<Side>; outgoing: Set<Side> }>();
-  return edges.map((edge) => normalizeEdge(edge, nodeMap, usedHandles));
+  const useFastRouting = forceFast || nodes.length >= FAST_ROUTING_NODE_THRESHOLD;
+  return edges.map((edge) => normalizeEdge(edge, nodeMap, usedHandles, useFastRouting));
 }
 
 function chooseBestOrthogonalRoute(
@@ -4121,6 +4166,7 @@ function chooseBestOrthogonalRoute(
   endpointOverrides: RouteEndpointOverrides = {},
   forbiddenSourceHandles: Set<Side> = new Set(),
   forbiddenTargetHandles: Set<Side> = new Set(),
+  forceFast = false,
 ): { sourceHandle: string; targetHandle: string; points: Point[] } {
   const sourceNodeRect = nodeRect(source);
   const targetNodeRect = nodeRect(target);
@@ -4146,7 +4192,9 @@ function chooseBestOrthogonalRoute(
       const targetPoint = sideCenter(targetRect, targetHandle);
       const sourcePort = sidePort(sourceRect, sourceHandle, CANVAS_GRID_SIZE);
       const targetPort = sidePort(targetRect, targetHandle, CANVAS_GRID_SIZE);
-      const middle = findOrthogonalPath(sourcePort, targetPort, obstacles);
+      const middle = forceFast
+        ? findFastOrthogonalPath(sourcePort, targetPort, obstacles)
+        : findOrthogonalPath(sourcePort, targetPort, obstacles);
       const points = simplifyPoints([sourcePoint, sourcePort, ...middle, targetPort, targetPoint]);
       const isBlocked = isPathBlocked(points, obstacles);
       candidates.push({ sourceHandle, targetHandle, points, isStructurallyForbidden, isOverlapForbidden, isBlocked });
@@ -4949,7 +4997,7 @@ function collectGeometryCandidates(value: unknown, depth = 0): string[] {
   if (Array.isArray(value)) return value.flatMap((item) => collectGeometryCandidates(item, depth + 1));
   if (!isPlainObject(value)) return [];
 
-  const directKeys = ["input_xyz", "xyz", "coordinates", "gjf_text", "gjf", "input"];
+  const directKeys = ["lowest_conformer_xyz", "input_xyz", "xyz", "coordinates", "gjf_text", "gjf", "input"];
   const direct = directKeys
     .map((key) => value[key])
     .filter((item): item is string => typeof item === "string" && (looksLikeXyz(item) || looksLikeGaussianInput(item)));
