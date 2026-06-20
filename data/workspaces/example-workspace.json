@@ -3,66 +3,51 @@
   "id": "example-workspace",
   "title": "Example workspace",
   "created_at": "2026-06-14T00:00:00+00:00",
-  "updated_at": "2026-06-20T08:17:09.569963+00:00",
+  "updated_at": "2026-06-20T09:13:03.798846+00:00",
   "cells": [
     {
       "id": "cell-example-molecule",
       "type": "molecule",
       "title": "Ethanol",
       "created_at": "2026-06-14T00:00:00+00:00",
-      "updated_at": "2026-06-20T08:17:09.569507+00:00",
+      "updated_at": "2026-06-20T09:13:03.798194+00:00",
       "canvas": {
         "nodes": [
           {
             "id": "mol-ethanol",
             "type": "molecule",
             "position": {
-              "x": 1356.2502641023555,
-              "y": 331.2458413856554
+              "x": 1475.9609104879526,
+              "y": 313.0828467616338
             },
             "data": {
               "label": "Ethanol",
               "smiles": "CCO"
-            },
-            "measured": {
-              "width": 190,
-              "height": 154
             }
           },
           {
             "id": "route-example-aspirin-reactants",
             "type": "molecule",
             "position": {
-              "x": 259.69998111156985,
-              "y": 275.8394036121786
+              "x": 376.9338555029822,
+              "y": 308.8630302013089
             },
             "data": {
               "label": "Salicylic acid + Acetic anhydride",
               "smiles": "O=C(O)c1ccccc1O.CC(=O)OC(C)=O"
-            },
-            "measured": {
-              "width": 368,
-              "height": 164
             }
           },
           {
             "id": "route-example-aspirin-product",
             "type": "molecule",
             "position": {
-              "x": 936.21461164629,
-              "y": 253.80771315105912
+              "x": 1042.5849375445084,
+              "y": 305.5554392637059
             },
             "data": {
               "label": "Aspirin",
-              "smiles": "CC(=O)Oc1ccccc1C(=O)O",
-              "selectedComponentId": null
-            },
-            "measured": {
-              "width": 190,
-              "height": 154
-            },
-            "selected": true,
-            "dragging": false
+              "smiles": "CC(=O)Oc1ccccc1C(=O)O"
+            }
           },
           {
             "id": "route-1781939569292-aizynth-route-1-molecule-m2",
@@ -74,10 +59,6 @@
             "data": {
               "label": "Mol 2",
               "smiles": "COc1ccccc1C(=O)O"
-            },
-            "measured": {
-              "width": 190,
-              "height": 154
             }
           },
           {
@@ -90,10 +71,6 @@
             "data": {
               "label": "Mol 2",
               "smiles": "COC(=O)c1ccccc1O"
-            },
-            "measured": {
-              "width": 190,
-              "height": 154
             }
           },
           {
@@ -106,10 +83,6 @@
             "data": {
               "label": "Mol 2",
               "smiles": "O=C(O)c1ccccc1OCc1ccccc1"
-            },
-            "measured": {
-              "width": 190,
-              "height": 154
             }
           },
           {
@@ -122,10 +95,18 @@
             "data": {
               "label": "CC(=O)O.CCC(=O)OC(C)=O",
               "smiles": "CC(=O)O.CCC(=O)OC(C)=O"
+            }
+          },
+          {
+            "id": "route-1781945982590-aizynth-route-2-molecule-m2",
+            "type": "molecule",
+            "position": {
+              "x": 224.58808037215425,
+              "y": 617.4455054878674
             },
-            "measured": {
-              "width": 368,
-              "height": 142
+            "data": {
+              "label": "Mol 2",
+              "smiles": "CCCC(=O)OC(C)=O"
             }
           }
         ],
@@ -153,20 +134,20 @@
             "data": {
               "routePoints": [
                 {
-                  "x": 627.6999811115699,
-                  "y": 346.8394036121786
+                  "x": 744.9338555029822,
+                  "y": 379.8630302013089
                 },
                 {
-                  "x": 931.7229559978741,
-                  "y": 346.8394036121786
+                  "x": 1027.5849375445084,
+                  "y": 379.8630302013089
                 },
                 {
-                  "x": 931.7229559978741,
-                  "y": 182.91806331471133
+                  "x": 1027.5849375445084,
+                  "y": 376.5554392637059
                 },
                 {
-                  "x": 959.7229559978741,
-                  "y": 182.91806331471133
+                  "x": 1042.5849375445084,
+                  "y": 376.5554392637059
                 }
               ]
             }
@@ -187,16 +168,16 @@
                   "y": 136.94934711613197
                 },
                 {
-                  "x": 239.69998111156985,
+                  "x": 369.9338555029822,
                   "y": 136.94934711613197
                 },
                 {
-                  "x": 239.69998111156985,
-                  "y": 347.8394036121786
+                  "x": 369.9338555029822,
+                  "y": 380.8630302013089
                 },
                 {
-                  "x": 267.69998111156985,
-                  "y": 347.8394036121786
+                  "x": 384.9338555029822,
+                  "y": 380.8630302013089
                 }
               ]
             },
@@ -211,7 +192,8 @@
             "style": {
               "stroke": "#0f172a",
               "strokeWidth": 3
-            }
+            },
+            "selected": false
           },
           {
             "id": "rxn-route-1781939592082-aizynth-route-2-s1-0-edge",
@@ -229,16 +211,16 @@
                   "y": 393.70399019566213
                 },
                 {
-                  "x": 239.69998111156985,
+                  "x": 369.9338555029822,
                   "y": 393.70399019566213
                 },
                 {
-                  "x": 239.69998111156985,
-                  "y": 347.8394036121786
+                  "x": 369.9338555029822,
+                  "y": 380.8630302013089
                 },
                 {
-                  "x": 267.69998111156985,
-                  "y": 347.8394036121786
+                  "x": 384.9338555029822,
+                  "y": 380.8630302013089
                 }
               ]
             },
@@ -271,16 +253,16 @@
                   "y": 578.1090693097613
                 },
                 {
-                  "x": 239.69998111156985,
+                  "x": 369.9338555029822,
                   "y": 578.1090693097613
                 },
                 {
-                  "x": 239.69998111156985,
-                  "y": 347.8394036121786
+                  "x": 369.9338555029822,
+                  "y": 380.8630302013089
                 },
                 {
-                  "x": 267.69998111156985,
-                  "y": 347.8394036121786
+                  "x": 384.9338555029822,
+                  "y": 380.8630302013089
                 }
               ]
             },
@@ -302,25 +284,54 @@
             "type": "orthogonal",
             "source": "route-1781939635373-aizynth-route-1-step-s1-reactants",
             "target": "route-example-aspirin-reactants",
-            "sourceHandle": "left",
+            "sourceHandle": "top",
             "targetHandle": "bottom",
             "label": "AiZynth step",
             "data": {
               "targetComponentIndex": 1,
               "routePoints": [
                 {
-                  "x": 484.58808037215425,
-                  "y": 688.4455054878674
+                  "x": 668.5880803721543,
+                  "y": 617.4455054878674
                 },
                 {
-                  "x": 531.6999811115699,
-                  "y": 688.4455054878674
+                  "x": 668.5880803721543,
+                  "y": 602.4455054878674
                 },
                 {
-                  "x": 531.6999811115699,
-                  "y": 411.8394036121786
+                  "x": 648.9338555029822,
+                  "y": 602.4455054878674
+                },
+                {
+                  "x": 648.9338555029822,
+                  "y": 444.8630302013089
                 }
               ]
+            },
+            "className": "canvas-edge",
+            "interactionWidth": 18,
+            "markerEnd": {
+              "type": "arrowclosed",
+              "width": 15,
+              "height": 15,
+              "color": "#0f172a"
+            },
+            "style": {
+              "stroke": "#0f172a",
+              "strokeWidth": 3
+            },
+            "selected": false
+          },
+          {
+            "id": "rxn-route-1781945982590-aizynth-route-2-s1-0-edge",
+            "type": "orthogonal",
+            "source": "route-1781945982590-aizynth-route-2-molecule-m2",
+            "target": "route-1781939635373-aizynth-route-1-step-s1-reactants",
+            "sourceHandle": "right",
+            "targetHandle": "top",
+            "label": "AiZynth step",
+            "data": {
+              "targetComponentIndex": 1
             },
             "className": "canvas-edge",
             "interactionWidth": 18,
@@ -373,6 +384,11 @@
             "id": "route-1781939635373-aizynth-route-1-step-s1-reactants",
             "label": "CC(=O)O.CCC(=O)OC(C)=O",
             "smiles": "CC(=O)O.CCC(=O)OC(C)=O"
+          },
+          {
+            "id": "route-1781945982590-aizynth-route-2-molecule-m2",
+            "label": "Mol 2",
+            "smiles": "CCCC(=O)OC(C)=O"
           }
         ],
         "reactions": [
@@ -404,6 +420,12 @@
             "id": "rxn-route-1781939635373-aizynth-route-1-s1-0",
             "label": "AiZynth step",
             "reaction_smiles": "CC(=O)O.CCC(=O)OC(C)=O>>CC(=O)OC(C)=O",
+            "template": "AiZynth step"
+          },
+          {
+            "id": "rxn-route-1781945982590-aizynth-route-2-s1-0",
+            "label": "AiZynth step",
+            "reaction_smiles": "CCCC(=O)OC(C)=O>>CCC(=O)OC(C)=O",
             "template": "AiZynth step"
           }
         ],
@@ -759,6 +781,70 @@
                   },
                   {
                     "source_id": "m3",
+                    "target_id": "m1",
+                    "label": "AiZynth step"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "route-1781945982590-aizynth-route-2",
+            "label": "AiZynthFinder Route 2",
+            "route": {
+              "id": "aizynth-route-2",
+              "title": "AiZynthFinder Route 2",
+              "target_id": "m1",
+              "source": "aizynthfinder",
+              "depth": 1,
+              "precursor_count": 1,
+              "stock_count": 0,
+              "molecules": [
+                {
+                  "id": "m1",
+                  "name": "Target",
+                  "smiles": "CCC(=O)OC(C)=O",
+                  "in_stock": false
+                },
+                {
+                  "id": "m2",
+                  "name": "Mol 2",
+                  "smiles": "CCCC(=O)OC(C)=O",
+                  "in_stock": false
+                }
+              ],
+              "steps": [
+                {
+                  "id": "s1",
+                  "product_id": "m1",
+                  "precursor_ids": [
+                    "m2"
+                  ],
+                  "reaction_smiles": "CCCC(=O)OC(C)=O>>CCC(=O)OC(C)=O",
+                  "policy_score": 0.00039999998989515007,
+                  "template": "AiZynth step"
+                }
+              ],
+              "layout": {
+                "nodes": {
+                  "m1": {
+                    "id": "m1",
+                    "label": "Target\nCCC(=O)OC(C)=O",
+                    "x": 300,
+                    "y": 40,
+                    "in_stock": false
+                  },
+                  "m2": {
+                    "id": "m2",
+                    "label": "Mol 2\nCCCC(=O)OC(C)=O",
+                    "x": 40,
+                    "y": 40,
+                    "in_stock": false
+                  }
+                },
+                "edges": [
+                  {
+                    "source_id": "m2",
                     "target_id": "m1",
                     "label": "AiZynth step"
                   }
@@ -1334,6 +1420,772 @@
               "待原子映射确认"
             ],
             "note": "已通过 rxnmapper_wsl 运行 RXNMapper (confidence=0.546)；成键/断键已成功识别。"
+          }
+        },
+        "reaction:rxn-route-1781939635373-aizynth-route-1-s1-0:reaction-explanation": {
+          "task_id": "reaction-explanation",
+          "task_label": "解释反应",
+          "object_id": "rxn-route-1781939635373-aizynth-route-1-s1-0",
+          "object_kind": "reaction",
+          "object_label": "AiZynth step",
+          "status": "succeeded",
+          "updated_at": "2026-06-20T08:53:45.831Z",
+          "payload": {
+            "reaction_smiles": "CC(=O)O.CCC(=O)OC(C)=O>>CC(=O)OC(C)=O",
+            "reaction_type": "通用转化",
+            "formed_bonds": [
+              "待原子映射确认"
+            ],
+            "broken_bonds": [
+              "待原子映射确认"
+            ],
+            "reaction_center": [
+              "反应物与产物结构差异区域"
+            ],
+            "summary": "当前使用规则保底解释；后续可接入 RXNMapper 进行原子映射并精确定位成键和断键。",
+            "yield_estimate": {
+              "heuristic_yield_percent": 60,
+              "predicted_yield_percent": 60,
+              "method": "heuristic_rules",
+              "confidence": "低",
+              "applicability_domain": "规则启发式；仅适合演示和相对排序。",
+              "factors": [
+                "当前反应类型未匹配到专门规则。",
+                "存在卤素或潜在离去基，需关注副反应。",
+                "多组分前体明确，适合做单步路线验证。"
+              ],
+              "note": "规则演示估计：用于相对排序和课堂展示，不是 DRFP/HTE 真实产率模型，不能替代实验测定。"
+            }
+          }
+        },
+        "molecule:route-1781939635373-aizynth-route-1-step-s1-reactants:component:1:retrosynthesis": {
+          "task_id": "retrosynthesis",
+          "task_label": "预测逆合成路线（AiZynthFinder）",
+          "object_id": "route-1781939635373-aizynth-route-1-step-s1-reactants:component:1",
+          "object_kind": "molecule",
+          "object_label": "组分 2",
+          "engine": "aizynthfinder",
+          "status": "succeeded",
+          "updated_at": "2026-06-20T08:59:37.381Z",
+          "payload": {
+            "available": true,
+            "status": "Loaded 2 route(s) from AiZynthFinder via WSL.",
+            "used_fallback": false,
+            "target_smiles": "CCC(=O)OC(C)=O",
+            "candidates": [
+              {
+                "id": "aizynth-route-1",
+                "title": "AiZynthFinder Route 1",
+                "target_id": "m1",
+                "source": "aizynthfinder",
+                "depth": 0,
+                "precursor_count": 1,
+                "stock_count": 0,
+                "molecules": [
+                  {
+                    "id": "m1",
+                    "name": "Target",
+                    "smiles": "CCC(=O)OC(C)=O",
+                    "in_stock": false
+                  }
+                ],
+                "steps": [],
+                "layout": {
+                  "nodes": {
+                    "m1": {
+                      "id": "m1",
+                      "label": "Target\nCCC(=O)OC(C)=O",
+                      "x": 40,
+                      "y": 40,
+                      "in_stock": false
+                    }
+                  },
+                  "edges": []
+                }
+              },
+              {
+                "id": "aizynth-route-2",
+                "title": "AiZynthFinder Route 2",
+                "target_id": "m1",
+                "source": "aizynthfinder",
+                "depth": 1,
+                "precursor_count": 1,
+                "stock_count": 0,
+                "molecules": [
+                  {
+                    "id": "m1",
+                    "name": "Target",
+                    "smiles": "CCC(=O)OC(C)=O",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "m2",
+                    "name": "Mol 2",
+                    "smiles": "CCCC(=O)OC(C)=O",
+                    "in_stock": false
+                  }
+                ],
+                "steps": [
+                  {
+                    "id": "s1",
+                    "product_id": "m1",
+                    "precursor_ids": [
+                      "m2"
+                    ],
+                    "reaction_smiles": "CCCC(=O)OC(C)=O>>CCC(=O)OC(C)=O",
+                    "policy_score": 0.00039999998989515007,
+                    "template": "AiZynth step"
+                  }
+                ],
+                "layout": {
+                  "nodes": {
+                    "m1": {
+                      "id": "m1",
+                      "label": "Target\nCCC(=O)OC(C)=O",
+                      "x": 300,
+                      "y": 40,
+                      "in_stock": false
+                    },
+                    "m2": {
+                      "id": "m2",
+                      "label": "Mol 2\nCCCC(=O)OC(C)=O",
+                      "x": 40,
+                      "y": 40,
+                      "in_stock": false
+                    }
+                  },
+                  "edges": [
+                    {
+                      "source_id": "m2",
+                      "target_id": "m1",
+                      "label": "AiZynth step"
+                    }
+                  ]
+                }
+              }
+            ],
+            "route_scores": {
+              "aizynth-route-1": {
+                "route_id": "aizynth-route-1",
+                "route_score": 0.448,
+                "model_score": 0.55,
+                "stock_score": 0,
+                "step_score": 1,
+                "explanation": "model=0.55, stock=0.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
+              },
+              "aizynth-route-2": {
+                "route_id": "aizynth-route-2",
+                "route_score": 0.2,
+                "model_score": 0,
+                "stock_score": 0,
+                "step_score": 1,
+                "explanation": "model=0.00, stock=0.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
+              }
+            },
+            "feasibility": {
+              "aizynth-route-1": {
+                "route_id": "aizynth-route-1",
+                "heuristic_overall_yield_percent": 0,
+                "heuristic_feasibility_score": 0,
+                "estimated_overall_yield_percent": 0,
+                "route_feasibility_score": 0,
+                "method": "heuristic_route_feasibility",
+                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "risk_flags": [
+                  "路线没有反应步骤"
+                ],
+                "note": "无法评分。"
+              },
+              "aizynth-route-2": {
+                "route_id": "aizynth-route-2",
+                "heuristic_overall_yield_percent": 57,
+                "heuristic_feasibility_score": 0.464,
+                "estimated_overall_yield_percent": 57,
+                "route_feasibility_score": 0.464,
+                "method": "heuristic_route_feasibility",
+                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "risk_flags": [
+                  "s1: 反应类型置信度低"
+                ],
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+              }
+            },
+            "engine": "aizynthfinder"
+          }
+        },
+        "reaction:rxn-route-1781939599832-aizynth-route-3-s1-0:reaction-features": {
+          "task_id": "reaction-features",
+          "task_label": "计算反应特征",
+          "object_id": "rxn-route-1781939599832-aizynth-route-3-s1-0",
+          "object_kind": "reaction",
+          "object_label": "AiZynth step",
+          "status": "succeeded",
+          "updated_at": "2026-06-20T09:10:49.245Z",
+          "payload": {
+            "reaction_smiles": "O=C(O)c1ccccc1OCc1ccccc1>>O=C(O)c1ccccc1O",
+            "method": "drfp",
+            "status": "available",
+            "features": {
+              "drfp_0": 0,
+              "drfp_1": 0,
+              "drfp_2": 0,
+              "drfp_3": 0,
+              "drfp_4": 0,
+              "drfp_5": 0,
+              "drfp_6": 0,
+              "drfp_7": 0,
+              "drfp_8": 0,
+              "drfp_9": 0,
+              "drfp_10": 0,
+              "drfp_11": 0,
+              "drfp_12": 0,
+              "drfp_13": 0,
+              "drfp_14": 0,
+              "drfp_15": 0,
+              "drfp_16": 0,
+              "drfp_17": 0,
+              "drfp_18": 0,
+              "drfp_19": 0,
+              "drfp_20": 0,
+              "drfp_21": 0,
+              "drfp_22": 0,
+              "drfp_23": 0,
+              "drfp_24": 0,
+              "drfp_25": 0,
+              "drfp_26": 0,
+              "drfp_27": 0,
+              "drfp_28": 0,
+              "drfp_29": 0,
+              "drfp_30": 0,
+              "drfp_31": 0,
+              "drfp_32": 0,
+              "drfp_33": 1,
+              "drfp_34": 0,
+              "drfp_35": 0,
+              "drfp_36": 0,
+              "drfp_37": 0,
+              "drfp_38": 1,
+              "drfp_39": 0,
+              "drfp_40": 0,
+              "drfp_41": 0,
+              "drfp_42": 0,
+              "drfp_43": 0,
+              "drfp_44": 0,
+              "drfp_45": 0,
+              "drfp_46": 0,
+              "drfp_47": 1,
+              "drfp_48": 0,
+              "drfp_49": 0,
+              "drfp_50": 0,
+              "drfp_51": 0,
+              "drfp_52": 0,
+              "drfp_53": 0,
+              "drfp_54": 0,
+              "drfp_55": 1,
+              "drfp_56": 0,
+              "drfp_57": 0,
+              "drfp_58": 0,
+              "drfp_59": 0,
+              "drfp_60": 0,
+              "drfp_61": 0,
+              "drfp_62": 0,
+              "drfp_63": 0,
+              "drfp_64": 0,
+              "drfp_65": 0,
+              "drfp_66": 0,
+              "drfp_67": 0,
+              "drfp_68": 0,
+              "drfp_69": 0,
+              "drfp_70": 0,
+              "drfp_71": 0,
+              "drfp_72": 0,
+              "drfp_73": 1,
+              "drfp_74": 0,
+              "drfp_75": 0,
+              "drfp_76": 0,
+              "drfp_77": 0,
+              "drfp_78": 0,
+              "drfp_79": 0,
+              "drfp_80": 0,
+              "drfp_81": 0,
+              "drfp_82": 0,
+              "drfp_83": 0,
+              "drfp_84": 0,
+              "drfp_85": 0,
+              "drfp_86": 0,
+              "drfp_87": 0,
+              "drfp_88": 0,
+              "drfp_89": 0,
+              "drfp_90": 0,
+              "drfp_91": 0,
+              "drfp_92": 0,
+              "drfp_93": 0,
+              "drfp_94": 0,
+              "drfp_95": 0,
+              "drfp_96": 0,
+              "drfp_97": 0,
+              "drfp_98": 0,
+              "drfp_99": 0,
+              "drfp_100": 1,
+              "drfp_101": 0,
+              "drfp_102": 1,
+              "drfp_103": 0,
+              "drfp_104": 0,
+              "drfp_105": 0,
+              "drfp_106": 0,
+              "drfp_107": 0,
+              "drfp_108": 0,
+              "drfp_109": 0,
+              "drfp_110": 1,
+              "drfp_111": 0,
+              "drfp_112": 0,
+              "drfp_113": 0,
+              "drfp_114": 0,
+              "drfp_115": 0,
+              "drfp_116": 0,
+              "drfp_117": 0,
+              "drfp_118": 1,
+              "drfp_119": 0,
+              "drfp_120": 0,
+              "drfp_121": 0,
+              "drfp_122": 0,
+              "drfp_123": 0,
+              "drfp_124": 0,
+              "drfp_125": 0,
+              "drfp_126": 0,
+              "drfp_127": 0,
+              "drfp_128": 0,
+              "drfp_129": 0,
+              "drfp_130": 0,
+              "drfp_131": 0,
+              "drfp_132": 0,
+              "drfp_133": 0,
+              "drfp_134": 0,
+              "drfp_135": 0,
+              "drfp_136": 0,
+              "drfp_137": 0,
+              "drfp_138": 0,
+              "drfp_139": 0,
+              "drfp_140": 0,
+              "drfp_141": 0,
+              "drfp_142": 0,
+              "drfp_143": 1,
+              "drfp_144": 0,
+              "drfp_145": 0,
+              "drfp_146": 0,
+              "drfp_147": 0,
+              "drfp_148": 0,
+              "drfp_149": 0,
+              "drfp_150": 0,
+              "drfp_151": 0,
+              "drfp_152": 0,
+              "drfp_153": 0,
+              "drfp_154": 0,
+              "drfp_155": 0,
+              "drfp_156": 0,
+              "drfp_157": 0,
+              "drfp_158": 0,
+              "drfp_159": 0,
+              "drfp_160": 0,
+              "drfp_161": 0,
+              "drfp_162": 0,
+              "drfp_163": 1,
+              "drfp_164": 0,
+              "drfp_165": 0,
+              "drfp_166": 1,
+              "drfp_167": 0,
+              "drfp_168": 0,
+              "drfp_169": 0,
+              "drfp_170": 0,
+              "drfp_171": 0,
+              "drfp_172": 0,
+              "drfp_173": 0,
+              "drfp_174": 0,
+              "drfp_175": 0,
+              "drfp_176": 0,
+              "drfp_177": 0,
+              "drfp_178": 0,
+              "drfp_179": 0,
+              "drfp_180": 0,
+              "drfp_181": 0,
+              "drfp_182": 0,
+              "drfp_183": 0,
+              "drfp_184": 0,
+              "drfp_185": 0,
+              "drfp_186": 0,
+              "drfp_187": 0,
+              "drfp_188": 0,
+              "drfp_189": 0,
+              "drfp_190": 0,
+              "drfp_191": 0,
+              "drfp_192": 0,
+              "drfp_193": 0,
+              "drfp_194": 0,
+              "drfp_195": 0,
+              "drfp_196": 0,
+              "drfp_197": 0,
+              "drfp_198": 0,
+              "drfp_199": 0,
+              "drfp_200": 0,
+              "drfp_201": 0,
+              "drfp_202": 0,
+              "drfp_203": 0,
+              "drfp_204": 0,
+              "drfp_205": 0,
+              "drfp_206": 0,
+              "drfp_207": 0,
+              "drfp_208": 0,
+              "drfp_209": 0,
+              "drfp_210": 0,
+              "drfp_211": 0,
+              "drfp_212": 0,
+              "drfp_213": 0,
+              "drfp_214": 1,
+              "drfp_215": 0,
+              "drfp_216": 1,
+              "drfp_217": 0,
+              "drfp_218": 0,
+              "drfp_219": 0,
+              "drfp_220": 0,
+              "drfp_221": 0,
+              "drfp_222": 0,
+              "drfp_223": 0,
+              "drfp_224": 0,
+              "drfp_225": 0,
+              "drfp_226": 0,
+              "drfp_227": 1,
+              "drfp_228": 0,
+              "drfp_229": 0,
+              "drfp_230": 0,
+              "drfp_231": 0,
+              "drfp_232": 0,
+              "drfp_233": 0,
+              "drfp_234": 0,
+              "drfp_235": 0,
+              "drfp_236": 0,
+              "drfp_237": 0,
+              "drfp_238": 0,
+              "drfp_239": 0,
+              "drfp_240": 0,
+              "drfp_241": 0,
+              "drfp_242": 0,
+              "drfp_243": 1,
+              "drfp_244": 0,
+              "drfp_245": 1,
+              "drfp_246": 0,
+              "drfp_247": 0,
+              "drfp_248": 0,
+              "drfp_249": 0,
+              "drfp_250": 1,
+              "drfp_251": 0,
+              "drfp_252": 0,
+              "drfp_253": 0,
+              "drfp_254": 0,
+              "drfp_255": 0
+            },
+            "applicability_domain": "取决于后续训练数据；DRFP 只提供反应指纹，不单独构成产率模型。",
+            "unavailable": [],
+            "note": "已通过 WSL chem 环境生成 DRFP 特征；需要配套训练模型才能输出 ML 产率。"
+          }
+        },
+        "reaction:rxn-route-1781939599832-aizynth-route-3-s1-0:reaction-yield": {
+          "task_id": "reaction-yield",
+          "task_label": "估算反应产率",
+          "object_id": "rxn-route-1781939599832-aizynth-route-3-s1-0",
+          "object_kind": "reaction",
+          "object_label": "AiZynth step",
+          "status": "succeeded",
+          "updated_at": "2026-06-20T09:13:03.785Z",
+          "payload": {
+            "method": "layered_heuristic_plus_optional_features",
+            "status": "features_available",
+            "heuristic": {
+              "heuristic_yield_percent": 57,
+              "predicted_yield_percent": 57,
+              "method": "heuristic_rules",
+              "confidence": "低",
+              "applicability_domain": "规则启发式；仅适合演示和相对排序。",
+              "factors": [
+                "当前反应类型未匹配到专门规则。",
+                "存在卤素或潜在离去基，需关注副反应。"
+              ],
+              "note": "规则演示估计：用于相对排序和课堂展示，不是 DRFP/HTE 真实产率模型，不能替代实验测定。"
+            },
+            "ml_features": {
+              "reaction_smiles": "O=C(O)c1ccccc1OCc1ccccc1>>O=C(O)c1ccccc1O",
+              "method": "drfp",
+              "status": "available",
+              "features": {
+                "drfp_0": 0,
+                "drfp_1": 0,
+                "drfp_2": 0,
+                "drfp_3": 0,
+                "drfp_4": 0,
+                "drfp_5": 0,
+                "drfp_6": 0,
+                "drfp_7": 0,
+                "drfp_8": 0,
+                "drfp_9": 0,
+                "drfp_10": 0,
+                "drfp_11": 0,
+                "drfp_12": 0,
+                "drfp_13": 0,
+                "drfp_14": 0,
+                "drfp_15": 0,
+                "drfp_16": 0,
+                "drfp_17": 0,
+                "drfp_18": 0,
+                "drfp_19": 0,
+                "drfp_20": 0,
+                "drfp_21": 0,
+                "drfp_22": 0,
+                "drfp_23": 0,
+                "drfp_24": 0,
+                "drfp_25": 0,
+                "drfp_26": 0,
+                "drfp_27": 0,
+                "drfp_28": 0,
+                "drfp_29": 0,
+                "drfp_30": 0,
+                "drfp_31": 0,
+                "drfp_32": 0,
+                "drfp_33": 1,
+                "drfp_34": 0,
+                "drfp_35": 0,
+                "drfp_36": 0,
+                "drfp_37": 0,
+                "drfp_38": 1,
+                "drfp_39": 0,
+                "drfp_40": 0,
+                "drfp_41": 0,
+                "drfp_42": 0,
+                "drfp_43": 0,
+                "drfp_44": 0,
+                "drfp_45": 0,
+                "drfp_46": 0,
+                "drfp_47": 1,
+                "drfp_48": 0,
+                "drfp_49": 0,
+                "drfp_50": 0,
+                "drfp_51": 0,
+                "drfp_52": 0,
+                "drfp_53": 0,
+                "drfp_54": 0,
+                "drfp_55": 1,
+                "drfp_56": 0,
+                "drfp_57": 0,
+                "drfp_58": 0,
+                "drfp_59": 0,
+                "drfp_60": 0,
+                "drfp_61": 0,
+                "drfp_62": 0,
+                "drfp_63": 0,
+                "drfp_64": 0,
+                "drfp_65": 0,
+                "drfp_66": 0,
+                "drfp_67": 0,
+                "drfp_68": 0,
+                "drfp_69": 0,
+                "drfp_70": 0,
+                "drfp_71": 0,
+                "drfp_72": 0,
+                "drfp_73": 1,
+                "drfp_74": 0,
+                "drfp_75": 0,
+                "drfp_76": 0,
+                "drfp_77": 0,
+                "drfp_78": 0,
+                "drfp_79": 0,
+                "drfp_80": 0,
+                "drfp_81": 0,
+                "drfp_82": 0,
+                "drfp_83": 0,
+                "drfp_84": 0,
+                "drfp_85": 0,
+                "drfp_86": 0,
+                "drfp_87": 0,
+                "drfp_88": 0,
+                "drfp_89": 0,
+                "drfp_90": 0,
+                "drfp_91": 0,
+                "drfp_92": 0,
+                "drfp_93": 0,
+                "drfp_94": 0,
+                "drfp_95": 0,
+                "drfp_96": 0,
+                "drfp_97": 0,
+                "drfp_98": 0,
+                "drfp_99": 0,
+                "drfp_100": 1,
+                "drfp_101": 0,
+                "drfp_102": 1,
+                "drfp_103": 0,
+                "drfp_104": 0,
+                "drfp_105": 0,
+                "drfp_106": 0,
+                "drfp_107": 0,
+                "drfp_108": 0,
+                "drfp_109": 0,
+                "drfp_110": 1,
+                "drfp_111": 0,
+                "drfp_112": 0,
+                "drfp_113": 0,
+                "drfp_114": 0,
+                "drfp_115": 0,
+                "drfp_116": 0,
+                "drfp_117": 0,
+                "drfp_118": 1,
+                "drfp_119": 0,
+                "drfp_120": 0,
+                "drfp_121": 0,
+                "drfp_122": 0,
+                "drfp_123": 0,
+                "drfp_124": 0,
+                "drfp_125": 0,
+                "drfp_126": 0,
+                "drfp_127": 0,
+                "drfp_128": 0,
+                "drfp_129": 0,
+                "drfp_130": 0,
+                "drfp_131": 0,
+                "drfp_132": 0,
+                "drfp_133": 0,
+                "drfp_134": 0,
+                "drfp_135": 0,
+                "drfp_136": 0,
+                "drfp_137": 0,
+                "drfp_138": 0,
+                "drfp_139": 0,
+                "drfp_140": 0,
+                "drfp_141": 0,
+                "drfp_142": 0,
+                "drfp_143": 1,
+                "drfp_144": 0,
+                "drfp_145": 0,
+                "drfp_146": 0,
+                "drfp_147": 0,
+                "drfp_148": 0,
+                "drfp_149": 0,
+                "drfp_150": 0,
+                "drfp_151": 0,
+                "drfp_152": 0,
+                "drfp_153": 0,
+                "drfp_154": 0,
+                "drfp_155": 0,
+                "drfp_156": 0,
+                "drfp_157": 0,
+                "drfp_158": 0,
+                "drfp_159": 0,
+                "drfp_160": 0,
+                "drfp_161": 0,
+                "drfp_162": 0,
+                "drfp_163": 1,
+                "drfp_164": 0,
+                "drfp_165": 0,
+                "drfp_166": 1,
+                "drfp_167": 0,
+                "drfp_168": 0,
+                "drfp_169": 0,
+                "drfp_170": 0,
+                "drfp_171": 0,
+                "drfp_172": 0,
+                "drfp_173": 0,
+                "drfp_174": 0,
+                "drfp_175": 0,
+                "drfp_176": 0,
+                "drfp_177": 0,
+                "drfp_178": 0,
+                "drfp_179": 0,
+                "drfp_180": 0,
+                "drfp_181": 0,
+                "drfp_182": 0,
+                "drfp_183": 0,
+                "drfp_184": 0,
+                "drfp_185": 0,
+                "drfp_186": 0,
+                "drfp_187": 0,
+                "drfp_188": 0,
+                "drfp_189": 0,
+                "drfp_190": 0,
+                "drfp_191": 0,
+                "drfp_192": 0,
+                "drfp_193": 0,
+                "drfp_194": 0,
+                "drfp_195": 0,
+                "drfp_196": 0,
+                "drfp_197": 0,
+                "drfp_198": 0,
+                "drfp_199": 0,
+                "drfp_200": 0,
+                "drfp_201": 0,
+                "drfp_202": 0,
+                "drfp_203": 0,
+                "drfp_204": 0,
+                "drfp_205": 0,
+                "drfp_206": 0,
+                "drfp_207": 0,
+                "drfp_208": 0,
+                "drfp_209": 0,
+                "drfp_210": 0,
+                "drfp_211": 0,
+                "drfp_212": 0,
+                "drfp_213": 0,
+                "drfp_214": 1,
+                "drfp_215": 0,
+                "drfp_216": 1,
+                "drfp_217": 0,
+                "drfp_218": 0,
+                "drfp_219": 0,
+                "drfp_220": 0,
+                "drfp_221": 0,
+                "drfp_222": 0,
+                "drfp_223": 0,
+                "drfp_224": 0,
+                "drfp_225": 0,
+                "drfp_226": 0,
+                "drfp_227": 1,
+                "drfp_228": 0,
+                "drfp_229": 0,
+                "drfp_230": 0,
+                "drfp_231": 0,
+                "drfp_232": 0,
+                "drfp_233": 0,
+                "drfp_234": 0,
+                "drfp_235": 0,
+                "drfp_236": 0,
+                "drfp_237": 0,
+                "drfp_238": 0,
+                "drfp_239": 0,
+                "drfp_240": 0,
+                "drfp_241": 0,
+                "drfp_242": 0,
+                "drfp_243": 1,
+                "drfp_244": 0,
+                "drfp_245": 1,
+                "drfp_246": 0,
+                "drfp_247": 0,
+                "drfp_248": 0,
+                "drfp_249": 0,
+                "drfp_250": 1,
+                "drfp_251": 0,
+                "drfp_252": 0,
+                "drfp_253": 0,
+                "drfp_254": 0,
+                "drfp_255": 0
+              },
+              "applicability_domain": "取决于后续训练数据；DRFP 只提供反应指纹，不单独构成产率模型。",
+              "unavailable": [],
+              "note": "已通过 WSL chem 环境生成 DRFP 特征；需要配套训练模型才能输出 ML 产率。"
+            },
+            "trained_model": {
+              "available": false,
+              "method": "chemprop_or_rxn_yields_placeholder",
+              "reason": "当前未配置训练好的产率模型权重；不会输出伪 ML 产率。",
+              "predicted_yield": null
+            },
+            "confidence": "低",
+            "applicability_domain": "规则启发式；仅适合演示和相对排序。",
+            "note": "产率采用分层输出：启发式估计可用，DRFP/RXNFP/Chemprop 仅在安装和配置后作为特征或训练模型层使用。"
           }
         }
       }
@@ -4985,6 +5837,151 @@
           "heuristic_feasibility_score": 0.763,
           "estimated_overall_yield_percent": 57,
           "route_feasibility_score": 0.763,
+          "method": "heuristic_route_feasibility",
+          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "risk_flags": [
+            "s1: 反应类型置信度低"
+          ],
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+        }
+      },
+      "used_fallback": false
+    },
+    {
+      "id": "rcs-1781945977265",
+      "target_smiles": "CCC(=O)OC(C)=O",
+      "status": "Loaded 2 route(s) from AiZynthFinder via WSL.",
+      "created_at": "2026-06-20T08:59:37.265Z",
+      "candidates": [
+        {
+          "id": "aizynth-route-1",
+          "title": "AiZynthFinder Route 1",
+          "target_id": "m1",
+          "source": "aizynthfinder",
+          "depth": 0,
+          "precursor_count": 1,
+          "stock_count": 0,
+          "molecules": [
+            {
+              "id": "m1",
+              "name": "Target",
+              "smiles": "CCC(=O)OC(C)=O",
+              "in_stock": false
+            }
+          ],
+          "steps": [],
+          "layout": {
+            "nodes": {
+              "m1": {
+                "id": "m1",
+                "label": "Target\nCCC(=O)OC(C)=O",
+                "x": 40,
+                "y": 40,
+                "in_stock": false
+              }
+            },
+            "edges": []
+          }
+        },
+        {
+          "id": "aizynth-route-2",
+          "title": "AiZynthFinder Route 2",
+          "target_id": "m1",
+          "source": "aizynthfinder",
+          "depth": 1,
+          "precursor_count": 1,
+          "stock_count": 0,
+          "molecules": [
+            {
+              "id": "m1",
+              "name": "Target",
+              "smiles": "CCC(=O)OC(C)=O",
+              "in_stock": false
+            },
+            {
+              "id": "m2",
+              "name": "Mol 2",
+              "smiles": "CCCC(=O)OC(C)=O",
+              "in_stock": false
+            }
+          ],
+          "steps": [
+            {
+              "id": "s1",
+              "product_id": "m1",
+              "precursor_ids": [
+                "m2"
+              ],
+              "reaction_smiles": "CCCC(=O)OC(C)=O>>CCC(=O)OC(C)=O",
+              "policy_score": 0.00039999998989515007,
+              "template": "AiZynth step"
+            }
+          ],
+          "layout": {
+            "nodes": {
+              "m1": {
+                "id": "m1",
+                "label": "Target\nCCC(=O)OC(C)=O",
+                "x": 300,
+                "y": 40,
+                "in_stock": false
+              },
+              "m2": {
+                "id": "m2",
+                "label": "Mol 2\nCCCC(=O)OC(C)=O",
+                "x": 40,
+                "y": 40,
+                "in_stock": false
+              }
+            },
+            "edges": [
+              {
+                "source_id": "m2",
+                "target_id": "m1",
+                "label": "AiZynth step"
+              }
+            ]
+          }
+        }
+      ],
+      "route_scores": {
+        "aizynth-route-1": {
+          "route_id": "aizynth-route-1",
+          "route_score": 0.448,
+          "model_score": 0.55,
+          "stock_score": 0,
+          "step_score": 1,
+          "explanation": "model=0.55, stock=0.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
+        },
+        "aizynth-route-2": {
+          "route_id": "aizynth-route-2",
+          "route_score": 0.2,
+          "model_score": 0,
+          "stock_score": 0,
+          "step_score": 1,
+          "explanation": "model=0.00, stock=0.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
+        }
+      },
+      "feasibility": {
+        "aizynth-route-1": {
+          "route_id": "aizynth-route-1",
+          "heuristic_overall_yield_percent": 0,
+          "heuristic_feasibility_score": 0,
+          "estimated_overall_yield_percent": 0,
+          "route_feasibility_score": 0,
+          "method": "heuristic_route_feasibility",
+          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "risk_flags": [
+            "路线没有反应步骤"
+          ],
+          "note": "无法评分。"
+        },
+        "aizynth-route-2": {
+          "route_id": "aizynth-route-2",
+          "heuristic_overall_yield_percent": 57,
+          "heuristic_feasibility_score": 0.464,
+          "estimated_overall_yield_percent": 57,
+          "route_feasibility_score": 0.464,
           "method": "heuristic_route_feasibility",
           "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
           "risk_flags": [
