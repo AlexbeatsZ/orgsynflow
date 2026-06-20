@@ -124,6 +124,7 @@ WSL 临时文件必须放在：
 
 前端 UX 经验：
 
+- SMILES 块删除不能只依赖 React Flow 的临时节点状态；删除时必须同时移除相邻边，并用剩余 nodes/edges 重建 `cell.objects.molecules/reactions`，否则父级单元更新或页面刷新会把节点重新生成。当前选中块后会显示“删除 SMILES 块”按钮，删除结果可随工作区保存持久化。
 - 用户明确不要深色永久侧栏。工作区选择应是顶部紧凑下拉菜单。
 - 单元栏应是白色、可隐藏；添加单元按钮放在单元栏内。
 - UI 不要把单元做成“分子单元/反应单元/路线单元”的固定分类。用户期望一个通用化学单元，根据输入自动推断内容。
@@ -201,6 +202,7 @@ WSL 临时文件必须放在：
 
 当前状态：
 
+- [done] 2026-06-20 增加 SMILES 块删除：选中块后可显式删除，同时清理相邻箭头、关联反应及选中/连线状态；保存工作区后刷新不会复活。
 - [done] 2026-06-20 修复组合节点组分级逆合成插入：AiZynthFinder reaction 节点不再误作分子；多个前体拆为独立结构；复用所选目标节点；路线和原反应箭头均保持前体到产物的正向顺序；多组分宽度与下游间距已校正。
 - [done] 三阶段计划已写入 `plan.md`。
 - [done] 基础 CLI、适配器、API、测试面已建立。
@@ -277,6 +279,7 @@ WSL 临时文件必须放在：
 
 最近一次验证基线：
 
+- 2026-06-20 SMILES 块删除回归：`cd web; npm run build` 成功；浏览器中 4 节点/2 边场景删除首个相连节点后变为 3 节点/1 边，保存并刷新后仍为 3/1；测试后已从 `%LOCALAPPDATA%\Temp\codex\orgsynflow-smiles-delete-test\` 恢复原工作区文件并复核为 4/2，SHA256 与测试前一致。
 - 2026-06-20 组分级路线回归：`uv run pytest -q tests/test_aizynth_adapter.py tests/test_route_layout.py` 为 3 passed；`cd web; npm run build` 成功。隔离工作区真实运行 AiZynthFinder 后返回 1 步、2 个前体；加入画布得到两个独立前体节点，位置为 `x=40`，复用的组合 target 为 `x=300`，原下游产物调整为 `x=738`；两条新边均为前体 → 组合 target，原边为组合 target → 产物，全部 marker 位于终点。隔离工作区验证后已删除。
 - `uv run pytest -q`：36 passed。
 - 前端构建命令：`cd web; npm run build`。

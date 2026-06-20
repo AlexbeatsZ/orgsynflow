@@ -852,6 +852,7 @@ function CellDetail({
   const initialEdges = useMemo(() => toEdges(cell), [cell.id]);
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [connectMode, setConnectMode] = useState(false);
   const [shiftConnectMode, setShiftConnectMode] = useState(false);
@@ -871,6 +872,7 @@ function CellDetail({
   useEffect(() => {
     setNodes(toNodes(cell));
     setEdges(toEdges(cell));
+    setSelectedNodeId(null);
     setSelectedEdgeId(null);
     setSelectedComponentId(null);
     setPendingConnectionNodeId(null);
@@ -962,6 +964,7 @@ function CellDetail({
       }
       return;
     }
+    setSelectedNodeId(node.id);
     setSelectedEdgeId(null);
     const molecule = cell.objects.molecules?.find((item) => item.id === node.id);
     if (!molecule) return;
@@ -976,6 +979,28 @@ function CellDetail({
   function removeEdge(edgeId: string) {
     setEdges((current) => current.filter((edge) => edge.id !== edgeId));
     setSelectedEdgeId(null);
+  }
+
+  function removeNodes(nodeIds: string[]) {
+    if (nodeIds.length === 0) return;
+    const removedIds = new Set(nodeIds);
+    const nextNodes = nodes.filter((node) => !removedIds.has(node.id));
+    const nextEdges = edges.filter((edge) => !removedIds.has(edge.source) && !removedIds.has(edge.target));
+    const updatedCell: WorkspaceCell = {
+      ...cell,
+      canvas: { nodes: nextNodes, edges: nextEdges },
+      objects: objectsFromCanvas(cell, nextNodes, nextEdges),
+    };
+    setNodes(nextNodes);
+    setEdges(nextEdges);
+    setSelectedNodeId(null);
+    setSelectedEdgeId(null);
+    setSelectedComponentId(null);
+    setPendingConnectionNodeId((current) => current && removedIds.has(current) ? null : current);
+    setRelationSourceId((current) => removedIds.has(current) ? "" : current);
+    setRelationTargetId((current) => removedIds.has(current) ? "" : current);
+    onUpdate(updatedCell);
+    onSelect({ kind: "cell", cell: updatedCell });
   }
 
   function removeAllEdges() {
@@ -1021,6 +1046,11 @@ function CellDetail({
             {selectedEdgeId && (
               <button className="ghost-button compact danger-action" onClick={() => removeEdge(selectedEdgeId)}>
                 <Trash2 size={14} /> 删除箭头
+              </button>
+            )}
+            {selectedNodeId && (
+              <button className="ghost-button compact danger-action" onClick={() => removeNodes([selectedNodeId])}>
+                <Trash2 size={14} /> 删除 SMILES 块
               </button>
             )}
             {edges.length > 0 && (
@@ -1096,12 +1126,14 @@ function CellDetail({
           deleteKeyCode={["Backspace", "Delete"]}
           fitView
           onNodeClick={(_, node) => handleNodeClick(node)}
+          onNodesDelete={(deletedNodes) => removeNodes(deletedNodes.map((node) => node.id))}
           onEdgeClick={(_, edge) => {
             setSelectedEdgeId(edge.id);
             const reaction = reactionFromEdge(cell, edge);
             if (reaction) onSelect({ kind: "reaction", cell, reaction });
           }}
           onPaneClick={() => {
+            setSelectedNodeId(null);
             setSelectedEdgeId(null);
             if (!connectMode) setPendingConnectionNodeId(null);
           }}
