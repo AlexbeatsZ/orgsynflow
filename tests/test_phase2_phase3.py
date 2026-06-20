@@ -95,6 +95,17 @@ def test_layered_yield_and_features_do_not_claim_trained_model() -> None:
     assert features.features
 
 
+def test_layered_yield_llm_fallback_reports_missing_deepseek_key(monkeypatch) -> None:
+    monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
+    monkeypatch.setattr("core.yield_predictor._read_env_file_value", lambda _name: None)
+
+    estimate = estimate_reaction_yield_layered("CCO>>CC=O", use_llm_fallback=True)
+
+    assert estimate["trained_model"]["available"] is False
+    assert estimate["llm_estimate"]["available"] is False
+    assert "DEEPSEEK_API_KEY" in estimate["llm_estimate"]["reason"]
+
+
 def test_quantum_parser_uses_cclib_or_gaussian_fallback() -> None:
     parsed = parse_quantum_log(SAMPLE_TS_LOG)
 

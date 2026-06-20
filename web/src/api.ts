@@ -117,6 +117,7 @@ export async function estimateYield(reactionSmiles: string, template?: string): 
   const { data } = await http.post("/reaction/yield", {
     reaction_smiles: reactionSmiles,
     template: template || null,
+    use_llm_fallback: true,
   });
   return data;
 }

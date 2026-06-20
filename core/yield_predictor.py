@@ -1,6 +1,13 @@
 from __future__ import annotations
 
+import json
+import os
+import re
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
+
+import httpx
 
 from core.reaction_explain import explain_reaction
 from core.reaction_features import featurize_reaction
@@ -85,7 +92,11 @@ def estimate_reaction_yield(reaction_smiles: str | None, template: str | None = 
     )
 
 
-def estimate_reaction_yield_layered(reaction_smiles: str | None, template: str | None = None) -> dict[str, object]:
+def estimate_reaction_yield_layered(
+    reaction_smiles: str | None,
+    template: str | None = None,
+    use_llm_fallback: bool = False,
+) -> dict[str, object]:
     rxn = reaction_smiles or ""
     heuristic = estimate_reaction_yield(rxn, template)
     features = featurize_reaction(rxn).as_dict() if rxn else {
@@ -102,7 +113,7 @@ def estimate_reaction_yield_layered(reaction_smiles: str | None, template: str |
     model_reason = "当前未配置训练好的产率模型权重；不会输出伪 ML 产率。"
     model_yield = None
 
-    return {
+    result: dict[str, object] = {
         "method": "layered_heuristic_plus_optional_features",
         "status": "heuristic_only" if features["status"] != "available" else "features_available",
         "heuristic": heuristic.as_dict(),
@@ -117,6 +128,98 @@ def estimate_reaction_yield_layered(reaction_smiles: str | None, template: str |
         "applicability_domain": heuristic.applicability_domain,
         "note": "产率采用分层输出：启发式估计可用，DRFP/RXNFP/Chemprop 仅在安装和配置后作为特征或训练模型层使用。",
     }
+    if use_llm_fallback:
+        result["llm_estimate"] = estimate_reaction_yield_with_deepseek(rxn, template, heuristic, features)
+    return result
+
+
+def estimate_reaction_yield_with_deepseek(
+    reaction_smiles: str,
+    template: str | None,
+    heuristic: YieldEstimate | None = None,
+    features: dict[str, object] | None = None,
+) -> dict[str, object]:
+    heuristic = heuristic or estimate_reaction_yield(reaction_smiles, template)
+    api_key = _deepseek_api_key()
+    model = os.getenv("DEEPSEEK_MODEL", "deepseek-v4-flash")
+    if not api_key:
+        return {
+            "available": False,
+            "method": "deepseek_chat_completion",
+            "reason": "DEEPSEEK_API_KEY 未配置；已仅返回启发式产率层。",
+            "applicability_domain": "无 LLM 调用。",
+        }
+
+    prompt = {
+        "reaction_smiles": reaction_smiles,
+        "template": template,
+        "heuristic_baseline": heuristic.as_dict(),
+        "reaction_features": features or {},
+    }
+    try:
+        response = httpx.post(
+            "https://api.deepseek.com/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": model,
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": (
+                            "你是有机合成信息学助手。请基于给定 reaction SMILES、模板、启发式基线和可用反应特征，"
+                            "给出临时的反应产率估算。必须明确这是 LLM 定性估算，不是带权重的专用产率模型。"
+                            "只输出 JSON，不输出 Markdown。"
+                        ),
+                    },
+                    {
+                        "role": "user",
+                        "content": (
+                            "请估算该反应的单步分离产率，并输出："
+                            "predicted_yield_percent(0-100数字), confidence(低/中/高), "
+                            "factors(字符串数组), risks(字符串数组), recommendations(字符串数组), "
+                            "applicability_domain(字符串)。输入如下：\n"
+                            f"{json.dumps(prompt, ensure_ascii=False)}"
+                        ),
+                    },
+                ],
+                "temperature": 0.1,
+                "max_tokens": 900,
+                "response_format": {"type": "json_object"},
+            },
+            timeout=30,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        content = str(payload["choices"][0]["message"]["content"])
+        parsed = _parse_llm_json(content)
+        predicted = _clamp_float(parsed.get("predicted_yield_percent"), 0.0, 100.0, heuristic.heuristic_yield_percent)
+        confidence = str(parsed.get("confidence") or heuristic.confidence)
+        if confidence not in {"低", "中", "高"}:
+            confidence = heuristic.confidence
+        return {
+            "available": True,
+            "method": f"deepseek_chat_completion:{model}",
+            "predicted_yield_percent": round(predicted, 1),
+            "confidence": confidence,
+            "factors": _string_list(parsed.get("factors")),
+            "risks": _string_list(parsed.get("risks")),
+            "recommendations": _string_list(parsed.get("recommendations")),
+            "applicability_domain": str(
+                parsed.get("applicability_domain")
+                or "DeepSeek LLM 临时估算；非专用训练权重，不能替代实验或 HTE/反应族模型。"
+            ),
+            "note": "LLM 临时代估：用于补充说明和初筛，不计入 trained_model 层。",
+        }
+    except Exception as exc:
+        return {
+            "available": False,
+            "method": f"deepseek_chat_completion:{model}",
+            "reason": f"DeepSeek 调用失败；已仅返回启发式产率层。错误类型：{type(exc).__name__}",
+            "applicability_domain": "无可用 LLM 估算。",
+        }
 
 
 def score_route_feasibility(route: Route) -> RouteFeasibility:
@@ -142,3 +245,50 @@ def score_route_feasibility(route: Route) -> RouteFeasibility:
         risk_flags=risk_flags,
         note="规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。",
     )
+
+
+def _deepseek_api_key() -> str | None:
+    key = os.getenv("DEEPSEEK_API_KEY")
+    if key:
+        return key
+    return _read_env_file_value("DEEPSEEK_API_KEY")
+
+
+def _read_env_file_value(name: str) -> str | None:
+    root = Path(__file__).resolve().parents[1]
+    for filename in (".env.local", ".env"):
+        path = root / filename
+        if not path.exists():
+            continue
+        for raw_line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+            line = raw_line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            if key.strip() == name:
+                return value.strip().strip("\"'")
+    return None
+
+
+def _parse_llm_json(content: str) -> dict[str, Any]:
+    text = content.strip()
+    fenced = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, flags=re.DOTALL)
+    if fenced:
+        text = fenced.group(1)
+    return json.loads(text)
+
+
+def _clamp_float(value: object, low: float, high: float, default: float) -> float:
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        number = default
+    return max(low, min(high, number))
+
+
+def _string_list(value: object) -> list[str]:
+    if isinstance(value, list):
+        return [str(item) for item in value if str(item).strip()]
+    if isinstance(value, str) and value.strip():
+        return [value.strip()]
+    return []

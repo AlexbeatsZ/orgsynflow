@@ -82,3 +82,7 @@ End-to-end verification:
 ## Engineering Decision
 
 The route and property modules can rely on public models today: AiZynthFinder for retrosynthesis, OPERA for QSAR properties, and RXNMapper for atom mapping. The yield predictor should remain layered as heuristic plus optional DRFP features until a specific public yield model is installed and its domain is shown in the UI. This avoids presenting a trained-model result where the available public artifacts either require new training/fine-tuning or are too narrow to generalize.
+
+## 2026-06-20 DeepSeek Fallback
+
+`POST /reaction/yield` now supports an optional DeepSeek-backed `llm_estimate` layer when `DEEPSEEK_API_KEY` is configured. The default model is `deepseek-v4-flash` and can be overridden with `DEEPSEEK_MODEL`. This is intentionally separate from `trained_model`: the trained-model layer still reports unavailable unless a real reaction-yield checkpoint is installed. The LLM output is for qualitative triage and explanation only, with heuristic output preserved as the deterministic fallback.

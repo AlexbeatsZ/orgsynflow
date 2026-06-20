@@ -147,8 +147,12 @@ def plan_single_transition_state(reaction_smiles: str) -> dict[str, object]:
     return plan_transition_state_search(reaction_smiles).as_dict()
 
 
-def estimate_single_reaction_yield(reaction_smiles: str, template: str | None = None) -> dict[str, object]:
-    return estimate_reaction_yield_layered(reaction_smiles, template)
+def estimate_single_reaction_yield(
+    reaction_smiles: str,
+    template: str | None = None,
+    use_llm_fallback: bool = False,
+) -> dict[str, object]:
+    return estimate_reaction_yield_layered(reaction_smiles, template, use_llm_fallback=use_llm_fallback)
 
 
 def calculate_reaction_features(reaction_smiles: str) -> dict[str, object]:

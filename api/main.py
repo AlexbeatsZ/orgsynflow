@@ -67,6 +67,10 @@ class ReactionExplainRequest(BaseModel):
     template: str | None = None
 
 
+class ReactionYieldRequest(ReactionExplainRequest):
+    use_llm_fallback: bool = True
+
+
 class MoleculePropertiesRequest(BaseModel):
     smiles: str
     include_opera: bool = False
@@ -333,8 +337,12 @@ def reaction_ts_plan(request: ReactionExplainRequest) -> dict[str, object]:
 
 
 @app.post("/reaction/yield")
-def reaction_yield(request: ReactionExplainRequest) -> dict[str, object]:
-    return estimate_single_reaction_yield(request.reaction_smiles, request.template)
+def reaction_yield(request: ReactionYieldRequest) -> dict[str, object]:
+    return estimate_single_reaction_yield(
+        request.reaction_smiles,
+        request.template,
+        use_llm_fallback=request.use_llm_fallback,
+    )
 
 
 @app.post("/reaction/features")
