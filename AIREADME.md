@@ -178,8 +178,12 @@ WSL 临时文件必须放在：
 - Windows 调 WSL CLI 时必须显式设置 `encoding="utf-8", errors="replace"`，否则 CREST/xTB 输出里的 UTF-8 字符可能被 GBK 解码线程打断，导致 `stdout` 为 `None` 或测试崩溃。
 - 长时间 CREST / WSL 外部工具任务被强制中断后，可能留下 `wsl.exe` 客户端挂起，导致 AiZynthFinder、OPERA、RXNMapper、DRFP、xTB、CREST 等所有依赖 WSL 的能力一起表现为“缺失/不可用”。恢复顺序：先停止 OrgSynFlow API/Web，精确清理由 API 派生且命令行含 `/tmp/codex/orgsynflow` 或 `orgsynflow-chem` 的残留 `wsl.exe`，再用 `wsl -e true` 验证基础 WSL；只有清理后仍失败时才升级到重启 `WslService`/WSL。
 - TS 相关功能只能说“计划/候选/未验证/验证等级”，不能宣称自动找到正确过渡态。
+- 点式多分子画布块必须区分“路线节点身份”和“分子计算身份”：路线仍把 `A.B` 作为一个节点，但分子级任务必须绑定用户在节点内点击的具体组分；结果键使用 `node-id:component:index`，相同 SMILES 也不能合并。
+- 通用 TS 扫描不能把所有成键/断键平衡距离写死为 1.5 Å。应按元素共价半径估算（例如 C–Br 约 1.96 Å），且每个受限优化点提交前要把扫描原子实际移动到目标距离，否则 Gaussian 可能在 NewRed/RedCar 内坐标转换阶段失败。
+- Windows Gaussian 16W 的 `g16.exe` launcher 可能退出后留下独立 `l*.exe` Link 进程。取消 TS 工作流时除了终止 launcher，还必须只按包含该 workflow 目录的命令行精确终止对应 Link 进程，不能全局结束所有 Gaussian 计算。
 - 产率输出必须带 `method`、`confidence`、`applicability_domain`、`note`。
 - 结果弹窗不应默认展示大段原始 stdout/stderr/JSON。前端应优先展示结构化摘要、关键数值、警告和路径；原始日志放在可展开的“原始日志 / 原始数据”中。包含 XYZ/GJF 坐标的结果必须先渲染可交互 3D 分子视图。
+- 依赖隔离与运行环境统一：Gradio、py3Dmol 与 matplotlib 必须在 Windows (uv) 和 WSL (mamba) 中同时声明与安装。在过渡态库中通过 `core.gaussian_runner.find_gaussian_executable()` 代替硬编码的 `g16.exe` 路径，保证计算服务跨 Windows 和 WSL 均可自动发现和调用 Gaussian 可执行文件，并把中间结果输出至工程统一的工作目录下。
 
 服务和启动经验：
 
@@ -207,6 +211,7 @@ WSL 临时文件必须放在：
 
 当前状态：
 
+- [done] 2026-06-20 合并 temp/ 目录下的 3 个过渡态搜索/绘图文件到 WSL 和 Windows 仓库，并更新 Python 依赖关系：安装/配置了 gradio、py3Dmol、matplotlib；测试均能正常 import 且编译成功。
 - [done] 2026-06-20 增加 SMILES 块删除：选中块后可显式删除，同时清理相邻箭头、关联反应及选中/连线状态；保存工作区后刷新不会复活。
 - [done] 2026-06-20 修复组合节点组分级逆合成插入：AiZynthFinder reaction 节点不再误作分子；多个前体拆为独立结构；复用所选目标节点；路线和原反应箭头均保持前体到产物的正向顺序；多组分宽度与下游间距已校正。
 - [done] 2026-06-20 修复逆合成候选插入语义：从现有 SMILES 块预测路线时强制复用该产物块；同一步多个前体合并为一个点式 SMILES 反应物块，并只生成一条反应箭头指向产物。
@@ -259,6 +264,9 @@ WSL 临时文件必须放在：
 - [done] 完成公开模型/权重审计并写入 `docs/public-model-weights-audit.md`：确认 AiZynthFinder/OPERA/RXNMapper/DRFP 当前状态，记录 ASKCOS、RXNFP、Yield-BERT、Chemprop 的可用性与限制。
 - [done] 结果展示已从直接铺原始 log/JSON 改为摘要化展示：xTB/CREST/Gaussian 提取状态、关键指标、日志摘要和警告，原始日志折叠；xTB/CREST payload 会返回 `data.input_xyz`，前端对 XYZ/GJF 坐标渲染 3Dmol 可交互分子结构。
 - [done] “计算过渡态参数配置 (GaussView 辅助)”窗口已接入统一 `osf-config-modal` 基类，恢复不透明白色背景、阴影、裁剪和正确定位。
+- [done] 点式多分子节点已支持在画布内直接点击具体组分；全部分子级任务、结果状态和 Gaussian object ID 均隔离到组分级，路线/反应仍使用外层组合节点。
+- [done] 新增持久化通用 Gaussian TS 工作流：RXNMapper 键变化、三个初始构象、1D/2D 扫描、自适应细化、TS/Freq、虚频模式投影、IRC、端点热化学、暂停/续算/取消/导出以及 API/CLI/React 看板。
+- [done] TS 默认理论级别更新为 wB97XD/def2SVP；电荷/多重度自动推断，方法、基组、溶剂、资源、温度和虚频阈值可编辑。
 - [done] 用户授权后通过管理员权限重启 `WslService`，Ubuntu WSL 已恢复；AiZynthFinder 官方公开数据、RXNMapper 和 OPERA 均完成文件/运行时/真实推理复核。AiZynthFinder 对 aspirin 返回 2 条真实路线且 `used_fallback=false`；RXNMapper 对 `CCO>>CC=O` 的映射置信度为 `0.998663`；OPERA 对乙醇返回 5 项 QSAR 预测及适用域。
 
 当前可运行入口：
@@ -278,7 +286,7 @@ WSL 临时文件必须放在：
 - [todo] 工作区保存/自动保存策略需要更清楚，避免测试或打开示例时污染 fixture。
 - [todo] AiZynthFinder 真实配置、stock/policy 路径和路线树解析仍可继续强化。
 - [todo] OPERA 输出字段在 UI 中还需要更好地结构化展示。
-- [todo] Gaussian TS 输入已有可视化初始配置窗口，但仍需更真实的反应中心约束、scan 坐标生成、freq/IRC 结果回填和验证等级闭环。
+- [done] Gaussian TS 已具备映射反应中心、可编辑 scan 坐标、1D/2D 扫描、freq/IRC 回填和验证等级闭环；后续重点转为更多反应类型基准与长时间真实计算验证。
 - [done] WSL 计算工具状态和 Gaussian bridge 状态已暴露到 `/compute/status` 和右侧任务面板。
 - [done] xTB/CREST 已接入分子任务按钮，可从当前前端直接运行并把结果送到中间结果面板。
 - [todo] 继续把 PySCF/Psi4/geomeTRIC 接入具体任务按钮，而不只是环境可用。
@@ -313,6 +321,7 @@ WSL 临时文件必须放在：
 - 2026-06-20 正交箭头验证：`cd web; npm run build` 成功；浏览器刷新 `http://127.0.0.1:5173/` 后示例反应边 SVG path 为 `M 310,344L 402,344L 402,336.5L 430,336.5`，所有 segment 均为水平/垂直，且保留 `marker-end` 箭头。
 - 2026-06-20 结果展示验证：`cd web; npm run build` 成功；`/compute/xtb` 对 `O` 返回 `data.input_xyz`，可供结果弹窗 3D 渲染；`uv run pytest -q tests/test_route_layout.py tests/test_v5_yield.py` 为 3 passed。全量 `uv run pytest -q` 与 `tests/test_v6_api_service.py` 在本次环境中超时且无输出，需后续单独诊断测试收集/环境探测卡点。
 - 2026-06-20 TS 白色背景回归：修复前浏览器计算样式为 `background=rgba(0,0,0,0)`、`overflow=visible`、`position=static`；改用 `osf-config-modal ts-config-modal` 后为 `background=rgb(255,255,255)`、`overflow=hidden`、`position=relative`，并恢复 modal 阴影，1000×648 视口内截图确认白色内容层完整覆盖。
+- 2026-06-20 组分/TS 工作流验证：前端构建成功；浏览器确认水杨酸/乙酸酐两个结构可分别选中且任务面板只使用所选 SMILES；TS/Gaussian/API 核心回归 17 passed，非外部探测测试集合 25 passed。真实 SN2 准备对 `CBr.[Cl-]>>CCl.[Br-]` 得到 RXNMapper confidence=1.000、C–Cl 成键/C–Br 断键、3 个候选与 5×5 网格；实际 DFT 全网格未在本轮跑完，取消链路已验证且未保留 workflow Gaussian Link 进程。旧 phase1/phase2/v6 外部适配器测试组仍会受 WSL 探测挂起影响。
 - 2026-06-20 公开权重恢复验证：重启 `WslService` 后，`/compute/status` 中 AiZynthFinder、OPERA、RXNMapper、DRFP 及 WSL 计算后端全部 available；`/route/predict` 对 aspirin 返回 `Loaded 2 route(s) from AiZynthFinder via WSL.`、`used_fallback=false`；RXNMapper 映射 `CCO>>CC=O` 得到 `[CH3:1][CH2:2][OH:3]>>[CH3:1][CH:2]=[O:3]`、confidence `0.998663`；OPERA 对 CCO 返回 melting point `-114`、boiling point `78`、LogP `-0.31`、water solubility `1.26`、vapor pressure `1.77`，对应 AD 均为 `1`。
 - 2026-06-20 WSL 挂起事故恢复验证：停止 OrgSynFlow 服务后，发现 API 派生的 CREST 与 `/compute/status` WSL 探测残留 `wsl.exe`；`wsl --terminate Ubuntu-24.04` 与 `wsl --shutdown` 均超时，非管理员 shell 无法 `Restart-Service WslService`。精确停止 10 个命令行含 `/tmp/codex/orgsynflow` / `orgsynflow-chem` 的残留 `wsl.exe` 后，`wsl -e true` 恢复为 exit code 0；重启 OrgSynFlow 后，`/route/predict` 对 aspirin 返回 `used_fallback=false`、`available=true`，OPERA 对 CCO 返回 melting point `-114`、boiling point `78`、LogP `-0.31`、water solubility `1.26`、vapor pressure `1.77`，`/compute/status` 中 AiZynthFinder、OPERA、RXNMapper、DRFP、CREST 均 available。
 - 2026-06-20 已完成任务重新计算入口验证：`cd web; npm run build` 成功（仅 Vite 大 chunk warning）；使用本机 Chrome headless 打开 `http://127.0.0.1:5173/`，临时添加 CCO 节点并运行“计算分子描述符（RDKit）”，任务按钮变为 `task-status-succeeded`，首次结果弹窗和再次点击绿色按钮打开的结果弹窗均出现“重新计算”。测试前后已从 `%LOCALAPPDATA%\Temp\.agents\orgsynflow\example-workspace.before-recompute-ui.json` 恢复 `data/workspaces/example-workspace.json`，SHA256 均为 `0D7CA51DD36D940DFDAC7CAE89722F0298C6AE6155A44F3B7B0F1A36B8F2756F`。
