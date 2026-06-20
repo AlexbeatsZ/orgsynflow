@@ -25,7 +25,7 @@ from services.workbench import (
     run_local_gaussian,
     run_xtb_for_smiles,
 )
-from core.job_queue import gaussian_job_queue
+from core.job_queue import crest_manager, gaussian_job_queue
 from core.molecule import molecule_svg
 from core.reaction_mapping import mapped_atom_coordinates
 from core.reaction_validation import validate_reaction_smiles
@@ -394,7 +394,27 @@ def compute_xtb(request: SemiempiricalRunRequest) -> dict[str, object]:
 
 @app.post("/compute/crest")
 def compute_crest(request: SemiempiricalRunRequest) -> dict[str, object]:
-    return run_crest_for_smiles(request.smiles, timeout_seconds=request.timeout_seconds or 1800)
+    from core.gaussian import coordinates_from_smiles
+    coordinates = coordinates_from_smiles(request.smiles)
+    coordinate_lines = [line for line in coordinates.splitlines() if line.strip()]
+    xyz = "\n".join([str(len(coordinate_lines)), request.smiles, *coordinate_lines, ""])
+    return crest_manager.submit(xyz, timeout_seconds=request.timeout_seconds or 1800)
+
+
+@app.get("/compute/crest/{job_id}")
+def compute_crest_status(job_id: str) -> dict[str, object]:
+    job = crest_manager.get(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail=f"CREST job not found: {job_id}")
+    return job
+
+
+@app.post("/compute/crest/{job_id}/cancel")
+def compute_crest_cancel(job_id: str) -> dict[str, object]:
+    job = crest_manager.cancel(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail=f"CREST job not found: {job_id}")
+    return job
 
 
 @app.post("/jobs/gaussian")

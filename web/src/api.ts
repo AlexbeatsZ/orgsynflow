@@ -160,10 +160,26 @@ export async function runXtb(smiles: string, timeoutSeconds = 300): Promise<unkn
 }
 
 export async function runCrest(smiles: string, timeoutSeconds = 1800): Promise<unknown> {
-  const { data } = await http.post("/compute/crest", {
+  const { data: job } = await http.post("/compute/crest", {
     smiles,
     timeout_seconds: timeoutSeconds,
   });
+  return job;
+}
+
+export async function pollCrestResult(jobId: string): Promise<unknown> {
+  for (let i = 0; i < 600; i++) {
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+    const { data: status } = await http.get(`/compute/crest/${jobId}`);
+    const s = (status as any).status as string;
+    if (s === "succeeded") return (status as any).result ?? status;
+    if (s === "failed" || s === "cancelled" || s === "unavailable") return status;
+  }
+  return { status: "failed", reason: "CREST 轮询超时（30分钟），请检查结果。" };
+}
+
+export async function cancelCrestJob(jobId: string): Promise<unknown> {
+  const { data } = await http.post(`/compute/crest/${jobId}/cancel`);
   return data;
 }
 

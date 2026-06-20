@@ -176,3 +176,94 @@ def _read_log_snapshot(work_dir: str | None) -> dict[str, Any]:
 
 
 gaussian_job_queue = GaussianJobQueue()
+
+
+class CrestJob:
+    def __init__(self, xyz_text: str, timeout_seconds: int = 1800):
+        self.job_id = str(uuid.uuid4())[:8]
+        self.xyz_text = xyz_text
+        self.timeout_seconds = timeout_seconds
+        self.status: str = "queued"
+        self.created_at: str = datetime.now(timezone.utc).isoformat()
+        self.started_at: str | None = None
+        self.finished_at: str | None = None
+        self.result: dict[str, Any] | None = None
+        self.error: str | None = None
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "job_id": self.job_id,
+            "status": self.status,
+            "created_at": self.created_at,
+            "started_at": self.started_at,
+            "finished_at": self.finished_at,
+            "result": self.result,
+            "error": self.error,
+        }
+
+
+class CrestJobManager:
+    def __init__(self) -> None:
+        self._jobs: dict[str, CrestJob] = {}
+        self._cancel_events: dict[str, threading.Event] = {}
+        self._lock = threading.Lock()
+
+    def submit(self, xyz_text: str, timeout_seconds: int = 1800) -> dict[str, Any]:
+        job = CrestJob(xyz_text, timeout_seconds=timeout_seconds)
+        with self._lock:
+            self._jobs[job.job_id] = job
+        thread = threading.Thread(target=self._run, args=(job,), daemon=True)
+        thread.start()
+        return job.as_dict()
+
+    def get(self, job_id: str) -> dict[str, Any] | None:
+        with self._lock:
+            job = self._jobs.get(job_id)
+            if job is None:
+                return None
+            return job.as_dict()
+
+    def cancel(self, job_id: str) -> dict[str, Any] | None:
+        with self._lock:
+            job = self._jobs.get(job_id)
+            if job is None:
+                return None
+            if job.status == "queued":
+                job.status = "cancelled"
+                job.finished_at = datetime.now(timezone.utc).isoformat()
+                job.error = "用户已取消。"
+            elif job.status == "running":
+                cancel_event = self._cancel_events.get(job_id)
+                if cancel_event:
+                    cancel_event.set()
+                job.status = "cancelled"
+                job.finished_at = datetime.now(timezone.utc).isoformat()
+                job.error = "已请求强制终止 CREST 进程。"
+            return job.as_dict()
+
+    def _run(self, job: CrestJob) -> None:
+        cancel_event = threading.Event()
+        with self._lock:
+            job.status = "running"
+            job.started_at = datetime.now(timezone.utc).isoformat()
+            self._cancel_events[job.job_id] = cancel_event
+
+        from adapters.xtb_adapter import run_crest_job  # deferred import to avoid circular dependency
+        result = run_crest_job(job.xyz_text, timeout_seconds=job.timeout_seconds, cancel_event=cancel_event)
+
+        with self._lock:
+            job.finished_at = datetime.now(timezone.utc).isoformat()
+            job.result = result.as_dict()
+            if result.status == "cancelled":
+                job.status = "cancelled"
+                job.error = result.reason
+            elif result.status == "failed" or result.status == "unavailable":
+                job.status = "failed"
+                job.error = result.reason or "CREST 计算失败。"
+            else:
+                job.status = "succeeded"
+            self._cancel_events.pop(job.job_id, None)
+
+
+crest_manager = CrestJobManager()
+

@@ -41,6 +41,7 @@ import {
   addCell,
   analyzeRoute,
   calculateDescriptors,
+  cancelCrestJob,
   cancelGaussianJob,
   createWorkspace,
   estimateYield,
@@ -55,6 +56,7 @@ import {
   predictProperties,
   reactionFeatures,
   renderMoleculeSvg,
+  pollCrestResult,
   runCrest,
   runXtb,
   saveWorkspace,
@@ -2579,6 +2581,7 @@ function MoleculeTasks({
   const descriptorsTask = makeTaskDefinition(selected, "molecule-descriptors", "计算分子描述符（RDKit）", "RDKit");
   const xtbTask = makeTaskDefinition(selected, "xtb-geometry-energy", "计算几何优化与能量（xTB）", "xTB");
   const crestTask = makeTaskDefinition(selected, "crest-conformers", "搜索低能构象（CREST）", "CREST");
+  const crestJobIdRef = useRef<string | null>(null);
   const routeTask = makeTaskDefinition(selected, "retrosynthesis", "预测逆合成路线", undefined);
   const gaussianTask = makeTaskDefinition(selected, "gaussian-opt-freq", "计算结构优化与频率（Gaussian）", "Gaussian");
 
@@ -2685,8 +2688,48 @@ function MoleculeTasks({
     }
   }
 
+  async function forceCancelCrest() {
+    const jobId = crestJobIdRef.current;
+    if (!jobId) return;
+    try {
+      await cancelCrestJob(jobId);
+      const record = recordFor(crestTask);
+      await persistTaskRecord(selected.cell.id, taskResultKey(crestTask), {
+        ...(record ?? {} as CachedResult),
+        status: "cancelled",
+        updated_at: new Date().toISOString(),
+        error: "用户已强制终止 CREST 进程。",
+        task_id: crestTask.id,
+        task_label: crestTask.label,
+        object_id: crestTask.objectId,
+        object_kind: crestTask.objectKind,
+        object_label: crestTask.objectLabel,
+        engine: crestTask.engine,
+      } as CachedResult);
+    } catch (error) {
+      openModal({
+        kind: "task-error",
+        title: "强制结束 CREST 失败",
+        record: {
+          task_id: crestTask.id,
+          task_label: crestTask.label,
+          object_id: crestTask.objectId,
+          object_kind: crestTask.objectKind,
+          object_label: crestTask.objectLabel,
+          engine: crestTask.engine,
+          status: "failed",
+          updated_at: new Date().toISOString(),
+          error: errorMessage(error),
+          payload: null,
+        } as unknown as CachedResult,
+      });
+    }
+  }
+
   const gaussianRecord = recordFor(gaussianTask);
   const canCancelGaussian = Boolean(gaussianRecord?.job_id && taskStatusForRecord(gaussianRecord) === "running");
+  const crestRecord = recordFor(crestTask);
+  const canCancelCrest = Boolean(crestJobIdRef.current && taskStatusForRecord(crestRecord) === "running");
 
   return (
     <div className="task-group">
@@ -2696,7 +2739,11 @@ function MoleculeTasks({
       <TaskButton definition={propertiesTask} record={recordFor(propertiesTask)} onRun={() => void runTask(propertiesTask, () => predictProperties(targetSmiles, true), { title: propertiesTask.label })} openModal={openModal} />
       <TaskButton definition={descriptorsTask} record={recordFor(descriptorsTask)} onRun={() => void runTask(descriptorsTask, () => calculateDescriptors(targetSmiles), { title: descriptorsTask.label })} openModal={openModal} />
       <TaskButton definition={xtbTask} record={recordFor(xtbTask)} onRun={() => void runTask(xtbTask, () => runXtb(targetSmiles, 300), { title: xtbTask.label })} openModal={openModal} />
-      <TaskButton definition={crestTask} record={recordFor(crestTask)} onRun={() => void runTask(crestTask, () => runCrest(targetSmiles, 1800), { title: crestTask.label })} openModal={openModal} />
+      <TaskButton definition={crestTask} record={recordFor(crestTask)} onRun={() => void runTask(crestTask, async () => {
+        const job = await runCrest(targetSmiles, 1800) as any;
+        crestJobIdRef.current = job?.job_id ?? null;
+        return pollCrestResult(job.job_id);
+      }, { title: crestTask.label })} openModal={openModal} />
       <TaskButton
         definition={routeTask}
         record={recordFor(routeTask)}
@@ -2725,6 +2772,11 @@ function MoleculeTasks({
       {canCancelGaussian && (
         <button className="secondary-task-button danger-action" onClick={() => void forceCancelGaussian()}>
           强制结束 Gaussian 进程
+        </button>
+      )}
+      {canCancelCrest && (
+        <button className="secondary-task-button danger-action" onClick={() => void forceCancelCrest()}>
+          强制结束 CREST 进程
         </button>
       )}
       {gaussianConfigOpen && (
