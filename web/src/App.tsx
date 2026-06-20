@@ -1353,7 +1353,6 @@ function MoleculeNode({ id, data }: NodeProps) {
                 data-component-id={componentId}
               >
                 <MoleculeDrawing smiles={component} />
-                <span>{component}</span>
               </button>
             );
           })}
@@ -1361,9 +1360,11 @@ function MoleculeNode({ id, data }: NodeProps) {
       ) : (
         <MoleculeDrawing smiles={smiles} />
       )}
-      <div className="molecule-caption" title={label === smiles ? smiles : `${label} · ${smiles}`}>
-        {smiles}
-      </div>
+      {label !== smiles && (
+        <div className="molecule-caption" title={label}>
+          {label}
+        </div>
+      )}
     </div>
   );
 }

@@ -427,6 +427,10 @@ button {
   display: block;
 }
 
+.react-flow__edges {
+  z-index: 10 !important;
+}
+
 .molecule-drawing {
   height: 108px;
   display: grid;
