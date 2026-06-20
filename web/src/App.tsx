@@ -3084,7 +3084,9 @@ function chooseBestOrthogonalRoute(
   const obstacles = nodes
     .filter((node) => node.id !== source.id && node.id !== target.id)
     .map((node) => expandRect(nodeRect(node), 18))
-    .concat(endpointOverrides.obstacles ?? []);
+    .concat(endpointOverrides.obstacles ?? [])
+    .concat([expandRect(nodeRect(source), 18)])
+    .concat(endpointOverrides.targetRect ? [] : [expandRect(nodeRect(target), 18)]);
   const candidates: Array<{ sourceHandle: Side; targetHandle: Side; points: Point[] }> = [];
 
   for (const sourceHandle of sideOrder(sourceRect, targetRect)) {

@@ -428,7 +428,7 @@ button {
 }
 
 .react-flow__edges {
-  z-index: 10 !important;
+  z-index: 9999 !important;
 }
 
 .molecule-drawing {
