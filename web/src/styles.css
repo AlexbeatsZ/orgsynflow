@@ -1478,13 +1478,6 @@ button {
   cursor: pointer;
 }
 
-.ts-3d-toolbar button.active {
-  border-color: #2563eb;
-  background: #dbeafe;
-  color: #1d4ed8;
-  font-weight: 700;
-}
-
 .ts-3d-toolbar label {
   display: inline-flex;
   align-items: center;
@@ -1509,20 +1502,8 @@ button {
   white-space: nowrap;
 }
 
-.ts-3d-move-layer {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  cursor: grab;
-  touch-action: none;
+.ts-3d-viewer-container:focus-visible {
   outline: none;
-}
-
-.ts-3d-move-layer:active {
-  cursor: grabbing;
-}
-
-.ts-3d-move-layer:focus-visible {
   box-shadow: inset 0 0 0 3px rgba(37, 99, 235, 0.45);
 }
 

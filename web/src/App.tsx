@@ -144,8 +144,6 @@ type MoleculeTransform = {
   rotationZ: number;
 };
 
-type MoleculeInteractionMode = "view" | "select" | "move";
-
 const emptyMoleculeTransform = (): MoleculeTransform => ({
   x: 0,
   y: 0,
@@ -2388,8 +2386,7 @@ function TransitionStateConfigModal({
   const [animateImaginaryMode, setAnimateImaginaryMode] = useState(false);
   const [selectedMoleculeIndex, setSelectedMoleculeIndex] = useState(0);
   const [moleculeTransforms, setMoleculeTransforms] = useState<MoleculeTransform[]>([]);
-  const [interactionMode, setInteractionMode] = useState<MoleculeInteractionMode>("view");
-  const [showAtomLabels, setShowAtomLabels] = useState(true);
+  const [showAtomLabels, setShowAtomLabels] = useState(false);
   const [fitViewNonce, setFitViewNonce] = useState(0);
   const availableAgents = useMemo(() => {
     const parts = reactionSmiles.split(">");
@@ -2551,15 +2548,15 @@ function TransitionStateConfigModal({
     let atomOffset = 0;
     transformedMoleculeAtoms.forEach((atoms, index) => {
       if (atoms.length === 0) return;
-      const model = viewer.addModel(atoms.map(formatXyzAtom).join("\n"), "xyz");
+      const model = viewer.addModel(formatXyzModel(atoms, `OrgSynFlow molecule ${index + 1}`), "xyz");
       const selected = index === selectedMoleculeIndex;
       model.setStyle({}, {
         stick: { radius: selected ? 0.2 : 0.14 },
         sphere: { scale: selected ? 0.32 : 0.23 },
       });
-      model.setClickable({}, true, () => {
+      model.setClickable({}, true, (_atom: unknown, _viewer: unknown, event: MouseEvent | undefined) => {
+        if (!event?.ctrlKey) return;
         setSelectedMoleculeIndex(index);
-        setInteractionMode("select");
       });
       if (showAtomLabels) {
         atoms.forEach((atom, atomIndex) => {
@@ -2602,12 +2599,17 @@ function TransitionStateConfigModal({
     let phase = -1;
     const timer = window.setInterval(() => {
       phase *= -1;
-      const animated = atoms.map((atom, index) => {
+      const animatedAtoms = atoms.map((atom, index) => {
         const displacement = mode.displacements[index] ?? [0, 0, 0];
-        return `${atom.element} ${(atom.x + phase * displacement[0] * 0.8).toFixed(6)} ${(atom.y + phase * displacement[1] * 0.8).toFixed(6)} ${(atom.z + phase * displacement[2] * 0.8).toFixed(6)}`;
-      }).join("\n");
+        return {
+          element: atom.element,
+          x: atom.x + phase * displacement[0] * 0.8,
+          y: atom.y + phase * displacement[1] * 0.8,
+          z: atom.z + phase * displacement[2] * 0.8,
+        };
+      });
       viewer.clear();
-      viewer.addModel(animated, "xyz");
+      viewer.addModel(formatXyzModel(animatedAtoms, "OrgSynFlow imaginary mode"), "xyz");
       viewer.setStyle({}, { stick: { radius: 0.15 }, sphere: { scale: 0.25 } });
       viewer.zoomTo();
       viewer.render();
@@ -2626,7 +2628,9 @@ function TransitionStateConfigModal({
   }
 
   function handleMovePointerDown(event: React.PointerEvent<HTMLDivElement>) {
-    if (interactionMode !== "move") return;
+    if (!event.shiftKey) return;
+    event.preventDefault();
+    event.stopPropagation();
     event.currentTarget.setPointerCapture(event.pointerId);
     moveDragRef.current = {
       pointerId: event.pointerId,
@@ -2638,22 +2642,23 @@ function TransitionStateConfigModal({
 
   function handleMovePointerMove(event: React.PointerEvent<HTMLDivElement>) {
     const drag = moveDragRef.current;
-    if (interactionMode !== "move" || !drag || drag.pointerId !== event.pointerId) return;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    event.preventDefault();
+    event.stopPropagation();
     const dx = (event.clientX - drag.startX) * 0.02;
     const dy = (event.clientY - drag.startY) * 0.02;
-    updateSelectedMoleculeTransform(event.shiftKey
-      ? { x: drag.transform.x + dx, z: drag.transform.z - dy }
-      : { x: drag.transform.x + dx, y: drag.transform.y - dy });
+    updateSelectedMoleculeTransform({ x: drag.transform.x + dx, y: drag.transform.y - dy });
   }
 
   function handleMovePointerEnd(event: React.PointerEvent<HTMLDivElement>) {
     if (moveDragRef.current?.pointerId !== event.pointerId) return;
+    event.preventDefault();
+    event.stopPropagation();
     moveDragRef.current = null;
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
   }
 
   function handleMoveKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
-    if (interactionMode !== "move") return;
     const step = event.altKey ? 0.05 : 0.2;
     if (event.key === "ArrowLeft") updateSelectedMoleculeTransform({ x: selectedMoleculeTransform.x - step });
     else if (event.key === "ArrowRight") updateSelectedMoleculeTransform({ x: selectedMoleculeTransform.x + step });
@@ -2914,16 +2919,6 @@ function TransitionStateConfigModal({
               <div className="ts-config-right">
                 <h4>3D 构象预览 (类似 GaussView)</h4>
                 <div className="ts-3d-toolbar" role="toolbar" aria-label="3D 分子操作">
-                  {(["view", "select", "move"] as MoleculeInteractionMode[]).map((mode) => (
-                    <button
-                      type="button"
-                      key={mode}
-                      className={interactionMode === mode ? "active" : ""}
-                      onClick={() => setInteractionMode(mode)}
-                    >
-                      {mode === "view" ? "视图" : mode === "select" ? "选择" : "移动"}
-                    </button>
-                  ))}
                   <button type="button" onClick={() => setFitViewNonce((current) => current + 1)}>居中</button>
                   <label><input type="checkbox" checked={showAtomLabels} onChange={(event) => setShowAtomLabels(event.target.checked)} /> 原子编号</label>
                 </div>
@@ -2931,27 +2926,24 @@ function TransitionStateConfigModal({
                   已选择：<strong>分子 {selectedMoleculeIndex + 1}</strong>
                   <code>{moleculeLabels[selectedMoleculeIndex] ?? "-"}</code>
                 </div>
-                <div className="ts-3d-viewer-container">
+                <div
+                  className="ts-3d-viewer-container"
+                  role="application"
+                  aria-label="3D 分子视图：左键调整视角，Shift 加左键移动分子，Ctrl 加左键选择分子"
+                  tabIndex={0}
+                  onPointerDownCapture={handleMovePointerDown}
+                  onPointerMoveCapture={handleMovePointerMove}
+                  onPointerUpCapture={handleMovePointerEnd}
+                  onPointerCancelCapture={handleMovePointerEnd}
+                  onKeyDown={handleMoveKeyDown}
+                >
                   <div ref={viewerRef} className="ts-3d-viewer" />
-                  {interactionMode === "move" && mol3dReady && (
-                    <div
-                      className="ts-3d-move-layer"
-                      role="application"
-                      aria-label={`移动分子 ${selectedMoleculeIndex + 1}`}
-                      tabIndex={0}
-                      onPointerDown={handleMovePointerDown}
-                      onPointerMove={handleMovePointerMove}
-                      onPointerUp={handleMovePointerEnd}
-                      onPointerCancel={handleMovePointerEnd}
-                      onKeyDown={handleMoveKeyDown}
-                    />
-                  )}
                   {!mol3dReady && (
                     <div className="ts-3d-viewer-placeholder">正在加载 3D 渲染插件...</div>
                   )}
                 </div>
                 <p className="result-hint">
-                  视图：拖拽旋转/滚轮缩放/右键平移。选择：点击分子。移动：拖拽选中分子，Shift+拖拽沿 Z 轴，方向键可微调。
+                  左键拖拽调整视角；Shift + 左键拖拽移动选中分子；Ctrl + 左键点击选择分子。滚轮缩放，方向键微调位置。
                 </p>
                 {workflow?.validation?.frequency_ok && (
                   <button className={`secondary-button ${animateImaginaryMode ? "active-action" : ""}`} onClick={() => setAnimateImaginaryMode((current) => !current)}>
@@ -4266,6 +4258,10 @@ function transformMoleculeAtoms(
 
 function formatXyzAtom(atom: MoleculeCoordinates["atoms"][number]): string {
   return `${atom.element.padEnd(2)} ${atom.x.toFixed(6).padStart(12)} ${atom.y.toFixed(6).padStart(12)} ${atom.z.toFixed(6).padStart(12)}`;
+}
+
+function formatXyzModel(atoms: MoleculeCoordinates["atoms"], comment: string): string {
+  return [String(atoms.length), comment, ...atoms.map(formatXyzAtom)].join("\n");
 }
 
 function isAtomCoordinateLine(line: string): boolean {
