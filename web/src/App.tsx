@@ -2400,6 +2400,7 @@ function TransitionStateConfigModal({
   const terminalRecordedRef = useRef(false);
   const moleculeDragRef = useRef<{
     pointerId: number;
+    moleculeIndex: number;
     mode: MoleculeDragMode;
     startX: number;
     startY: number;
@@ -2561,6 +2562,10 @@ function TransitionStateConfigModal({
         stick: { radius: selected ? 0.2 : 0.14 },
         sphere: { scale: selected ? 0.32 : 0.23 },
       });
+      model.selectedAtoms({}).forEach((atom: any) => {
+        atom.properties = { ...(atom.properties ?? {}), osfMoleculeIndex: index };
+      });
+      model.setClickable({}, true, () => undefined);
       if (showAtomLabels) {
         atoms.forEach((atom, atomIndex) => {
           viewer.addLabel(String(atomOffset + atomIndex + 1), {
@@ -2622,12 +2627,26 @@ function TransitionStateConfigModal({
 
   const selectedMoleculeTransform = moleculeTransforms[selectedMoleculeIndex] ?? emptyMoleculeTransform();
 
-  function updateSelectedMoleculeTransform(update: Partial<MoleculeTransform>) {
+  function updateMoleculeTransform(moleculeIndex: number, update: Partial<MoleculeTransform>) {
     setMoleculeTransforms((current) => {
       const next = baseMoleculeAtoms.map((_, index) => current[index] ?? emptyMoleculeTransform());
-      next[selectedMoleculeIndex] = { ...next[selectedMoleculeIndex], ...update };
+      next[moleculeIndex] = { ...next[moleculeIndex], ...update };
       return next;
     });
+  }
+
+  function updateSelectedMoleculeTransform(update: Partial<MoleculeTransform>) {
+    updateMoleculeTransform(selectedMoleculeIndex, update);
+  }
+
+  function moleculeIndexAtPointer(event: React.PointerEvent<HTMLDivElement>): number | null {
+    if (!viewerRef.current || !viewer) return null;
+    const rect = viewerRef.current.getBoundingClientRect();
+    const mouseX = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    const mouseY = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    const hit = viewer.targetedObjects(mouseX, mouseY, { clickable: true })?.[0]?.clickable;
+    const index = Number(hit?.properties?.osfMoleculeIndex);
+    return Number.isInteger(index) && index >= 0 && index < baseMoleculeAtoms.length ? index : null;
   }
 
   function handleMoleculePointerDown(event: React.PointerEvent<HTMLDivElement>) {
@@ -2635,15 +2654,20 @@ function TransitionStateConfigModal({
     if (!mode || !viewer) return;
     event.preventDefault();
     event.stopPropagation();
+    const moleculeIndex = moleculeIndexAtPointer(event);
+    if (moleculeIndex === null) return;
+    const transform = moleculeTransforms[moleculeIndex] ?? emptyMoleculeTransform();
+    setSelectedMoleculeIndex(moleculeIndex);
     event.currentTarget.setPointerCapture(event.pointerId);
     const screenRight = normalizeVector3(viewer.screenOffsetToModel(100, 0));
     const screenDown = normalizeVector3(viewer.screenOffsetToModel(0, 100));
     moleculeDragRef.current = {
       pointerId: event.pointerId,
+      moleculeIndex,
       mode,
       startX: event.clientX,
       startY: event.clientY,
-      transform: { ...selectedMoleculeTransform },
+      transform: { ...transform },
       screenRight,
       screenUp: scaleVector3(screenDown, -1),
     };
@@ -2658,7 +2682,7 @@ function TransitionStateConfigModal({
     const dy = event.clientY - drag.startY;
     if (drag.mode === "translate") {
       const offset = viewer.screenOffsetToModel(dx, dy);
-      updateSelectedMoleculeTransform({
+      updateMoleculeTransform(drag.moleculeIndex, {
         x: drag.transform.x + offset.x,
         y: drag.transform.y + offset.y,
         z: drag.transform.z + offset.z,
@@ -2669,7 +2693,7 @@ function TransitionStateConfigModal({
     const horizontalRotation = quaternionFromAxisAngle(drag.screenUp, dx * 0.01);
     const verticalRotation = quaternionFromAxisAngle(drag.screenRight, dy * 0.01);
     const rotated = multiplyQuaternions(verticalRotation, multiplyQuaternions(horizontalRotation, startRotation));
-    updateSelectedMoleculeTransform(eulerDegreesFromQuaternion(rotated));
+    updateMoleculeTransform(drag.moleculeIndex, eulerDegreesFromQuaternion(rotated));
   }
 
   function handleMoleculePointerEnd(event: React.PointerEvent<HTMLDivElement>) {
@@ -2740,7 +2764,7 @@ function TransitionStateConfigModal({
     <div className="osf-modal-backdrop">
       <div className="osf-config-modal ts-config-modal">
         <div className="osf-modal-header">
-          <strong>计算过渡态参数配置 (GaussView 辅助)</strong>
+          <strong>过渡态构象编辑器</strong>
           <button className="close-button" onClick={onClose}>×</button>
         </div>
         <div className="osf-modal-body config-form">
@@ -2877,21 +2901,7 @@ function TransitionStateConfigModal({
                   </div>
                 )}
 
-                <h4>2. 选择和调整分子</h4>
-                <div className="ts-molecule-picker" aria-label="选择要调整的分子">
-                  {moleculeLabels.map((label, index) => (
-                    <button
-                      type="button"
-                      key={`${label}-${index}`}
-                      className={selectedMoleculeIndex === index ? "selected" : ""}
-                      onClick={() => setSelectedMoleculeIndex(index)}
-                      title={label}
-                    >
-                      <strong>分子 {index + 1}</strong>
-                      <small>{label}</small>
-                    </button>
-                  ))}
-                </div>
+                <h4>2. 刚体变换参数</h4>
                 {(["x", "y", "z"] as const).map((axis) => (
                   <div className="ts-slider-group" key={`translation-${axis}`}>
                     <label>{axis.toUpperCase()} 轴平移 (Å)</label>
@@ -2927,7 +2937,7 @@ function TransitionStateConfigModal({
                 </button>
               </div>
               <div className="ts-config-right">
-                <h4>3D 构象预览 (类似 GaussView)</h4>
+                <h4>三维构象编辑</h4>
                 <div className="ts-3d-toolbar" role="toolbar" aria-label="3D 分子操作">
                   <button type="button" onClick={() => setFitViewNonce((current) => current + 1)}>居中</button>
                   <label><input type="checkbox" checked={showAtomLabels} onChange={(event) => setShowAtomLabels(event.target.checked)} /> 原子编号</label>
@@ -2952,7 +2962,7 @@ function TransitionStateConfigModal({
                   )}
                 </div>
                 <p className="result-hint">
-                  左键拖拽调整视角；Shift + 左键沿当前视图平面移动选中分子；Ctrl + 左键旋转选中分子。滚轮缩放；左侧分子卡用于切换操作对象。
+                  左键拖拽调整视角；从目标分子上按下 Shift + 左键可沿当前视图平面平移；从目标分子上按下 Ctrl + 左键可执行刚体旋转。滚轮缩放。
                 </p>
                 {workflow?.validation?.frequency_ok && (
                   <button className={`secondary-button ${animateImaginaryMode ? "active-action" : ""}`} onClick={() => setAnimateImaginaryMode((current) => !current)}>

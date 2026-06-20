@@ -128,7 +128,7 @@ WSL 临时文件必须放在：
 
 前端 UX 经验：
 
-- TS/GaussView 辅助 3D 预览不能在运行时重复注入 CDN 脚本；应通过项目内 `3dmol` 依赖统一异步加载。右栏是可收缩 flex 容器，viewer 必须设置 `flex: 0 0 350px` 与 `min-height`，否则声明的 350px 会被压缩到约 24px，表现为空白/不可用。传给 3Dmol 的每个 XYZ 子模型必须包含首行原子数和第二行注释；只传坐标行会导致模型解析为空，而手工 label 仍显示，症状就是“只有一堆编号”。候选 XYZ 必须先按分子拆组再应用每个分子的变换，不能在选中候选后直接返回原始 XYZ，否则预览和 GJF 均不会响应平移/旋转。
+- TS 三维构象编辑器不能在运行时重复注入 CDN 脚本；应通过项目内 `3dmol` 依赖统一异步加载。右栏是可收缩 flex 容器，viewer 必须设置 `flex: 0 0 350px` 与 `min-height`，否则声明的 350px 会被压缩到约 24px，表现为空白/不可用。传给 3Dmol 的每个 XYZ 子模型必须包含首行原子数和第二行注释；只传坐标行会导致模型解析为空，而手工 label 仍显示，症状就是“只有一堆编号”。候选 XYZ 必须先按分子拆组再应用每个分子的变换，不能在选中候选后直接返回原始 XYZ，否则预览和 GJF 均不会响应平移/旋转。
 - 3D 分子拖拽不能把屏幕 dx/dy 直接写进世界 X/Y；相机旋转后方向会错误。Shift 平移应使用 3Dmol `screenOffsetToModel(dx, dy)`，它先在投影平面令深度分量为零，再按相机四元数变回模型坐标，保证只在与视线垂直的平面移动。Ctrl 旋转应以相机平面中的 screen-up/screen-right 为旋转轴，再把组合四元数转换回 XYZ 欧拉角供 GJF 使用。
 - SMILES 块删除不能只依赖 React Flow 的临时节点状态；删除时必须同时移除相邻边，并用剩余 nodes/edges 重建 `cell.objects.molecules/reactions`，否则父级单元更新或页面刷新会把节点重新生成。当前选中块后会显示“删除 SMILES 块”按钮，删除结果可随工作区保存持久化。
 - 用户明确不要深色永久侧栏。工作区选择应是顶部紧凑下拉菜单。
@@ -280,7 +280,7 @@ WSL 临时文件必须放在：
 - [done] 反应/路线箭头已改为智能正交路由，支持四侧中心自动端点选择、横竖折线、避开其它 SMILES 块，以及按路径长度/弯折数/前段长度排序。
 - [done] 完成公开模型/权重审计并写入 `docs/public-model-weights-audit.md`：确认 AiZynthFinder/OPERA/RXNMapper/DRFP 当前状态，记录 ASKCOS、RXNFP、Yield-BERT、Chemprop 的可用性与限制。
 - [done] 结果展示已从直接铺原始 log/JSON 改为摘要化展示：xTB/CREST/Gaussian 提取状态、关键指标、日志摘要和警告，原始日志折叠；xTB/CREST payload 会返回 `data.input_xyz`，前端对 XYZ/GJF 坐标渲染 3Dmol 可交互分子结构。
-- [done] “计算过渡态参数配置 (GaussView 辅助)”窗口已接入统一 `osf-config-modal` 基类，恢复不透明白色背景、阴影、裁剪和正确定位。
+- [done] “过渡态构象编辑器”窗口已接入统一 `osf-config-modal` 基类，恢复不透明白色背景、阴影、裁剪和正确定位。
 - [done] 点式多分子节点已支持在画布内直接点击具体组分；全部分子级任务、结果状态和 Gaussian object ID 均隔离到组分级，路线/反应仍使用外层组合节点。
 - [done] 新增持久化通用 Gaussian TS 工作流：RXNMapper 键变化、三个初始构象、1D/2D 扫描、自适应细化、TS/Freq、虚频模式投影、IRC、端点热化学、暂停/续算/取消/导出以及 API/CLI/React 看板。
 - [done] TS 默认理论级别更新为 wB97XD/def2SVP；电荷/多重度自动推断，方法、基组、溶剂、资源、温度和虚频阈值可编辑。
@@ -348,7 +348,7 @@ WSL 临时文件必须放在：
 
 ## 4. New Issues
 
-- [done] 2026-06-20 修复“3D 构象预览 (类似 GaussView)”不可用：3Dmol 改为前端本地依赖并统一加载，viewer 高度不再被 flex 压缩；补齐每个子模型的标准 XYZ 头，球棍结构正常显示，原子编号默认关闭。交互固定为普通左键拖拽视角、Shift+左键沿当前视图平面平移选中分子、Ctrl+左键绕当前视图平面的上下/左右轴旋转选中分子；左侧分子卡切换操作对象。预览坐标与 GJF 输入联动。浏览器在先旋转相机后回归：Shift 水平拖拽得到世界坐标位移 `(-0.25, 1.70, 1.90)`，说明拖拽已随视角转换而非写死 X/Y；Ctrl 拖拽保持平移不变并把旋转从 `(0,0,0)` 改为约 `(27°,58°,1°)`；`npm run build` 成功。
+- [done] 2026-06-20 修复三维构象编辑器：3Dmol 改为前端本地依赖并统一加载，viewer 高度不再被 flex 压缩；补齐每个子模型的标准 XYZ 头，球棍结构正常显示，原子编号默认关闭。普通左键拖拽视角；Shift/Ctrl 起点通过 3Dmol 射线拾取自动确定命中的分子，分别执行当前视图平面平移和刚体旋转，无需预先切换操作对象。预览坐标与 GJF 输入联动。浏览器回归：从分子 2 上直接 Shift 拖拽会自动选择分子 2 并只改变平移；随后从分子 1 上直接 Ctrl 拖拽会自动选择分子 1 并只改变旋转；`npm run build` 成功。
 - [done] 2026-06-20 修复 CREST 不可用结果被前端误记为成功的问题：通用任务会根据 payload 的 `available/status` 推断失败状态并保留 `reason`；历史上已缓存为 `succeeded + unavailable` 的记录也会显示为失败、允许重试。实时 API 已通过 WSL CREST 3.0.2 对水分子完成构象搜索（return code 0），确认当前工具链可用。
 - [todo] Ketcher 绘图窗口仍未居中且无法使用。已尝试在 `web/src/styles.css` 中移除 `.osf-ketcher-host > div` 的 flex 布局并提交（commit e1b4eb0），但窗口仍表现异常，需要进一步调试布局和可能的全局 CSS 冲突。
 
