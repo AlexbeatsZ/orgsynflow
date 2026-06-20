@@ -65,7 +65,7 @@ def run_xtb_job(xyz_text: str, timeout_seconds: int = 300, cancel_event: Any = N
     return _run([executable, str(xyz_path)], work_dir, "xTB CLI", timeout_seconds, cancel_event=cancel_event)
 
 
-def run_crest_job(xyz_text: str, timeout_seconds: int = 1800, cancel_event: Any = None) -> SemiempiricalJobResult:
+def run_crest_job(xyz_text: str, timeout_seconds: int = 1800, cancel_event: Any = None, work_dir: str | None = None) -> SemiempiricalJobResult:
     executable = find_crest_executable()
     if executable is None:
         return SemiempiricalJobResult(
@@ -75,12 +75,17 @@ def run_crest_job(xyz_text: str, timeout_seconds: int = 1800, cancel_event: Any 
             reason="未在 PATH 中检测到 CREST；无法运行构象搜索 job。",
         )
     if executable.startswith("wsl:"):
-        return _run_wsl(executable.removeprefix("wsl:"), xyz_text, "crest_jobs", "CREST CLI via WSL", timeout_seconds, cancel_event=cancel_event)
-    work_dir = _default_job_dir("crest_jobs")
-    work_dir.mkdir(parents=True, exist_ok=True)
-    xyz_path = work_dir / "input.xyz"
+        return _run_wsl(executable.removeprefix("wsl:"), xyz_text, "crest_jobs", "CREST CLI via WSL", timeout_seconds, cancel_event=cancel_event, work_dir=work_dir)
+
+    if work_dir is None:
+        work_dir_path = _default_job_dir("crest_jobs")
+    else:
+        work_dir_path = Path(work_dir)
+
+    work_dir_path.mkdir(parents=True, exist_ok=True)
+    xyz_path = work_dir_path / "input.xyz"
     xyz_path.write_text(xyz_text, encoding="utf-8")
-    return _run([executable, str(xyz_path), "--gfn2", "--chrg", "0"], work_dir, "CREST CLI", timeout_seconds, cancel_event=cancel_event)
+    return _run([executable, str(xyz_path), "--gfn2", "--chrg", "0"], work_dir_path, "CREST CLI", timeout_seconds, cancel_event=cancel_event)
 
 
 def _run(
@@ -147,9 +152,13 @@ def _run_wsl(
     source: str,
     timeout_seconds: int,
     cancel_event: Any = None,
+    work_dir: str | None = None,
 ) -> SemiempiricalJobResult:
-    token = f"{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}-{uuid.uuid4().hex[:8]}"
-    wsl_work_dir = f"/tmp/codex/orgsynflow/{kind}/{token}"
+    if work_dir is None:
+        token = f"{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}-{uuid.uuid4().hex[:8]}"
+        wsl_work_dir = f"/tmp/codex/orgsynflow/{kind}/{token}"
+    else:
+        wsl_work_dir = work_dir
     cmd_args = shlex.quote(executable)
     if kind == "crest_jobs":
         cmd_args += " input.xyz --gfn2 --chrg 0"
@@ -162,13 +171,14 @@ def _run_wsl(
         'cat > "$work_dir/input.xyz"\n'
         'cd "$work_dir"\n'
         'printf "%s\\n" "$$" > .orgsynflow-process-group\n'
-        f"{cmd_args}\n"
+        f"{cmd_args} > crest_cli.log 2>&1\n"
         'status=$?\n'
         'if [ -f crest_best.xyz ]; then\n'
         '  printf "\\n__ORGSYNFLOW_CREST_BEST_XYZ_BEGIN__\\n"\n'
         '  cat crest_best.xyz\n'
         '  printf "\\n__ORGSYNFLOW_CREST_BEST_XYZ_END__\\n"\n'
         'fi\n'
+        'cat crest_cli.log\n'
         'exit "$status"\n'
     )
 

@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from core.crest_parser import parse_crest_log_progress
 from core.gaussian import parse_gaussian_log_progress
 from core.gaussian_runner import run_gaussian_job
 from core.temp_paths import orgsynflow_temp_dir
@@ -206,8 +207,10 @@ class CrestJob:
         self.finished_at: str | None = None
         self.result: dict[str, Any] | None = None
         self.error: str | None = None
+        self.work_dir: str | None = None
 
     def as_dict(self) -> dict[str, Any]:
+        log_snapshot = _read_crest_log_snapshot(self.work_dir) if self.work_dir else {}
         return {
             "job_id": self.job_id,
             "engine": "CREST",
@@ -217,7 +220,8 @@ class CrestJob:
             "finished_at": self.finished_at,
             "result": self.result,
             "error": self.error,
-            "work_dir": self.result.get("work_dir") if self.result else None,
+            "work_dir": self.work_dir or (self.result.get("work_dir") if self.result else None),
+            **log_snapshot,
         }
 
 
@@ -276,11 +280,20 @@ class CrestJobManager:
                 return
             job.status = "running"
             job.started_at = datetime.now(timezone.utc).isoformat()
+
+            from adapters.xtb_adapter import find_crest_executable
+            exe = find_crest_executable()
+            token = f"{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}-{uuid.uuid4().hex[:8]}"
+            if exe and exe.startswith("wsl:"):
+                job.work_dir = f"/tmp/codex/orgsynflow/crest_jobs/{token}"
+            else:
+                job.work_dir = str(orgsynflow_temp_dir("crest_jobs", token))
+
             self._cancel_events[job.job_id] = cancel_event
 
         try:
             from adapters.xtb_adapter import run_crest_job  # deferred import to avoid circular dependency
-            result = run_crest_job(job.xyz_text, timeout_seconds=job.timeout_seconds, cancel_event=cancel_event)
+            result = run_crest_job(job.xyz_text, timeout_seconds=job.timeout_seconds, cancel_event=cancel_event, work_dir=job.work_dir)
         except Exception as exc:
             with self._lock:
                 job.finished_at = datetime.now(timezone.utc).isoformat()
@@ -312,4 +325,38 @@ crest_manager = CrestJobManager()
 _LOG_SNAPSHOT_CACHE_LIMIT = 128
 _LOG_SNAPSHOT_PARSE_BYTES = 2_000_000
 _log_snapshot_cache: OrderedDict[str, tuple[int, int, dict[str, Any]]] = OrderedDict()
+
+def _read_crest_log_snapshot(work_dir: str | None) -> dict[str, Any]:
+    if not work_dir:
+        return {}
+
+    snapshot = {}
+
+    def _read_tail(filename: str, size: int) -> str:
+        if work_dir.startswith("/"):
+            resolved_dir = f"\\\\wsl$\\Ubuntu-24.04{work_dir.replace('/', '\\')}"
+        else:
+            resolved_dir = work_dir
+
+        p = Path(resolved_dir) / filename
+        if not p.exists():
+            return ""
+        try:
+            with p.open("rb") as f:
+                if p.stat().st_size > size:
+                    f.seek(-size, 2)
+                return f.read().decode("utf-8", errors="ignore")
+        except Exception:
+            return ""
+
+    cli_log = _read_tail("crest_cli.log", 12000)
+    opt_log = _read_tail("crestopt.log", 2_000_000)
+
+    if cli_log:
+        snapshot["log_tail"] = cli_log
+
+    if opt_log:
+        snapshot["log_progress"] = parse_crest_log_progress(opt_log)
+
+    return snapshot
 

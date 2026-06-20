@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 
 from core import job_queue
+from core.crest_parser import parse_crest_log_progress
 from core.temp_paths import orgsynflow_temp_root
 
 
@@ -28,3 +29,13 @@ def test_unchanged_gaussian_log_is_parsed_once(monkeypatch, tmp_path) -> None:
 def test_windows_temp_root_uses_agents_directory() -> None:
     if os.name == "nt":
         assert orgsynflow_temp_root().parts[-2:] == (".agents", "orgsynflow")
+
+
+def test_crest_progress_parser_extracts_recent_optimization_energies() -> None:
+    progress = parse_crest_log_progress("Etot= -5.10\nnoise\nEtot= -5.20\n")
+
+    assert progress["summary"] == "正在进行构象搜索与采样，当前已提取 2 步能量计算。"
+    assert progress["optimization_steps"] == [
+        {"step": 1, "energy_hartree": -5.1, "max_force": None},
+        {"step": 2, "energy_hartree": -5.2, "max_force": None},
+    ]

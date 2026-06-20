@@ -72,3 +72,9 @@ def test_cancelled_queued_crest_job_never_starts(monkeypatch) -> None:
 
     assert manager.get(job.job_id)["status"] == "cancelled"
     assert listed[0]["engine"] == "CREST"
+
+
+def test_new_crest_manager_does_not_restore_phantom_jobs() -> None:
+    manager = CrestJobManager()
+
+    assert manager.list() == []
