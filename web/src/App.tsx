@@ -537,7 +537,7 @@ function TaskLogDrawer({
 
   function openRecord(record: CachedResult, key: string) {
     const title = record.task_label ?? "任务记录";
-    if (taskStatus(record.status) === "failed") {
+    if (taskStatusForRecord(record) === "failed") {
       openModal({ kind: "task-error", title: `${title}失败`, record });
       return;
     }
@@ -572,7 +572,7 @@ function TaskLogDrawer({
       {open && (
         <div className="task-log-list">
           {records.length ? records.map(({ key, record }) => {
-            const status = taskStatus(record.status);
+            const status = taskStatusForRecord(record);
             return (
               <button key={key} className="task-log-row" onClick={() => openRecord(record, key)}>
                 <span className={`task-log-status task-log-status-${status}`}>{taskStatusLabel(status)}</span>
@@ -1437,14 +1437,14 @@ function TaskPanel({
     await persistTaskRecord(definition.cellId, key, runningRecord);
     try {
       const nextResult = await task();
-      const nextStatus = options?.statusFromResult?.(nextResult) ?? "succeeded";
+      const nextStatus = options?.statusFromResult?.(nextResult) ?? taskStatusFromResult(nextResult);
       const job = asGaussianJob(nextResult);
       const completedRecord: CachedResult = {
         ...runningRecord,
         status: nextStatus,
         updated_at: new Date().toISOString(),
         payload: nextResult,
-        error: nextStatus === "failed" ? job?.error ?? "计算失败。" : undefined,
+        error: nextStatus === "failed" ? resultErrorMessage(nextResult) ?? job?.error ?? "计算失败。" : undefined,
         job_id: job?.job_id,
       };
       await persistTaskRecord(definition.cellId, key, completedRecord);
@@ -1759,7 +1759,7 @@ function TaskButton({
   openModal: (modal: ModalState) => void;
   onViewResult?: () => void;
 }) {
-  const status = taskStatus(record?.status);
+  const status = taskStatusForRecord(record);
   const icon = status === "running"
     ? <Loader2 size={16} className="spin" />
     : status === "succeeded"
@@ -3175,6 +3175,27 @@ function taskStatus(status: string | undefined): DisplayTaskStatus {
   if (status === "succeeded" || status === "completed" || status === "available") return "succeeded";
   if (status === "failed" || status === "cancelled" || status === "error") return "failed";
   return "idle";
+}
+
+function taskStatusFromResult(result: unknown): CachedResult["status"] {
+  if (!isPlainObject(result)) return "succeeded";
+  if (result.available === false || ["failed", "unavailable", "error", "cancelled"].includes(String(result.status))) {
+    return "failed";
+  }
+  return "succeeded";
+}
+
+function taskStatusForRecord(record: CachedResult | undefined): DisplayTaskStatus {
+  const storedStatus = taskStatus(record?.status);
+  if (storedStatus === "succeeded" && taskStatusFromResult(record?.payload) === "failed") return "failed";
+  return storedStatus;
+}
+
+function resultErrorMessage(result: unknown): string | undefined {
+  if (!isPlainObject(result)) return undefined;
+  if (typeof result.reason === "string" && result.reason.trim()) return result.reason;
+  if (typeof result.error === "string" && result.error.trim()) return result.error;
+  return undefined;
 }
 
 function gaussianTaskStatus(status: string): CachedResult["status"] {

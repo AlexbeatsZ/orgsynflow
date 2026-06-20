@@ -308,4 +308,5 @@ WSL 临时文件必须放在：
 
 ## 4. New Issues
 
+- [done] 2026-06-20 修复 CREST 不可用结果被前端误记为成功的问题：通用任务会根据 payload 的 `available/status` 推断失败状态并保留 `reason`；历史上已缓存为 `succeeded + unavailable` 的记录也会显示为失败、允许重试。实时 API 已通过 WSL CREST 3.0.2 对水分子完成构象搜索（return code 0），确认当前工具链可用。
 - [todo] Ketcher 绘图窗口仍未居中且无法使用。已尝试在 `web/src/styles.css` 中移除 `.osf-ketcher-host > div` 的 flex 布局并提交（commit e1b4eb0），但窗口仍表现异常，需要进一步调试布局和可能的全局 CSS 冲突。
