@@ -153,6 +153,8 @@ type RouteEndpointOverrides = {
   sourceRect?: NodeRect;
   targetRect?: NodeRect;
   obstacles?: NodeRect[];
+  forbiddenSourceHandles?: Side[];
+  forbiddenTargetHandles?: Side[];
 };
 
 const moleculeHandles = [
@@ -3109,9 +3111,18 @@ function chooseBestOrthogonalRoute(
     .concat(endpointOverrides.targetRect ? [] : [expandRect(nodeRect(target), 18)]);
   const candidates: Array<{ sourceHandle: Side; targetHandle: Side; points: Point[]; isForbidden: boolean; isBlocked: boolean }> = [];
 
+  const combinedForbiddenSource = new Set([
+    ...forbiddenSourceHandles,
+    ...(endpointOverrides.forbiddenSourceHandles ?? []),
+  ]);
+  const combinedForbiddenTarget = new Set([
+    ...forbiddenTargetHandles,
+    ...(endpointOverrides.forbiddenTargetHandles ?? []),
+  ]);
+
   for (const sourceHandle of sideOrder(sourceRect, targetRect)) {
     for (const targetHandle of sideOrder(targetRect, sourceRect)) {
-      const isForbidden = forbiddenSourceHandles.has(sourceHandle) || forbiddenTargetHandles.has(targetHandle);
+      const isForbidden = combinedForbiddenSource.has(sourceHandle) || combinedForbiddenTarget.has(targetHandle);
       const sourcePoint = sideCenter(sourceRect, sourceHandle);
       const targetPoint = sideCenter(targetRect, targetHandle);
       const sourcePort = sidePort(sourceRect, sourceHandle, 28);
@@ -3336,9 +3347,20 @@ function endpointOverridesForEdge(edge: Pick<Edge, "data">, targetNode: Node): R
     ? componentRectForNode(targetNode, targetComponentIndex)
     : null;
   if (!targetComponentRect) return {};
+  
+  const parts = splitSmilesComponents(String(targetNode.data?.smiles ?? ""));
+  const forbiddenTargetHandles: Side[] = [];
+  if (targetComponentIndex > 0) {
+    forbiddenTargetHandles.push("left");
+  }
+  if (targetComponentIndex < parts.length - 1) {
+    forbiddenTargetHandles.push("right");
+  }
+
   return {
     targetRect: targetComponentRect,
     obstacles: componentObstacleRects(targetNode, targetComponentIndex),
+    forbiddenTargetHandles,
   };
 }
 
