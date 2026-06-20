@@ -135,6 +135,46 @@ type MoleculeCoordinates = {
   atoms: Array<{ element: string; x: number; y: number; z: number }>;
 };
 
+type MoleculeTransform = {
+  x: number;
+  y: number;
+  z: number;
+  rotationX: number;
+  rotationY: number;
+  rotationZ: number;
+};
+
+type MoleculeInteractionMode = "view" | "select" | "move";
+
+const emptyMoleculeTransform = (): MoleculeTransform => ({
+  x: 0,
+  y: 0,
+  z: 0,
+  rotationX: 0,
+  rotationY: 0,
+  rotationZ: 0,
+});
+
+let threeDmolModulePromise: Promise<any> | null = null;
+
+function load3Dmol(): Promise<any> {
+  if (typeof window === "undefined") return Promise.reject(new Error("3D viewer requires a browser."));
+  if ((window as any).$3Dmol) return Promise.resolve((window as any).$3Dmol);
+  if (!threeDmolModulePromise) {
+    threeDmolModulePromise = import("3dmol/build/3Dmol.js")
+      .then((module: any) => {
+        const library = (window as any).$3Dmol ?? module.default ?? module;
+        (window as any).$3Dmol = library;
+        return library;
+      })
+      .catch((error) => {
+        threeDmolModulePromise = null;
+        throw error;
+      });
+  }
+  return threeDmolModulePromise;
+}
+
 type TransitionStatePlanResult = {
   reaction_smiles: string;
   status: string;
@@ -742,24 +782,11 @@ function Molecule3DResultView({ geometry }: { geometry: ExtractedGeometry }) {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    if ((window as any).$3Dmol) {
-      setReady(true);
-      return;
-    }
-    const existing = document.querySelector<HTMLScriptElement>('script[data-osf-3dmol="true"]');
-    if (existing) {
-      existing.addEventListener("load", () => setReady(true), { once: true });
-      existing.addEventListener("error", () => setError("3Dmol 渲染插件加载失败。"), { once: true });
-      return;
-    }
-    const script = document.createElement("script");
-    script.src = "https://3dmol.org/build/3Dmol-min.js";
-    script.async = true;
-    script.setAttribute("data-osf-3dmol", "true");
-    script.onload = () => setReady(true);
-    script.onerror = () => setError("3Dmol 渲染插件加载失败。");
-    document.body.appendChild(script);
+    let cancelled = false;
+    void load3Dmol()
+      .then(() => { if (!cancelled) setReady(true); })
+      .catch(() => { if (!cancelled) setError("3Dmol 渲染插件初始化失败。"); });
+    return () => { cancelled = true; };
   }, []);
 
   useEffect(() => {
@@ -2359,36 +2386,34 @@ function TransitionStateConfigModal({
   const [selectedCandidateId, setSelectedCandidateId] = useState("");
   const [coordinates, setCoordinates] = useState<TsCoordinate[]>([]);
   const [animateImaginaryMode, setAnimateImaginaryMode] = useState(false);
+  const [selectedMoleculeIndex, setSelectedMoleculeIndex] = useState(0);
+  const [moleculeTransforms, setMoleculeTransforms] = useState<MoleculeTransform[]>([]);
+  const [interactionMode, setInteractionMode] = useState<MoleculeInteractionMode>("view");
+  const [showAtomLabels, setShowAtomLabels] = useState(true);
+  const [fitViewNonce, setFitViewNonce] = useState(0);
   const availableAgents = useMemo(() => {
     const parts = reactionSmiles.split(">");
     return parts.length === 3 ? splitSmilesComponents(parts[1]).filter(Boolean) : [];
   }, [reactionSmiles]);
   const [includedAgents, setIncludedAgents] = useState<string[]>([]);
   const terminalRecordedRef = useRef(false);
-
-  const [distanceX, setDistanceX] = useState(3.0);
-  const [distanceY, setDistanceY] = useState(0.0);
-  const [distanceZ, setDistanceZ] = useState(0.0);
-  const [rotationX, setRotationX] = useState(0);
-  const [rotationY, setRotationY] = useState(0);
-  const [rotationZ, setRotationZ] = useState(0);
+  const moveDragRef = useRef<{
+    pointerId: number;
+    startX: number;
+    startY: number;
+    transform: MoleculeTransform;
+  } | null>(null);
 
   const viewerRef = useRef<HTMLDivElement>(null);
   const [viewer, setViewer] = useState<any>(null);
   const canConfigureWorkflow = !!workflow && ["awaiting_confirmation", "paused", "failed", "partial"].includes(workflow.status);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    if ((window as any).$3Dmol) {
-      setMol3dReady(true);
-      return;
-    }
-    const script = document.createElement("script");
-    script.src = "https://3dmol.org/build/3Dmol-min.js";
-    script.async = true;
-    script.onload = () => setMol3dReady(true);
-    script.onerror = () => setError("3Dmol 渲染插件加载失败；请检查网络后重试。");
-    document.body.appendChild(script);
+    let cancelled = false;
+    void load3Dmol()
+      .then(() => { if (!cancelled) setMol3dReady(true); })
+      .catch(() => { if (!cancelled) setError("3Dmol 渲染插件初始化失败。"); });
+    return () => { cancelled = true; };
   }, []);
 
   useEffect(() => {
@@ -2466,84 +2491,100 @@ function TransitionStateConfigModal({
     };
   }, [loading, mol3dReady, components]);
 
-  const getCombinedXyz = useCallback(() => {
-    const selectedCandidate = workflow?.candidates?.find((candidate: any) => candidate.candidate_id === selectedCandidateId);
-    if (selectedCandidate?.xyz) {
-      const lines = selectedCandidate.xyz.trim().split(/\r?\n/);
-      return /^\d+$/.test(lines[0] ?? "") ? lines.slice(2).join("\n") : selectedCandidate.xyz;
+  const selectedCandidateXyz = useMemo(
+    () => String(workflow?.candidates?.find((candidate: any) => candidate.candidate_id === selectedCandidateId)?.xyz ?? ""),
+    [workflow?.candidates, selectedCandidateId],
+  );
+
+  const baseMoleculeAtoms = useMemo(() => {
+    if (selectedCandidateXyz) {
+      const candidateAtoms = parseXyzAtomRecords(selectedCandidateXyz);
+      const expectedAtomCount = components.reduce((total, component) => total + component.atoms.length, 0);
+      if (candidateAtoms.length >= expectedAtomCount) {
+        let offset = 0;
+        const groups = components.map((component) => {
+          const atoms = candidateAtoms.slice(offset, offset + component.atoms.length);
+          offset += component.atoms.length;
+          return atoms;
+        });
+        if (offset < candidateAtoms.length) groups.push(candidateAtoms.slice(offset));
+        return groups;
+      }
     }
-    if (components.length === 0) return "";
-    let combinedAtoms: MoleculeCoordinates["atoms"] = [];
+    if (components.length === 0) return [];
+    const anchor = moleculeCentroid(components[0].atoms);
+    return components.map((component, index) => {
+      if (index === 0) return component.atoms;
+      const center = moleculeCentroid(component.atoms);
+      return component.atoms.map((atom: any) => ({
+        ...atom,
+        x: atom.x - center.x + anchor.x + index * 3,
+        y: atom.y - center.y + anchor.y,
+        z: atom.z - center.z + anchor.z,
+      }));
+    });
+  }, [components, selectedCandidateXyz]);
 
-    const comp0 = components[0];
-    combinedAtoms = combinedAtoms.concat(comp0.atoms);
-
-    let c0 = { x: 0, y: 0, z: 0 };
-    if (comp0.atoms.length > 0) {
-      comp0.atoms.forEach((a: any) => { c0.x += a.x; c0.y += a.y; c0.z += a.z; });
-      c0.x /= comp0.atoms.length;
-      c0.y /= comp0.atoms.length;
-      c0.z /= comp0.atoms.length;
-    }
-
-    for (let i = 1; i < components.length; i++) {
-      const comp = components[i];
-      if (comp.atoms.length === 0) continue;
-
-      let c = { x: 0, y: 0, z: 0 };
-      comp.atoms.forEach((a: any) => { c.x += a.x; c.y += a.y; c.z += a.z; });
-      c.x /= comp.atoms.length;
-      c.y /= comp.atoms.length;
-      c.z /= comp.atoms.length;
-
-      const radX = (rotationX * Math.PI) / 180;
-      const radY = (rotationY * Math.PI) / 180;
-      const radZ = (rotationZ * Math.PI) / 180;
-
-      const cosX = Math.cos(radX), sinX = Math.sin(radX);
-      const cosY = Math.cos(radY), sinY = Math.sin(radY);
-      const cosZ = Math.cos(radZ), sinZ = Math.sin(radZ);
-
-      const rotated = comp.atoms.map((a: any) => {
-        let x = a.x - c.x;
-        let y = a.y - c.y;
-        let z = a.z - c.z;
-
-        let y1 = y * cosX - z * sinX;
-        let z1 = y * sinX + z * cosX;
-        y = y1; z = z1;
-
-        let x2 = x * cosY + z * sinY;
-        let z2 = -x * sinY + z * cosY;
-        x = x2; z = z2;
-
-        let x3 = x * cosZ - y * sinZ;
-        let y3 = x * sinZ + y * cosZ;
-        x = x3; y = y3;
-
-        return {
-          element: a.element,
-          x: x + c0.x + distanceX,
-          y: y + c0.y + distanceY,
-          z: z + c0.z + distanceZ,
-        };
-      });
-      combinedAtoms = combinedAtoms.concat(rotated);
-    }
-
-    return combinedAtoms.map(a => `${a.element.padEnd(2)} ${a.x.toFixed(6).padStart(12)} ${a.y.toFixed(6).padStart(12)} ${a.z.toFixed(6).padStart(12)}`).join("\n");
-  }, [components, distanceX, distanceY, distanceZ, rotationX, rotationY, rotationZ, workflow?.candidates, selectedCandidateId]);
+  const moleculeLabels = useMemo(
+    () => baseMoleculeAtoms.map((_, index) => components[index]?.smiles ?? `显式助剂 ${index - components.length + 1}`),
+    [baseMoleculeAtoms, components],
+  );
 
   useEffect(() => {
-    if (!viewer) return;
-    const xyz = getCombinedXyz();
-    if (!xyz) return;
+    setMoleculeTransforms(baseMoleculeAtoms.map(() => emptyMoleculeTransform()));
+    setSelectedMoleculeIndex((current) => Math.min(current, Math.max(0, baseMoleculeAtoms.length - 1)));
+  }, [baseMoleculeAtoms]);
+
+  const transformedMoleculeAtoms = useMemo(
+    () => baseMoleculeAtoms.map((atoms, index) => transformMoleculeAtoms(atoms, moleculeTransforms[index] ?? emptyMoleculeTransform())),
+    [baseMoleculeAtoms, moleculeTransforms],
+  );
+
+  const getCombinedXyz = useCallback(
+    () => transformedMoleculeAtoms.flat().map(formatXyzAtom).join("\n"),
+    [transformedMoleculeAtoms],
+  );
+
+  useEffect(() => {
+    if (!viewer || animateImaginaryMode) return;
     viewer.clear();
-    viewer.addModel(xyz, "xyz");
-    viewer.setStyle({}, { stick: { radius: 0.15 }, sphere: { scale: 0.25 } });
+    let atomOffset = 0;
+    transformedMoleculeAtoms.forEach((atoms, index) => {
+      if (atoms.length === 0) return;
+      const model = viewer.addModel(atoms.map(formatXyzAtom).join("\n"), "xyz");
+      const selected = index === selectedMoleculeIndex;
+      model.setStyle({}, {
+        stick: { radius: selected ? 0.2 : 0.14 },
+        sphere: { scale: selected ? 0.32 : 0.23 },
+      });
+      model.setClickable({}, true, () => {
+        setSelectedMoleculeIndex(index);
+        setInteractionMode("select");
+      });
+      if (showAtomLabels) {
+        atoms.forEach((atom, atomIndex) => {
+          viewer.addLabel(String(atomOffset + atomIndex + 1), {
+            position: { x: atom.x + 0.16, y: atom.y + 0.16, z: atom.z + 0.16 },
+            fontColor: selected ? "#92400e" : "#334155",
+            backgroundColor: "rgba(255,255,255,0.82)",
+            borderColor: selected ? "#f59e0b" : "#cbd5e1",
+            borderThickness: 1,
+            fontSize: 10,
+            showBackground: true,
+          });
+        });
+      }
+      atomOffset += atoms.length;
+    });
+    viewer.resize();
+    viewer.render();
+  }, [viewer, transformedMoleculeAtoms, selectedMoleculeIndex, showAtomLabels, animateImaginaryMode]);
+
+  useEffect(() => {
+    if (!viewer || transformedMoleculeAtoms.length === 0) return;
     viewer.zoomTo();
     viewer.render();
-  }, [viewer, getCombinedXyz]);
+  }, [viewer, selectedCandidateId, components.length, fitViewNonce]);
 
   useEffect(() => {
     if (!viewer || !animateImaginaryMode || !workflow?.ts_results?.length) return;
@@ -2573,6 +2614,56 @@ function TransitionStateConfigModal({
     }, 450);
     return () => window.clearInterval(timer);
   }, [viewer, animateImaginaryMode, workflow?.ts_results]);
+
+  const selectedMoleculeTransform = moleculeTransforms[selectedMoleculeIndex] ?? emptyMoleculeTransform();
+
+  function updateSelectedMoleculeTransform(update: Partial<MoleculeTransform>) {
+    setMoleculeTransforms((current) => {
+      const next = baseMoleculeAtoms.map((_, index) => current[index] ?? emptyMoleculeTransform());
+      next[selectedMoleculeIndex] = { ...next[selectedMoleculeIndex], ...update };
+      return next;
+    });
+  }
+
+  function handleMovePointerDown(event: React.PointerEvent<HTMLDivElement>) {
+    if (interactionMode !== "move") return;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    moveDragRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      transform: { ...selectedMoleculeTransform },
+    };
+  }
+
+  function handleMovePointerMove(event: React.PointerEvent<HTMLDivElement>) {
+    const drag = moveDragRef.current;
+    if (interactionMode !== "move" || !drag || drag.pointerId !== event.pointerId) return;
+    const dx = (event.clientX - drag.startX) * 0.02;
+    const dy = (event.clientY - drag.startY) * 0.02;
+    updateSelectedMoleculeTransform(event.shiftKey
+      ? { x: drag.transform.x + dx, z: drag.transform.z - dy }
+      : { x: drag.transform.x + dx, y: drag.transform.y - dy });
+  }
+
+  function handleMovePointerEnd(event: React.PointerEvent<HTMLDivElement>) {
+    if (moveDragRef.current?.pointerId !== event.pointerId) return;
+    moveDragRef.current = null;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+  }
+
+  function handleMoveKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+    if (interactionMode !== "move") return;
+    const step = event.altKey ? 0.05 : 0.2;
+    if (event.key === "ArrowLeft") updateSelectedMoleculeTransform({ x: selectedMoleculeTransform.x - step });
+    else if (event.key === "ArrowRight") updateSelectedMoleculeTransform({ x: selectedMoleculeTransform.x + step });
+    else if (event.key === "ArrowUp" && event.shiftKey) updateSelectedMoleculeTransform({ z: selectedMoleculeTransform.z + step });
+    else if (event.key === "ArrowDown" && event.shiftKey) updateSelectedMoleculeTransform({ z: selectedMoleculeTransform.z - step });
+    else if (event.key === "ArrowUp") updateSelectedMoleculeTransform({ y: selectedMoleculeTransform.y + step });
+    else if (event.key === "ArrowDown") updateSelectedMoleculeTransform({ y: selectedMoleculeTransform.y - step });
+    else return;
+    event.preventDefault();
+  }
 
   const gjfText = useMemo(() => {
     const coords = getCombinedXyz();
@@ -2771,46 +2862,97 @@ function TransitionStateConfigModal({
                   </div>
                 )}
 
-                <h4>2. 可视化调整分子相对位置</h4>
-                <div className="ts-slider-group">
-                  <label>X 轴间距 (Å)</label>
-                  <input type="range" min={1.5} max={8.0} step={0.1} value={distanceX} onChange={(e) => setDistanceX(parseFloat(e.target.value))} />
-                  <span>{distanceX.toFixed(2)} Å</span>
+                <h4>2. 选择和调整分子</h4>
+                <div className="ts-molecule-picker" aria-label="选择要调整的分子">
+                  {moleculeLabels.map((label, index) => (
+                    <button
+                      type="button"
+                      key={`${label}-${index}`}
+                      className={selectedMoleculeIndex === index ? "selected" : ""}
+                      onClick={() => setSelectedMoleculeIndex(index)}
+                      title={label}
+                    >
+                      <strong>分子 {index + 1}</strong>
+                      <small>{label}</small>
+                    </button>
+                  ))}
                 </div>
-                <div className="ts-slider-group">
-                  <label>Y 轴偏移 (Å)</label>
-                  <input type="range" min={-5.0} max={5.0} step={0.1} value={distanceY} onChange={(e) => setDistanceY(parseFloat(e.target.value))} />
-                  <span>{distanceY.toFixed(2)} Å</span>
-                </div>
-                <div className="ts-slider-group">
-                  <label>Z 轴偏移 (Å)</label>
-                  <input type="range" min={-5.0} max={5.0} step={0.1} value={distanceZ} onChange={(e) => setDistanceZ(parseFloat(e.target.value))} />
-                  <span>{distanceZ.toFixed(2)} Å</span>
-                </div>
-                <div className="ts-slider-group">
-                  <label>绕 X 轴旋转 (°)</label>
-                  <input type="range" min={0} max={360} step={5} value={rotationX} onChange={(e) => setRotationX(parseInt(e.target.value))} />
-                  <span>{rotationX}°</span>
-                </div>
-                <div className="ts-slider-group">
-                  <label>绕 Y 轴旋转 (°)</label>
-                  <input type="range" min={0} max={360} step={5} value={rotationY} onChange={(e) => setRotationY(parseInt(e.target.value))} />
-                  <span>{rotationY}°</span>
-                </div>
-                <div className="ts-slider-group">
-                  <label>绕 Z 轴旋转 (°)</label>
-                  <input type="range" min={0} max={360} step={5} value={rotationZ} onChange={(e) => setRotationZ(parseInt(e.target.value))} />
-                  <span>{rotationZ}°</span>
-                </div>
+                {(["x", "y", "z"] as const).map((axis) => (
+                  <div className="ts-slider-group" key={`translation-${axis}`}>
+                    <label>{axis.toUpperCase()} 轴平移 (Å)</label>
+                    <input
+                      aria-label={`${axis.toUpperCase()} 轴平移`}
+                      type="range"
+                      min={-8}
+                      max={8}
+                      step={0.05}
+                      value={selectedMoleculeTransform[axis]}
+                      onChange={(event) => updateSelectedMoleculeTransform({ [axis]: Number(event.target.value) })}
+                    />
+                    <span>{selectedMoleculeTransform[axis].toFixed(2)} Å</span>
+                  </div>
+                ))}
+                {(["rotationX", "rotationY", "rotationZ"] as const).map((axis) => (
+                  <div className="ts-slider-group" key={axis}>
+                    <label>绕 {axis.slice(-1)} 轴旋转 (°)</label>
+                    <input
+                      aria-label={`绕 ${axis.slice(-1)} 轴旋转`}
+                      type="range"
+                      min={-180}
+                      max={180}
+                      step={1}
+                      value={selectedMoleculeTransform[axis]}
+                      onChange={(event) => updateSelectedMoleculeTransform({ [axis]: Number(event.target.value) })}
+                    />
+                    <span>{selectedMoleculeTransform[axis].toFixed(0)}°</span>
+                  </div>
+                ))}
+                <button type="button" className="secondary-button" onClick={() => updateSelectedMoleculeTransform(emptyMoleculeTransform())}>
+                  <RotateCcw size={14} /> 重置选中分子
+                </button>
               </div>
               <div className="ts-config-right">
                 <h4>3D 构象预览 (类似 GaussView)</h4>
+                <div className="ts-3d-toolbar" role="toolbar" aria-label="3D 分子操作">
+                  {(["view", "select", "move"] as MoleculeInteractionMode[]).map((mode) => (
+                    <button
+                      type="button"
+                      key={mode}
+                      className={interactionMode === mode ? "active" : ""}
+                      onClick={() => setInteractionMode(mode)}
+                    >
+                      {mode === "view" ? "视图" : mode === "select" ? "选择" : "移动"}
+                    </button>
+                  ))}
+                  <button type="button" onClick={() => setFitViewNonce((current) => current + 1)}>居中</button>
+                  <label><input type="checkbox" checked={showAtomLabels} onChange={(event) => setShowAtomLabels(event.target.checked)} /> 原子编号</label>
+                </div>
+                <div className="ts-selected-molecule">
+                  已选择：<strong>分子 {selectedMoleculeIndex + 1}</strong>
+                  <code>{moleculeLabels[selectedMoleculeIndex] ?? "-"}</code>
+                </div>
                 <div className="ts-3d-viewer-container">
                   <div ref={viewerRef} className="ts-3d-viewer" />
+                  {interactionMode === "move" && mol3dReady && (
+                    <div
+                      className="ts-3d-move-layer"
+                      role="application"
+                      aria-label={`移动分子 ${selectedMoleculeIndex + 1}`}
+                      tabIndex={0}
+                      onPointerDown={handleMovePointerDown}
+                      onPointerMove={handleMovePointerMove}
+                      onPointerUp={handleMovePointerEnd}
+                      onPointerCancel={handleMovePointerEnd}
+                      onKeyDown={handleMoveKeyDown}
+                    />
+                  )}
                   {!mol3dReady && (
                     <div className="ts-3d-viewer-placeholder">正在加载 3D 渲染插件...</div>
                   )}
                 </div>
+                <p className="result-hint">
+                  视图：拖拽旋转/滚轮缩放/右键平移。选择：点击分子。移动：拖拽选中分子，Shift+拖拽沿 Z 轴，方向键可微调。
+                </p>
                 {workflow?.validation?.frequency_ok && (
                   <button className={`secondary-button ${animateImaginaryMode ? "active-action" : ""}`} onClick={() => setAnimateImaginaryMode((current) => !current)}>
                     {animateImaginaryMode ? "停止虚频动画" : "播放虚频模式"}
@@ -3823,7 +3965,7 @@ function addRouteCandidateToCell(
         ? { targetComponentIndex }
         : undefined;
       const endpointOverrides = targetNode && edgeData
-        ? endpointOverridesForEdge({ data: edgeData }, targetNode)
+        ? endpointOverridesForNode(targetNode, targetComponentIndex, true)
         : {};
       const routePath = sourceNode && targetNode
         ? chooseBestOrthogonalRoute(sourceNode, targetNode, allRouteNodes, endpointOverrides)
@@ -4075,6 +4217,55 @@ function gaussianInputToXyz(text: string): string {
   }
   if (atomLines.length === 0) return "";
   return [String(atomLines.length), "OrgSynFlow Gaussian input geometry", ...atomLines].join("\n");
+}
+
+function parseXyzAtomRecords(text: string): MoleculeCoordinates["atoms"] {
+  const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  const atomLines = /^\d+$/.test(lines[0] ?? "") ? lines.slice(2) : lines;
+  return atomLines.filter(isAtomCoordinateLine).map((line) => {
+    const [element, x, y, z] = line.split(/\s+/);
+    return { element, x: Number(x), y: Number(y), z: Number(z) };
+  });
+}
+
+function moleculeCentroid(atoms: MoleculeCoordinates["atoms"]): { x: number; y: number; z: number } {
+  if (atoms.length === 0) return { x: 0, y: 0, z: 0 };
+  const total = atoms.reduce(
+    (sum, atom) => ({ x: sum.x + atom.x, y: sum.y + atom.y, z: sum.z + atom.z }),
+    { x: 0, y: 0, z: 0 },
+  );
+  return { x: total.x / atoms.length, y: total.y / atoms.length, z: total.z / atoms.length };
+}
+
+function transformMoleculeAtoms(
+  atoms: MoleculeCoordinates["atoms"],
+  transform: MoleculeTransform,
+): MoleculeCoordinates["atoms"] {
+  const center = moleculeCentroid(atoms);
+  const rx = transform.rotationX * Math.PI / 180;
+  const ry = transform.rotationY * Math.PI / 180;
+  const rz = transform.rotationZ * Math.PI / 180;
+  const cosX = Math.cos(rx), sinX = Math.sin(rx);
+  const cosY = Math.cos(ry), sinY = Math.sin(ry);
+  const cosZ = Math.cos(rz), sinZ = Math.sin(rz);
+  return atoms.map((atom) => {
+    let x = atom.x - center.x;
+    let y = atom.y - center.y;
+    let z = atom.z - center.z;
+    [y, z] = [y * cosX - z * sinX, y * sinX + z * cosX];
+    [x, z] = [x * cosY + z * sinY, -x * sinY + z * cosY];
+    [x, y] = [x * cosZ - y * sinZ, x * sinZ + y * cosZ];
+    return {
+      element: atom.element,
+      x: x + center.x + transform.x,
+      y: y + center.y + transform.y,
+      z: z + center.z + transform.z,
+    };
+  });
+}
+
+function formatXyzAtom(atom: MoleculeCoordinates["atoms"][number]): string {
+  return `${atom.element.padEnd(2)} ${atom.x.toFixed(6).padStart(12)} ${atom.y.toFixed(6).padStart(12)} ${atom.z.toFixed(6).padStart(12)}`;
 }
 
 function isAtomCoordinateLine(line: string): boolean {

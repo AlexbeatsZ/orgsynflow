@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@xyflow/react": "^12.9.3",
+    "3dmol": "^2.5.5",
     "axios": "^1.13.2",
     "ketcher-core": "^3.15.0",
     "ketcher-react": "^3.15.0",

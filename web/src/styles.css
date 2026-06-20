@@ -1447,8 +1447,10 @@ button {
 
 .ts-3d-viewer-container {
   position: relative;
+  flex: 0 0 350px;
   width: 100%;
   height: 350px;
+  min-height: 350px;
   background-color: #f8fafc;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
@@ -1460,11 +1462,76 @@ button {
   height: 100%;
 }
 
+.ts-3d-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.ts-3d-toolbar button {
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #fff;
+  color: #334155;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.ts-3d-toolbar button.active {
+  border-color: #2563eb;
+  background: #dbeafe;
+  color: #1d4ed8;
+  font-weight: 700;
+}
+
+.ts-3d-toolbar label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+  color: #475569;
+  font-size: 12px;
+}
+
+.ts-selected-molecule {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  color: #475569;
+  font-size: 12px;
+}
+
+.ts-selected-molecule code {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ts-3d-move-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  cursor: grab;
+  touch-action: none;
+  outline: none;
+}
+
+.ts-3d-move-layer:active {
+  cursor: grabbing;
+}
+
+.ts-3d-move-layer:focus-visible {
+  box-shadow: inset 0 0 0 3px rgba(37, 99, 235, 0.45);
+}
+
 .ts-3d-viewer-placeholder {
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
   color: #64748b;
   font-size: 14px;
 }
@@ -1493,6 +1560,38 @@ button {
   font-size: 13px;
   font-family: monospace;
   color: #475569;
+}
+
+.ts-molecule-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+.ts-molecule-picker button {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  background: #fff;
+  color: #334155;
+  padding: 8px 10px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ts-molecule-picker button.selected {
+  border-color: #f59e0b;
+  background: #fffbeb;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.18);
+}
+
+.ts-molecule-picker small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .ts-plan-summary {

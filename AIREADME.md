@@ -128,6 +128,7 @@ WSL 临时文件必须放在：
 
 前端 UX 经验：
 
+- TS/GaussView 辅助 3D 预览不能在运行时重复注入 CDN 脚本；应通过项目内 `3dmol` 依赖统一异步加载。右栏是可收缩 flex 容器，viewer 必须设置 `flex: 0 0 350px` 与 `min-height`，否则声明的 350px 会被压缩到约 24px，表现为空白/不可用。候选 XYZ 必须先按分子拆组再应用每个分子的变换，不能在选中候选后直接返回原始 XYZ，否则预览和 GJF 均不会响应平移/旋转。
 - SMILES 块删除不能只依赖 React Flow 的临时节点状态；删除时必须同时移除相邻边，并用剩余 nodes/edges 重建 `cell.objects.molecules/reactions`，否则父级单元更新或页面刷新会把节点重新生成。当前选中块后会显示“删除 SMILES 块”按钮，删除结果可随工作区保存持久化。
 - 用户明确不要深色永久侧栏。工作区选择应是顶部紧凑下拉菜单。
 - 单元栏应是白色、可隐藏；添加单元按钮放在单元栏内。
@@ -346,6 +347,7 @@ WSL 临时文件必须放在：
 
 ## 4. New Issues
 
+- [done] 2026-06-20 修复“3D 构象预览 (类似 GaussView)”不可用：3Dmol 改为前端本地依赖并统一加载，viewer 高度不再被 flex 压缩；支持画布/分子卡选择组分、视图/选择/移动模式、拖拽 XY 平移、Shift+拖拽 Z 平移、方向键微调、逐分子 XYZ 旋转、重置/居中和原子编号。预览坐标与 GJF 输入联动。浏览器回归确认 canvas=1、外部 CDN script=0、容器高 350px，拖拽后 X/Y 由 0/0 变为 1.2/-0.4 且 GJF 改变，重置后恢复；`npm run build` 成功，路线/工作区测试 5 passed。
 - [done] 2026-06-20 修复 CREST 不可用结果被前端误记为成功的问题：通用任务会根据 payload 的 `available/status` 推断失败状态并保留 `reason`；历史上已缓存为 `succeeded + unavailable` 的记录也会显示为失败、允许重试。实时 API 已通过 WSL CREST 3.0.2 对水分子完成构象搜索（return code 0），确认当前工具链可用。
 - [todo] Ketcher 绘图窗口仍未居中且无法使用。已尝试在 `web/src/styles.css` 中移除 `.osf-ketcher-host > div` 的 flex 布局并提交（commit e1b4eb0），但窗口仍表现异常，需要进一步调试布局和可能的全局 CSS 冲突。
 
