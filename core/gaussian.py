@@ -16,6 +16,7 @@ class GaussianResult:
     homo_ev: float | None
     lumo_ev: float | None
     warnings: list[str]
+    optimization_steps: list[dict[str, object]] | None = None
 
     def as_dict(self) -> dict[str, object]:
         return {
@@ -26,6 +27,7 @@ class GaussianResult:
             "homo_ev": self.homo_ev,
             "lumo_ev": self.lumo_ev,
             "warnings": self.warnings,
+            "optimization_steps": self.optimization_steps,
         }
 
 
@@ -97,6 +99,33 @@ def parse_gaussian_log(text: str) -> GaussianResult:
     imaginary_count = sum(1 for value in frequencies if value < 0)
     homo_ev, lumo_ev = _parse_homo_lumo(text)
 
+    # Parse optimization steps
+    optimization_steps = []
+    current_step = {}
+    for line in text.splitlines():
+        if "SCF Done:" in line:
+            match = re.search(r"SCF Done:\s+E\([^)]+\)\s+=\s+(-?\d+\.\d+)", line)
+            if match:
+                current_step["energy_hartree"] = float(match.group(1))
+        elif "Maximum Force" in line and "Threshold" in line:
+            match = re.search(r"Maximum Force\s+(-?\d+\.\d+)", line)
+            if match:
+                current_step["max_force"] = float(match.group(1))
+        elif "Optimization completed" in line or "Non-Optimized Parameters" in line:
+            if "energy_hartree" in current_step:
+                current_step["step"] = len(optimization_steps) + 1
+                optimization_steps.append(current_step)
+                current_step = {}
+        elif "GradGradGrad" in line or "Step number" in line: # Another delimiter for steps
+            if "energy_hartree" in current_step:
+                current_step["step"] = len(optimization_steps) + 1
+                optimization_steps.append(current_step)
+                current_step = {}
+
+    if "energy_hartree" in current_step and current_step not in optimization_steps:
+        current_step["step"] = len(optimization_steps) + 1
+        optimization_steps.append(current_step)
+
     if final_energy is None:
         warnings.append("未找到 SCF Done 最终能量。")
     if gibbs is None:
@@ -112,6 +141,7 @@ def parse_gaussian_log(text: str) -> GaussianResult:
         homo_ev=homo_ev,
         lumo_ev=lumo_ev,
         warnings=warnings,
+        optimization_steps=optimization_steps if optimization_steps else None,
     )
 
 

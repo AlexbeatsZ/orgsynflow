@@ -126,7 +126,20 @@ export interface GaussianJob {
   started_at?: string;
   finished_at?: string;
   work_dir?: string;
-  result?: unknown;
+  result?: {
+    normal_termination?: boolean;
+    parsed_result?: {
+      final_energy_hartree?: number | null;
+      gibbs_free_energy_hartree?: number | null;
+      imaginary_frequency_count?: number;
+      homo_ev?: number | null;
+      lumo_ev?: number | null;
+      warnings?: string[];
+      optimization_steps?: Array<{ step: number; energy_hartree?: number; max_force?: number }>;
+    };
+    stdout?: string;
+    stderr?: string;
+  };
   error?: string;
 }
 

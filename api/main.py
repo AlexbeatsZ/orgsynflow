@@ -135,6 +135,24 @@ class CoordinatesRequest(BaseModel):
     smiles: str
 
 
+class TsWorkflowCreateRequest(BaseModel):
+    reaction_smiles: str
+    workspace_id: str | None = None
+    cell_id: str | None = None
+    reaction_id: str | None = None
+    agents: list[str] | None = None
+
+
+class TsWorkflowConfirmRequest(BaseModel):
+    candidate_id: str
+    coordinates: list[dict[str, object]]
+    config: dict[str, object]
+
+
+class TsWorkflowActionRequest(BaseModel):
+    action: str
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok", "version": "V6"}
@@ -380,3 +398,46 @@ def gaussian_parse(request: GaussianParseRequest) -> dict[str, object]:
 @app.post("/kinetics/profile")
 def kinetics_profile(request: EnergyProfileRequest) -> dict[str, object]:
     return analyze_profile_from_logs(request.reactant_log, request.product_log, request.ts_log)
+
+
+from core.ts_workflow import TsWorkflowManager
+ts_manager = TsWorkflowManager()
+
+@app.post("/ts/workflow")
+def ts_workflow_create(request: TsWorkflowCreateRequest) -> dict[str, object]:
+    return ts_manager.create(
+        reaction_smiles=request.reaction_smiles,
+        workspace_id=request.workspace_id,
+        cell_id=request.cell_id,
+        reaction_id=request.reaction_id,
+        included_agents=request.agents,
+    )
+
+@app.get("/ts/workflow/{workflow_id}")
+def ts_workflow_get(workflow_id: str) -> dict[str, object]:
+    workflow = ts_manager.get(workflow_id)
+    if not workflow:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+    return workflow
+
+@app.post("/ts/workflow/{workflow_id}/confirm")
+def ts_workflow_confirm(workflow_id: str, request: TsWorkflowConfirmRequest) -> dict[str, object]:
+    try:
+        return ts_manager.confirm(workflow_id, request.model_dump())
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+@app.post("/ts/workflow/{workflow_id}/action")
+def ts_workflow_action(workflow_id: str, request: TsWorkflowActionRequest) -> dict[str, object]:
+    try:
+        action = request.action
+        if action == "pause":
+            return ts_manager.pause(workflow_id)
+        elif action in ["resume", "retry"]:
+            return ts_manager.resume(workflow_id)
+        elif action == "cancel":
+            return ts_manager.cancel(workflow_id)
+        else:
+            raise HTTPException(status_code=400, detail=f"Unknown action: {action}")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc

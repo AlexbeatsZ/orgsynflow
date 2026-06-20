@@ -161,7 +161,9 @@ WSL 临时文件必须放在：
 - 绿色“已完成”任务按钮不应只能查看旧结果；从任务面板点击已完成任务打开结果/路线候选窗口时，应在窗口底部保留“重新计算”入口，复用该任务原来的运行/重试逻辑。Gaussian 等需要参数的任务仍应保留“修改配置”入口。
 - Ketcher 引入的 `ketcher-react/dist/index.css` 含有大量全局样式，与项目自带的通用弹窗样式（如 `.modal-backdrop`、`.modal-header` 等）易发生类名冲突，导致弹窗不居中且 Wasm 交互错位。已将项目中所有 Modal 相关基础类名加前缀升级（如 `.osf-modal-backdrop`）。同时，对嵌入了复杂第三方组件的 Modal 容器，应避免使用 CSS Grid 布局，因为 Grid 布局会将第三方组件在运行时动态生成的 style/div 辅助节点强行作为网格项目进行排位，从而摧毁行高比例。必须统一使用 Flexbox 布局，并通过 `flex: 1` 和 `position: relative` 规范子容器的高度撑满与 Containing Block 定位基准。
 - TS 参数窗口曾使用未定义的 `osf-modal-window` 类，导致计算样式背景为完全透明，同时缺少阴影、裁剪和相对定位。TS 窗口应复用 `osf-config-modal` 基类，再由 `ts-config-modal` 覆盖尺寸和网格布局；不要新增没有基础视觉契约的 modal 类名。
-
+- 路线预测结果的展示不应只显示纯文本，当前已实现通过 `RouteCandidatePreview` 结合 `MoleculeDrawing` 和 SVG 路径直接在弹窗渲染反应合成树的预览，增强体验直观度。
+- Gaussian 优化的收敛过程图表可通过解析 log 文件中所有 `SCF Done:` 与 `Maximum Force` 提取，并在 `GaussianJobView` 渲染出迭代详情（类似 `temp/main.py` 的实现）。
+- FastAPI 后端需要显式映射所有管理器，如果新增管理器（例如 `TsWorkflowManager`），必须在 `api/main.py` 添加对应的 `GET / POST` 路由才能防止前端报 404 错误。
 化学结果表达经验：
 
 - 不要把 heuristic/demo 逻辑包装成真实模型结果。
@@ -345,3 +347,5 @@ WSL 临时文件必须放在：
 
 - [done] 2026-06-20 修复 CREST 不可用结果被前端误记为成功的问题：通用任务会根据 payload 的 `available/status` 推断失败状态并保留 `reason`；历史上已缓存为 `succeeded + unavailable` 的记录也会显示为失败、允许重试。实时 API 已通过 WSL CREST 3.0.2 对水分子完成构象搜索（return code 0），确认当前工具链可用。
 - [todo] Ketcher 绘图窗口仍未居中且无法使用。已尝试在 `web/src/styles.css` 中移除 `.osf-ketcher-host > div` 的 flex 布局并提交（commit e1b4eb0），但窗口仍表现异常，需要进一步调试布局和可能的全局 CSS 冲突。
+
+- [done] 2026-06-20 Fix canvas UI interactions: allow dragging blocks from sub-molecules, and add selected styling to single-molecule blocks.

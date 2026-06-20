@@ -627,6 +627,62 @@ function TaskLogDrawer({
   );
 }
 
+function RouteCandidatePreview({ route }: { route: any }) {
+  if (!route.layout?.nodes || Object.keys(route.layout.nodes).length === 0) return null;
+
+  const nodes = Object.values(route.layout.nodes) as Array<{ id: string; x: number; y: number; in_stock: boolean }>;
+  const minX = Math.min(...nodes.map(n => n.x));
+  const minY = Math.min(...nodes.map(n => n.y));
+  const maxX = Math.max(...nodes.map(n => n.x));
+  const maxY = Math.max(...nodes.map(n => n.y));
+
+  const width = Math.max(600, maxX - minX + 220);
+  const height = Math.max(300, maxY - minY + 160);
+
+  return (
+    <div className="route-preview-container" style={{ position: 'relative', width: '100%', height: '280px', overflow: 'auto', background: '#f8fafc', borderRadius: '6px', marginTop: '12px', border: '1px solid var(--border-color)' }}>
+      <div style={{ position: 'absolute', width: width, height: height, top: 0, left: 0 }}>
+        <svg width="100%" height="100%" style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none' }}>
+          <defs>
+            <marker id={`arrow-${route.id}`} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b" />
+            </marker>
+          </defs>
+          {(route.layout.edges || []).map((edge: any, i: number) => {
+            const source = route.layout.nodes[edge.source_id];
+            const target = route.layout.nodes[edge.target_id];
+            if (!source || !target) return null;
+            const startX = source.x - minX + 180;
+            const startY = source.y - minY + 60;
+            const endX = target.x - minX - 10;
+            const endY = target.y - minY + 60;
+            const midX = (startX + endX) / 2;
+            return (
+              <path
+                key={i}
+                d={`M ${startX} ${startY} C ${midX} ${startY}, ${midX} ${endY}, ${endX} ${endY}`}
+                fill="none"
+                stroke="#cbd5e1"
+                strokeWidth="3"
+                markerEnd={`url(#arrow-${route.id})`}
+              />
+            );
+          })}
+        </svg>
+        {nodes.map(node => {
+          const mol = route.molecules.find((m: any) => m.id === node.id);
+          return (
+            <div key={node.id} style={{ position: 'absolute', left: node.x - minX + 10, top: node.y - minY + 10, width: '160px', background: 'white', border: `2px solid ${node.in_stock ? '#22c55e' : '#e2e8f0'}`, borderRadius: '6px', padding: '4px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+              <MoleculeDrawing smiles={mol?.smiles ?? ""} />
+              {node.in_stock && <div style={{ position: 'absolute', top: '-8px', right: '-8px', background: '#22c55e', color: 'white', fontSize: '10px', padding: '2px 6px', borderRadius: '10px' }}>库存可用</div>}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function RouteResultView({ result }: { result: ReturnType<typeof asRoutePredictionResult> & {} }) {
   return (
     <div className="structured-result">
@@ -640,7 +696,8 @@ function RouteResultView({ result }: { result: ReturnType<typeof asRoutePredicti
           <div className="route-result-card" key={route.id}>
             <strong>{index + 1}. {route.title}</strong>
             <span>{route.depth} 步 · {route.precursor_count} 个前体 · 库存 {route.stock_count}</span>
-            <small>{route.molecules.map((item) => item.smiles).join("  +  ")}</small>
+            <RouteCandidatePreview route={route} />
+            <small style={{ display: 'block', marginTop: '8px' }}>{route.molecules.map((item) => item.smiles).join("  +  ")}</small>
           </div>
         ))}
       </div>
@@ -796,6 +853,22 @@ function GaussianJobView({ job }: { job: GaussianJob }) {
           <div key={String(key)}><span>{String(key)}</span><strong>{formatResultValue(value)}</strong></div>
         ))}
       </div>
+      {parsed?.optimization_steps && parsed.optimization_steps.length > 0 && (
+        <div className="result-block">
+          <strong>优化收敛过程 ({parsed.optimization_steps.length} 步)</strong>
+          <div className="optimization-steps-chart" style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '8px', maxHeight: '150px', overflowY: 'auto', fontSize: '12px' }}>
+            {parsed.optimization_steps.map((step: any) => (
+              <div key={step.step} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 8px', background: 'var(--surface-color)', borderRadius: '4px' }}>
+                <span style={{ color: 'var(--muted-color)' }}>Step {step.step}</span>
+                <span style={{ fontFamily: 'monospace' }}>
+                  {step.energy_hartree ? `${step.energy_hartree.toFixed(6)} Ha` : '-'}
+                  {step.max_force ? ` | Max Force: ${step.max_force.toFixed(6)}` : ''}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       {job.work_dir && <code>{job.work_dir}</code>}
       {result?.input_path && <code>{String(result.input_path)}</code>}
       {result?.log_path && <code>{String(result.log_path)}</code>}
