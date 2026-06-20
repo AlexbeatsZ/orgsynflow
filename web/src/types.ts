@@ -213,8 +213,7 @@ export interface TsCoordinate {
   atom1: number;
   atom2: number;
   label?: string;
-  kind?: string;
-  start: number;
+  kind?: string;  start: number;
   end: number;
 }
 
@@ -227,7 +226,9 @@ export interface TsWorkflow {
   warnings?: string[];
   grid_points: Array<{ point_id: string; status: string; }>;
   candidates: Array<{ candidate_id: string; label: string; xyz?: string; preoptimization?: string; energy_hartree?: number; }>;
+  selected_candidate_id?: string;
   coordinates?: TsCoordinate[];
+  mapping?: any;
   config?: any;
   ts_results?: Array<{ frequency_result?: { final_coordinates_xyz?: string; vibration_modes?: Array<{ frequency_cm1: number; displacements: number[][] }> } }>;
   validation?: { frequency_ok?: boolean };

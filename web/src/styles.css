@@ -46,6 +46,7 @@ button {
   text-transform: uppercase;
 }
 
+.secondary-button,
 .ghost-button,
 .primary-button,
 .cell-card,
@@ -53,12 +54,15 @@ button {
 .editor-strip > button {
   border: 0;
   border-radius: 8px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .cell-card.active {
   outline: 2px solid #2563eb;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.15);
 }
 
+.secondary-button,
 .primary-button,
 .ghost-button {
   min-height: 38px;
@@ -66,7 +70,8 @@ button {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 8px 12px;
+  padding: 8px 16px;
+  font-weight: 500;
 }
 
 .primary-button {
@@ -74,9 +79,42 @@ button {
   color: white;
 }
 
+.primary-button:hover:not(:disabled) {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37,99,235,0.25);
+}
+
+.secondary-button {
+  background: white;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+}
+
+.secondary-button:hover:not(:disabled) {
+  background: #f8fafc;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+}
+
+.secondary-button.danger {
+  color: #b91c1c;
+  border-color: #fca5a5;
+  background: #fef2f2;
+}
+
+.secondary-button.danger:hover:not(:disabled) {
+  background: #fee2e2;
+}
+
 .ghost-button {
   background: #e9eef6;
   color: #17202a;
+}
+
+.ghost-button:hover:not(:disabled) {
+  background: #dbeafe;
+  transform: translateY(-1px);
 }
 
 .compact {
@@ -95,16 +133,20 @@ button {
 .topbar {
   min-height: 76px;
   padding: 16px 22px;
-  background: white;
-  border-bottom: 1px solid #d9e1eb;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: none;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.05);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  z-index: 10;
+  position: relative;
 }
 
 .content-grid {
   display: grid;
-  grid-template-columns: minmax(240px, 280px) minmax(280px, 1fr) minmax(260px, 280px);
+  grid-template-columns: minmax(280px, 320px) minmax(280px, 1fr) minmax(280px, 320px);
   min-height: 0;
 }
 
@@ -182,10 +224,12 @@ button {
   border-radius: 6px;
   background: #eef3f8;
   color: #475569;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .icon-button:hover {
   background: #dbe7f3;
+  transform: translateY(-1px);
 }
 
 .icon-button.danger:hover {
@@ -362,7 +406,9 @@ button {
 .molecule-component.selected {
   border-color: #2563eb;
   background: #eff6ff;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.22);
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.22);
 }
 
 .molecule-component > span {
@@ -394,9 +440,9 @@ button {
 .react-flow__node.selected .molecule-node,
 .react-flow__node.connection-source-node .molecule-node {
   border-color: #2563eb;
-  box-shadow:
-    0 0 0 3px rgba(37, 99, 235, 0.18),
-    0 8px 24px rgba(15, 23, 42, 0.08);
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.15);
 }
 
 .react-flow__edge.canvas-edge .react-flow__edge-path {
@@ -410,6 +456,7 @@ button {
 .react-flow__edge.canvas-edge:focus .react-flow__edge-path {
   stroke: #2563eb;
   stroke-width: 4;
+  filter: drop-shadow(0 0 6px rgba(37,99,235,0.6));
 }
 
 .react-flow__edge.canvas-edge .react-flow__edge-text {
@@ -475,6 +522,45 @@ button {
 .editor-strip {
   justify-content: flex-start;
   flex-wrap: wrap;
+}
+
+.smiles-input-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: white;
+  border: 1px solid #d9e1eb;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.smiles-input-title {
+  font-weight: 600;
+  color: #334155;
+  font-size: 13px;
+}
+
+.smiles-input-body {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.smiles-input-body textarea {
+  flex: 1;
+  min-height: 74px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 8px;
+  resize: vertical;
+}
+
+.smiles-input-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: flex-start;
 }
 
 .editor-strip > input {
@@ -1014,6 +1100,18 @@ button {
   font-size: 12px;
 }
 
+.raw-log-block pre {
+  max-height: 40vh;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  background: #f1f5f9;
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  margin: 0;
+}
+
 .gaussian-progress,
 .ts-output-preview {
   display: grid;
@@ -1083,10 +1181,37 @@ button {
   max-height: 200px;
   overflow: auto;
   font-size: 11px;
-  background: #0f172a;
-  color: #38bdf8;
+  background: #f1f5f9;
+  color: #334155;
   padding: 10px;
   border-radius: 6px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  font-size: 13px;
+}
+
+.osf-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  background: white;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+}
+.osf-table td, .osf-table th {
+  padding: 8px 12px;
+  border-bottom: 1px solid #e2e8f0;
+  vertical-align: top;
+  text-align: left;
+}
+.osf-table tr:last-child td {
+  border-bottom: none;
+}
+.osf-table td:first-child {
+  background-color: #f8fafc;
+  font-weight: 500;
+  color: #475569;
 }
 
 .result-3d-viewer-container {
@@ -1200,6 +1325,7 @@ button {
 
 .osf-config-modal {
   width: min(560px, 94vw);
+  max-height: min(820px, 92vh);
   background: white;
   border-radius: 8px;
   display: flex;
@@ -1503,6 +1629,7 @@ button {
   gap: 24px;
   overflow: auto;
   padding: 12px 0;
+  min-height: 0;
 }
 
 .ts-config-left {
@@ -1770,4 +1897,29 @@ button {
 .ts-plan-summary code {
   white-space: normal;
   overflow-wrap: anywhere;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* 统一输入框焦点高亮状态 */
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
 }

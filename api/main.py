@@ -149,6 +149,10 @@ class TsWorkflowCreateRequest(BaseModel):
     agents: list[str] | None = None
 
 
+class TsSuggestConfigRequest(BaseModel):
+    reaction_smiles: str
+    coordinates: list[dict[str, Any]]
+
 class TsWorkflowConfirmRequest(BaseModel):
     candidate_id: str
     coordinates: list[dict[str, object]]
@@ -439,6 +443,11 @@ def ts_workflow_get(workflow_id: str) -> dict[str, object]:
 @app.get("/ts-workflows/{workflow_id}")
 def ts_workflow_get_legacy(workflow_id: str) -> dict[str, object]:
     return ts_workflow_get(workflow_id)
+
+@app.post("/ts/suggest-config")
+def ts_suggest_config(request: TsSuggestConfigRequest) -> dict[str, object]:
+    from core.ts_workflow import suggest_ts_config_with_deepseek
+    return suggest_ts_config_with_deepseek(request.reaction_smiles, request.coordinates)
 
 @app.post("/ts/workflow/{workflow_id}/confirm")
 def ts_workflow_confirm(workflow_id: str, request: TsWorkflowConfirmRequest) -> dict[str, object]:

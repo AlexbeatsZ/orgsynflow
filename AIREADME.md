@@ -1,104 +1,109 @@
 # AIREADME.md
 
-本文件是 OrgSynFlow 的项目日志和 AI 接手手册。对于这个有独立文件夹的项目，每次新对话开始时应先读取本文件；如果不存在则创建。每次任务完成后，应把新经验、当前状态和未解决事项写回本文件。
+> [!IMPORTANT]
+> **CRITICAL INSTRUCTION**: This file serves as the project log and AI agent hand-off manual. All future updates, logs, and comments in this file **MUST** be written in English. Do not write in Chinese or any other language.
+
+---
+
+This file is the project log and AI hand-off manual for OrgSynFlow. For projects with an independent folder, this file should be read at the beginning of each new conversation; if it does not exist, it should be created. After each task is completed, new lessons learned, the current status, and unresolved items should be written back to this file.
 
 ## 1. Project Goal
 
-OrgSynFlow 的总目标是构建一个本地优先、可插拔的有机合成工作台，把分子、反应、路线、性质预测、Gaussian 计算、过渡态规划、动力学和产率估计整合到一个连续工作流里。
+The overall goal of OrgSynFlow is to build a local-first, pluggable organic synthesis workbench, integrating molecules, reactions, routes, property predictions, Gaussian calculations, transition state planning, kinetics, and yield estimations into a continuous workflow.
 
-当前产品方向：
+Current Product Direction:
 
-- React/Vite 前端作为主要且唯一的交互界面，地址为 `http://127.0.0.1:5173/`。
-- FastAPI 后端提供可测试接口，地址为 `http://127.0.0.1:8765/`。
-- CLI `run_cli.py` 保留为稳定自动化入口。
-- 所有的桌面客户端（如 Tkinter `desktop_app.py`、Streamlit）及其打包构建脚本（如 `build_exe.ps1` 等）已被永久废弃和删除。
-- 工作区应该像 notebook/Jupyter：用户可以创建多个工作区，每个工作区内有多个通用化学单元。
-- UI 中不要把单元硬分为“分子/反应/路线”三类；一个通用单元应能根据输入内容识别普通 SMILES、reaction SMILES 和多步路线。
-- 画布中的分子必须渲染为结构图，不能只显示标题或大号文本。
-- 用户应能选中任意分子节点做分子性质、描述符、Gaussian 输入等任务；也能选中反应箭头做反应解释、映射、产率、TS 计划等任务。
-- 路线预测结果应先作为候选/预览呈现，用户确认后再插入当前工作区画布。
+- React/Vite frontend serves as the primary and only interactive interface, located at `http://127.0.0.1:5173/`.
+- FastAPI backend provides testable endpoints, located at `http://127.0.0.1:8765/`.
+- CLI `run_cli.py` is retained as a stable automation entry point.
+- All desktop clients (e.g., Tkinter `desktop_app.py`, Streamlit) and their build/packaging scripts (e.g., `build_exe.ps1`) have been permanently deprecated and deleted.
+- Workspaces should be notebook/Jupyter-like: users can create multiple workspaces, and each workspace contains multiple general chemistry cells.
+- The UI should not strictly categorize cells into "Molecule/Reaction/Route" types; a general cell should be able to identify ordinary SMILES, reaction SMILES, and multi-step routes based on the input content.
+- Molecules in the canvas must be rendered as structure diagrams, not just titles or large text.
+- Users should be able to select any molecule node to perform molecular properties, descriptors, Gaussian inputs, and other tasks; they should also be able to select reaction arrows to perform reaction analysis, mapping, yields, TS planning, and other tasks.
+- Route prediction results should first be presented as candidates/previews, and only inserted into the current workspace canvas after user confirmation.
 
-核心能力目标：
+Core Capabilities:
 
-- 分子性质分析：RDKit 基础性质、可选 OPERA 预测、可选 Mordred/描述符扩展。
-- 合成路线预测：AiZynthFinder 可用时解析真实结果；不可用时返回清楚的 unavailable/disabled，不冒充真实预测。
-- 反应分析：基础可行性检查、反应解释、可选 RXNMapper 映射、反应特征导出。
-- 量化计算：Gaussian 输入生成、Gaussian 作业队列、log/out 解析。
-- 过渡态：半自动 TS 计划，不宣称自动保证正确；输出验证等级。
-- 动力学/热力学：基于 Gibbs free energy 计算 `ΔG_rxn`、`ΔG‡` 和 Eyring 速率。
-- 产率估计：明确区分 heuristic、特征导出、训练模型；每个结果都要有 method/confidence/applicability/note。
+- Molecular Property Analysis: RDKit basic properties, optional OPERA predictions, optional Mordred/descriptor extensions.
+- Synthetic Route Prediction: Parse real results when AiZynthFinder is available; return clear "unavailable/disabled" when unavailable, and do not fake real predictions.
+- Reaction Analysis: Basic feasibility check, reaction explanation, optional RXNMapper mapping, and reaction feature export.
+- Quantum Chemistry Calculation: Gaussian input generation, Gaussian job queue, and log/out parsing.
+- Transition State: Semi-automatic TS planning, without claiming to automatically guarantee correctness; output verification levels.
+- Kinetics/Thermodynamics: Calculate `ΔG_rxn`, `ΔG‡`, and Eyring rates based on Gibbs free energy.
+- Yield Estimation: Clearly distinguish between heuristic, feature export, and trained models; each result must contain method/confidence/applicability/note.
 
-主要代码入口：
+Main Code Entry Points:
 
 ```text
-README.md                         用户面向项目说明
-plan.md                           三阶段集成计划
-run_cli.py                        CLI 入口
-run_api.py                        FastAPI 启动入口
+README.md                         User-facing project documentation
+plan.md                           Three-phase integration plan
+run_cli.py                        CLI entry point
+run_api.py                        FastAPI startup entry point
 api/main.py                       HTTP API
-services/                         CLI/API/UI 共用服务层
-core/                             分子、路线、Gaussian、动力学、产率核心逻辑
-adapters/                         外部工具适配器
-web/src/App.tsx                   React 工作区主界面
-web/src/api.ts                    前端 API 客户端
-web/src/types.ts                  前端类型定义
-web/src/styles.css                前端样式
-scripts/orgsynflow-toggle.ps1     本地服务开关脚本
-data/workspaces/                  本地工作区 JSON
+services/                         Common service layer shared by CLI/API/UI
+core/                             Core logic for molecules, routes, Gaussian, kinetics, and yield
+adapters/                         Adapters for external tools
+web/src/App.tsx                   Main React workspace interface
+web/src/api.ts                    Frontend API client
+web/src/types.ts                  Frontend type definitions
+web/src/styles.css                Frontend styles
+scripts/orgsynflow-toggle.ps1     Local service toggle script
+data/workspaces/                  Local workspace JSON
 ```
 
-常用命令：
+Common Commands:
 
 ```powershell
-# 后端
+# Backend
 uv run python run_api.py
 
-# 前端
+# Frontend
 cd web
 npm run dev
 
-# Python 测试
+# Python tests
 uv run pytest -q
 
-# 前端构建
+# Frontend build
 cd web
 npm run build
 
-# 开关脚本测试
+# Toggle script test
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\orgsynflow-toggle.ps1 -NoOpen
 ```
 
-桌面一键开关：
+Desktop One-Click Toggle:
 
 ```text
 C:\Users\Meta\Desktop\OrgSynFlow Toggle.cmd
 ```
 
-它调用：
+It calls:
 
 ```powershell
 scripts\orgsynflow-toggle.ps1
 ```
 
-日志位置：
+Log Location:
 
 ```text
 %LOCALAPPDATA%\Temp\codex\orgsynflow\
 ```
 
-WSL 镜像路径：
+WSL Mirror Path:
 
 ```text
 /home/meta/Project/Workspaces/orgsynflow
 ```
 
-WSL 环境：
+WSL Environment:
 
 ```bash
 /home/meta/.local/opt/miniforge3/bin/mamba run -n orgsynflow-chem <command>
 ```
 
-WSL 临时文件必须放在：
+WSL Temporary Files must be placed in:
 
 ```text
 /tmp/codex/
@@ -106,270 +111,266 @@ WSL 临时文件必须放在：
 
 ## 2. Lessons Learned
 
-项目日志规则：
+Project Log Rules:
 
-- 每次新对话开始时，先读取项目根目录的 `AIREADME.md`。
-- 如果 `AIREADME.md` 不存在，则创建。
-- 每次任务完成后，更新本文件，至少记录新增经验、已解决 bug、当前任务状态。
-- `AIREADME.md` 不是普通 README，而是给 AI/开发代理接力用的项目记忆。
+- At the beginning of each new conversation, read `AIREADME.md` in the project root directory first.
+- If `AIREADME.md` does not exist, create it.
+- After each task is completed, update this file, recording at least new lessons learned, fixed bugs, and the current task status.
+- `AIREADME.md` is not a standard README, but a project memory meant for hand-off between AI agents/development proxies.
 
-本地工作约定：
+Local Workspace Conventions:
 
-- Windows 上运行 Python 优先用 `uv`。
-- Windows 上下载/安装程序优先用 `scoop`，但除非用户确认，不要私自安装全局工具。
-- Windows 临时文件、备份、日志集中放在 `%LOCALAPPDATA%\Temp\codex\`。
-- WSL 临时文件集中放在 `/tmp/codex/`。
-- 如果修改 Git 仓库，完成时要提交；如果连接 GitHub，还要推送。
-- 不要回滚用户改动；如果测试或浏览器操作弄脏数据文件，只还原自己造成的测试痕迹。
+- Prefer `uv` when running Python on Windows.
+- Prefer `scoop` when downloading/installing programs on Windows, but do not install global tools without user confirmation.
+- Centralize Windows temporary files, backups, and logs under `%LOCALAPPDATA%\Temp\codex\`.
+- Centralize WSL temporary files under `/tmp/codex/`.
+- If modifying a Git repository, commit changes upon completion; if connected to GitHub, push changes as well.
+- Do not roll back user changes; if testing or browser operations dirty data files, revert only the test artifacts caused by yourself.
 
-架构与项目精简经验：
+Architecture & Project Simplification Lessons:
 
-- 用户明确只使用 Web 界面（React/Vite），不再需要任何形式的桌面客户端或本地可执行文件打包产物。后续增加交互或 UI 新功能时，请仅针对 `web/` 目录的前端项目和对应的 FastAPI 后端进行开发，切勿重新引入或修改任何桌面 GUI（如 Tkinter/PyQt）及 `.exe` 打包逻辑。
+- The user explicitly requested to only use the Web interface (React/Vite), and no longer needs any desktop client or local executable packaging artifacts. When adding interactive or UI features in the future, develop only for the frontend project in the `web/` directory and the corresponding FastAPI backend. Do not reintroduce or modify any desktop GUI (such as Tkinter/PyQt) or `.exe` packaging logic.
 
-前端 UX 经验：
+Frontend UX Lessons:
 
-- TS 三维构象编辑器不能在运行时重复注入 CDN 脚本；应通过项目内 `3dmol` 依赖统一异步加载。右栏是可收缩 flex 容器，viewer 必须设置 `flex: 0 0 350px` 与 `min-height`，否则声明的 350px 会被压缩到约 24px，表现为空白/不可用。传给 3Dmol 的每个 XYZ 子模型必须包含首行原子数和第二行注释；只传坐标行会导致模型解析为空，而手工 label 仍显示，症状就是“只有一堆编号”。候选 XYZ 必须先按分子拆组再应用每个分子的变换，不能在选中候选后直接返回原始 XYZ，否则预览和 GJF 均不会响应平移/旋转。
-- 3D 分子拖拽不能把屏幕 dx/dy 直接写进世界 X/Y；相机旋转后方向会错误。Shift 平移应使用 3Dmol `screenOffsetToModel(dx, dy)`，它先在投影平面令深度分量为零，再按相机四元数变回模型坐标，保证只在与视线垂直的平面移动。Ctrl 旋转应以相机平面中的 screen-up/screen-right 为旋转轴，再把组合四元数转换回 XYZ 欧拉角供 GJF 使用。
-- SMILES 块删除不能只依赖 React Flow 的临时节点状态；删除时必须同时移除相邻边，并用剩余 nodes/edges 重建 `cell.objects.molecules/reactions`，否则父级单元更新或页面刷新会把节点重新生成。当前选中块后会显示“删除 SMILES 块”按钮，删除结果可随工作区保存持久化。
-- 用户明确不要深色永久侧栏。工作区选择应是顶部紧凑下拉菜单。
-- 单元栏应是白色、可隐藏；添加单元按钮放在单元栏内。
-- UI 不要把单元做成“分子单元/反应单元/路线单元”的固定分类。用户期望一个通用化学单元，根据输入自动推断内容。
-- 输入规则：普通 SMILES 是分子；包含 `>>` 是反应；多条连接反应可表达路线。
-- 画布节点必须显示 SMILES 渲染出来的分子结构图，不能显示大号标题。
-- 曾经出现过画布显示巨大 `Ethanol` 的问题，原因是 React Flow 默认 label 节点把分子 label/title 当内容渲染。已改为自定义 molecule node，并通过后端 RDKit SVG 接口渲染结构图。
-- 曾经出现 `CCO` 看起来重复的问题，原因是节点 data 同时拼了 label 和 smiles。已改为节点底部只显示一行 SMILES。
-- 单元删除按钮曾经嵌套在整张单元卡的 `<button>` 内，导致非法 DOM 和浏览器警告。已改为单元卡用可点击 `div`，删除按钮独立。
-- `CO2.H2O` 这类点式组合不是 RDKit SMILES，但其中 `CO2`、`H2O` 等常见小分子式可以安全映射为结构。结构渲染接口应先尝试 RDKit；失败后按点号拆组分，能受控映射的组分画成多结构 SVG；像 `CuSO4.5H2O` 这种暂时不能可靠推断结构的输入再降级为公式 SVG。前端也要把 `svg: null` 作为失败态，避免节点一直显示“渲染中...”。
-- 结果/日志面板不应占据主布局底部全宽；应嵌入中间工作面板内，并使用浅色背景配深色文字，和工作区面板一致。
-- React Flow 手动画出的边不要被误当作第一条反应；只有由 reaction 对象生成的边才打开反应任务。手动画布边应能选中后删除，且禁止自连接这类不可见/无意义边。
-- 化学画布应允许同一个 SMILES/结构出现多个独立节点，不能按 `smiles` 去重；重复试剂、等价底物、不同位置的同一分子都需要独立对象。
-- 分子节点连接位点太少会限制路线/网络表达。当前每个分子节点应提供 8 个连接位点：top-a/top-b/right-a/right-b/bottom-a/bottom-b/left-a/left-b。
-- 不要把 React Flow 的多个连接位点直接显示成蓝点，这会让用户以为必须拖拽锚点且画布很乱。连接位点应作为内部锚点隐藏；用户通过“连接分子”按钮进入连续连线状态，或按住 Shift 临时进入连续连线状态；每次点击分子会从上一个分子自动连到当前分子，并把当前分子作为下一段起点。连接线应使用更粗的深色 smoothstep 箭头，选中态再用蓝色强调。画布需要提供“一键删除全部连线”。
-- 用户对分子块之间的连接线更偏好几何直觉：当 B 在 A 上方时，应从 A 顶部中心连到 B 底部中心并画成一条直线；左右关系也应使用左右中心锚点。React Flow 边应使用 `straight` 类型，旧的 `top-a/right-a/...` 等边 handle 需要归一到中心 `top/right/bottom/left`，避免历史数据继续画出多弯折线。
-- 合成路线/反应关系线必须显示明确箭头。当前 React Flow 边使用 `MarkerType.ArrowClosed`；旧边加载时按当前节点中心重新计算最近的上下/左右 handle，而不是保留历史错误端点。Edge label 默认隐藏，只在选中边时显示，避免文字压在线和分子块上。
-- 2026-06-20 后，画布边不再使用 React Flow `straight` 路径，而是自定义 `orthogonal` edge：起点和终点必须落在 SMILES 块上下左右正中间；路径只允许水平/垂直折线；路由会把其它 SMILES 块作为障碍扩展矩形避开；四侧端点自动选择按“总路径最短 → 弯折最少 → 第一次拐弯前路径最长 → 后续段依次最长”的优先级比较。
-- TS 配置窗口不能在轮询 `awaiting_confirmation` 时持续覆盖前端参数/反应坐标；否则用户正在编辑的 GJF 预览、坐标和资源参数会每 2 秒被后端初始值重置。应按 workflow id/status 初始化一次，之后由用户编辑态驱动预览。
-- TS 前端提交的候选字段是 `candidate_id`，后端历史上只读 `selected_candidate_id` 会导致用户选中的初始构象被忽略并回退到第一个候选；后端 confirm 需同时兼容两个字段。
-- 计算后端状态不应常驻占用右侧任务面板。右上角只保留紧凑“后端”入口，点击后弹窗查看；Gaussian 队列和路线候选属于当前分子/反应的二级窗口入口，不应与分子任务平级常驻展示。
-- 任务结果应通过独立 modal 展示；中间区域不再常驻“结果/日志”面板，右侧任务面板只承载当前选中对象的操作。点击路线预测后应直接打开候选 modal，窗口内提供查看、加入当前画布和新建路线单元。
-- 计算任务按钮必须绑定到当前单元 `results` 中的稳定任务记录，键格式为“对象类型:对象 ID:任务 ID”。蓝色表示未计算、黄色表示运行中、绿色表示成功、红色表示失败；绿色点击查看结果，红色点击先看错误再重试。任务记录通过单独 API 原子更新，不能为写一个结果而回存整份旧工作区。
-- 结果详情继续使用 modal，但任务日志入口不能一起消失。当前单元的任务日志应放在中间面板底部可折叠抽屉中，收起时保留标题和数量，展开后按更新时间查看结果或错误。
-- Gaussian 结构优化/频率只能有一个主按钮。点击后打开配置窗口并自动生成默认 `Opt + Freq / B3LYP / 6-31G(d) / 0 / 1` 输入；参数与 GJF 均可编辑，窗口只提供重新生成、关闭和提交，不再分“直接提交”和“高级配置”两条流程。
-- 左侧单元卡只显示类型、标题和删除入口；分子/反应数量及反应式预览会挤占空间且信息价值低，不应恢复。
-- 路线候选中同一步的多个前体必须放进同一个反应物块，SMILES 用点号连接，例如 `O=C(O)c1ccccc1O.CC(=O)OC(C)=O` 作为一个节点连接到产物，不能拆成两条平行边。单纯用户手动输入多个独立分子时仍可按多行创建多个节点。
-- 从某个现有 SMILES 块发起逆合成预测后，插入候选路线必须把预测 target 绑定回这个现有块；不要再新建一个同产物的 `C` 块。对于 `A+B>>C` 这类单步结果，画布应创建一个 `A.B` 点式反应物块并用一条箭头指向现有 `C` 块，这样才能区分“一个合成反应的多个反应物”和“两条独立路线”。
-- 如果用户从点式多分子块里的某个内层组分发起逆合成预测，插入路线时反应箭头仍属于外层组合节点，但 SVG path 的终点应穿过外层容器并落到该内层组分卡片的边缘；同一组合块里的其它组分卡片要作为障碍绕开，避免箭头压过相邻分子。
-- 路线候选树里可能出现多个 molecule id 共享同一个目标 SMILES。对从内层组分发起的逆合成插入，所有与目标组分 SMILES 相同的 route molecule 都必须映射回原内层目标，不能在外面再复制一个“需要合成的东西”；映射后产生的 self-loop 反应边应跳过。
-- 前端改动后应尽量用浏览器/Playwright 检查真实 UI，而不只看 `npm run build`。
-- 任务面板中常驻的“查看计算队列（Gaussian）”和“查看路线候选”按钮已被移除。计算队列状态与结果已统一收拢到底部任务日志抽屉；路线预测成功后，点击绿色状态的预测路线任务按钮或任务日志中对应的成功记录，均能直接调起带交互操作（“加入当前画布”/“新建路线单元”）的路线候选弹窗，而不是无操作的静态展示。
-- 绿色“已完成”任务按钮不应只能查看旧结果；从任务面板点击已完成任务打开结果/路线候选窗口时，应在窗口底部保留“重新计算”入口，复用该任务原来的运行/重试逻辑。Gaussian 等需要参数的任务仍应保留“修改配置”入口。
-- Ketcher 引入的 `ketcher-react/dist/index.css` 含有大量全局样式，与项目自带的通用弹窗样式（如 `.modal-backdrop`、`.modal-header` 等）易发生类名冲突，导致弹窗不居中且 Wasm 交互错位。已将项目中所有 Modal 相关基础类名加前缀升级（如 `.osf-modal-backdrop`）。同时，对嵌入了复杂第三方组件的 Modal 容器，应避免使用 CSS Grid 布局，因为 Grid 布局会将第三方组件在运行时动态生成的 style/div 辅助节点强行作为网格项目进行排位，从而摧毁行高比例。必须统一使用 Flexbox 布局，并通过 `flex: 1` 和 `position: relative` 规范子容器的高度撑满与 Containing Block 定位基准。
-- Ketcher 绘图器不能渲染在 `.editor-strip` 这类有宽泛后代选择器的容器内部；`.editor-strip div/button/textarea` 会递归污染 Ketcher 内部几百个 div/button，导致工具栏和画布不可用。应通过 React Portal 挂到 `document.body`，并把 `.editor-strip` 样式收窄为直接子元素选择器。
-- Ketcher 3.15 在 Vite dev 下需要预构建 `ketcher-react`、`ketcher-core`、`lodash`、`@babel/runtime/regenerator`，否则会出现 “does not provide an export named default”。但不能预构建 `ketcher-standalone/dist/binaryWasm`，否则 Indigo worker 路径会被 Vite optimizer 破坏，表现为 `getSmiles()` 挂起或 worker 文件缺失。
-- TS 参数窗口曾使用未定义的 `osf-modal-window` 类，导致计算样式背景为完全透明，同时缺少阴影、裁剪和相对定位。TS 窗口应复用 `osf-config-modal` 基类，再由 `ts-config-modal` 覆盖尺寸和网格布局；不要新增没有基础视觉契约的 modal 类名。
-- 路线预测结果的展示不应只显示纯文本，当前已实现通过 `RouteCandidatePreview` 结合 `MoleculeDrawing` 和 SVG 路径直接在弹窗渲染反应合成树的预览，增强体验直观度。
-- 路线候选预览应以反应步骤为中心展示：多个反应物分别渲染结构并用 `+` 分隔，经过一根明确箭头指向产物。路线候选内容较长，必须使用带 `max-height` 和内部滚动的结果弹窗，不能复用无高度限制的配置弹窗。
-- Chemformer checkpoint 依赖 Python 3.10、PyTorch 和 `aizynthmodels`，不应塞入主项目 Python 3.11 的 uv 环境。当前通过独立 Conda sidecar 暴露 HTTP API，OrgSynFlow 只负责健康检查和统一路线格式转换。
-- Chemformer beam 可能包含非法 SMILES、规范化后重复结果或把目标本身放回前体的循环候选。适配器应请求多于展示数的原始 beam，再筛出前 5 个合法、去重且不含目标分子的候选；`log_likelihood` 只能作为模型原始分数展示，不能称为概率。
-- Chemformer 会规范化目标 SMILES，路线插入器不能只用 SMILES 字符串完全相等来复用现有目标节点；应优先把 `route.target_id` 映射到用户发起预测时的锚点节点。
-- `/compute/status` 不应为每个后端重复调用完整适配器扫描；WSL 探测较慢，应一次构建状态映射后复用，否则前端引擎选择器会长时间显示未检测状态。
-- Gaussian 优化的收敛过程图表可通过解析 log 文件中所有 `SCF Done:` 与 `Maximum Force` 提取，并在 `GaussianJobView` 渲染出迭代详情（类似 `temp/main.py` 的实现）。
-- Gaussian/TS 任务的“输出预览”不应等计算结束才生成。队列和 TS workflow 的状态接口应读取当前工作目录里最新 `.log/.out`，返回 `log_tail` 与结构化 `log_progress`（SCF 轮数、优化收敛表、warning/error），前端轮询即可显示实时进度。
-- 普通 Gaussian 队列必须支持运行中强制结束。队列为每个 job 维护 `threading.Event`，`run_gaussian_job` 通过 `cancel_event` terminate 进程；前端只能对有 `job_id` 且仍 running 的任务显示“强制结束 Gaussian 进程”按钮。
-- 普通 Gaussian 参数窗口的 GJF 预览应随任务类型/方法/基组/电荷/多重度实时重生成；但用户手动编辑 textarea 后必须暂停自动覆盖，并显示“已手动编辑”，通过“恢复自动预览”重新同步参数。
-- TS 初始构象生成不能接受明显碎片重叠。RDKit 为点式多分子反应物嵌入后，必须检查非键合碎片间最小重原子距离；低于阈值时沿碎片质心方向外推，至少避免原子穿插这类低级错误。
-- FastAPI 后端需要显式映射所有管理器，如果新增管理器（例如 `TsWorkflowManager`），必须在 `api/main.py` 添加对应的 `GET / POST` 路由才能防止前端报 404 错误。
-化学结果表达经验：
+- The TS 3D Conformation Editor must not repeatedly inject CDN scripts at runtime; it should be asynchronously loaded using the in-project `3dmol` dependency. The right column is a collapsible flex container, and the viewer must set `flex: 0 0 350px` and `min-height`, otherwise the declared 350px will be compressed to about 24px, appearing blank/unavailable. Each XYZ sub-model passed to 3Dmol must include the number of atoms in the first line and a comment in the second line; passing only coordinate lines will cause the model to parse as empty while manual labels still show, resulting in the "only a bunch of numbers" symptom. Candidate XYZs must be split into groups by molecule before applying each molecule's transformation, and cannot return the original XYZ directly after selecting a candidate, otherwise the preview and GJF will not respond to translation/rotation.
+- 3D molecular dragging must not write screen dx/dy directly into world X/Y; camera rotation makes the direction incorrect. Shift translation should use 3Dmol's `screenOffsetToModel(dx, dy)`, which sets the depth component to zero on the projection plane first, and then transforms back to model coordinates via the camera quaternion, ensuring movement is restricted to the plane perpendicular to the line of sight. Ctrl rotation should use screen-up/screen-right in the camera plane as the rotation axes, and then convert the combined quaternion back to XYZ Euler angles for GJF use.
+- Deleting SMILES blocks cannot rely solely on the temporary node state of React Flow; during deletion, adjacent edges must also be removed, and `cell.objects.molecules/reactions` must be rebuilt using the remaining nodes/edges. Otherwise, parent cell updates or page refreshes will regenerate the nodes. Currently, when a block is selected, a "Delete SMILES Block" button is shown, and the deletion result is persisted upon saving the workspace.
+- The user explicitly does not want a dark permanent sidebar. Workspace selection should be a compact dropdown menu at the top.
+- The cell sidebar should be white and hidable, with the add-cell button placed inside it.
+- The UI should not strictly classify cells into "Molecule Cell/Reaction Cell/Route Cell". The user expects a general chemistry cell that automatically infers its content type based on the input.
+- Input rules: An ordinary SMILES is a molecule; containing `>>` is a reaction; multiple connected reactions represent a route.
+- Canvas nodes must display the molecular structure diagram rendered from the SMILES, not a large title.
+- There was once an issue where the canvas displayed a giant "Ethanol" because React Flow's default label node rendered the molecular label/title as content. It has been changed to a custom molecule node and renders the structure diagram via the backend's RDKit SVG endpoint.
+- There was once an issue where `CCO` appeared duplicated because the node data combined both the label and smiles. It has been changed to only display a single line of SMILES at the bottom of the node.
+- The cell delete button was once nested inside the `<button>` of the entire cell card, causing invalid DOM and browser warnings. It has been changed to use a clickable `div` for the cell card and an independent delete button.
+- Dot-separated mixtures like `CO2.H2O` are not standard single RDKit SMILES, but common small molecular formulas like `CO2` and `H2O` within them can be safely mapped to structures. The structure rendering endpoint should try RDKit first; on failure, split by dot, and draw a multi-structure SVG for components that can be reliably mapped; inputs like `CuSO4.5H2O` whose structures cannot be reliably inferred are downgraded to formula SVGs. The frontend should treat `svg: null` as a failure state to prevent the node from showing "Rendering..." indefinitely.
+- The results/logs panel should not occupy the full width at the bottom of the main layout; it should be embedded within the middle workspace panel and use a light background with dark text, consistent with the workspace panel.
+- Hand-drawn edges in React Flow must not be mistaken for reactions; only edges generated from reaction objects should trigger reaction tasks. Hand-drawn canvas edges should be selectable and deletable, and self-connections (invisible/meaningless edges) are forbidden.
+- The chemistry canvas should allow multiple independent nodes for the exact same SMILES/structure, and must not de-duplicate by `smiles`; duplicate reagents, equivalent substrates, or the same molecule at different positions all require independent objects.
+- Having too few connection handles on molecular nodes limits route/network representation. Currently, each molecular node must provide 8 connection handles: top-a/top-b/right-a/right-b/bottom-a/bottom-b/left-a/left-b.
+- Do not display the React Flow connection handles directly as blue dots, which clutter the canvas and make users feel they must manually drag anchors. Handles should be hidden internally; the user enters a continuous drawing mode via a "Connect Molecules" button or temporarily by holding Shift; each clicked molecule automatically draws a connection from the previous one, setting the current one as the start of the next segment. Connection lines should use thicker, darker smoothstep arrows, with blue highlighting for the selected state. The canvas must provide a "Delete All Connections" function.
+- Users prefer geometric intuition for connections between molecular blocks: when B is above A, it should connect from A's top-center to B's bottom-center in a straight line; left-right relations should also use left-right center anchors. React Flow edges should use the `straight` type. Legacy handles like `top-a/right-a/...` must be normalized to central `top/right/bottom/left` to prevent old data from drawing redundant bends.
+- Synthetic routes/reaction relationship lines must display clear arrows. React Flow edges currently use `MarkerType.ArrowClosed`; legacy edges should recalculate the nearest top/bottom or left/right handle based on node centers during loading, rather than preserving historically incorrect endpoints. Edge labels are hidden by default and only shown when selected, preventing text from overlapping lines and molecular blocks.
+- Since 2026-06-20, canvas edges no longer use React Flow's `straight` path but instead use a custom `orthogonal` edge: starting and ending points must fall exactly on the center of the top/bottom/left/right sides of the SMILES blocks; paths are restricted to horizontal/vertical polyline segments; routing treats other SMILES blocks as obstacle bounding boxes to avoid overlapping; side endpoints are automatically selected based on the priority: "shortest overall path → fewest bends → longest segment before first bend → longest subsequent segments in order."
+- The TS configuration window must not continuously overwrite frontend parameters or coordinates during `awaiting_confirmation` polling; otherwise, the GJF preview, coordinates, and resource parameters being edited by the user will be reset by the backend's initial values every 2 seconds. It should be initialized once per workflow id/status, after which the user's edits drive the preview.
+- The candidate field submitted by the TS frontend is `candidate_id`, but the backend historically only read `selected_candidate_id`, causing the user-selected initial conformation to be ignored and fallback to the first candidate. Backend confirmation must support both fields.
+- The backend computation status should not permanently occupy the right task panel. A compact "Backend" button at the top-right triggers a popup instead; Gaussian queues and route candidates belong to secondary window entry points of the current molecule/reaction and should not stand permanently alongside molecular tasks.
+- Task results should be displayed via independent modals; the center workspace panel no longer permanently hosts a "Results/Logs" section, and the right task panel only handles operations for the currently selected object. Clicking route prediction should directly open the candidate modal, offering options to view, add to the current canvas, or create a new route cell.
+- Computation task buttons must bind to stable task records in the current cell's `results` using the key format `"object_type:object_id:task_id"`. Blue indicates uncomputed, yellow indicates running, green indicates success, and red indicates failure; green opens results, red displays errors before allowing retry. Task records are updated atomically via a dedicated API, and the entire workspace should not be saved back just to store one task result.
+- Result details use a modal, but task log entries must not disappear with it. The current cell's task log should reside in a collapsible drawer at the bottom of the middle panel, retaining its title and count when collapsed, and displaying results/errors sorted by update time when expanded.
+- Gaussian geometry optimization/frequency must have only one primary button. Clicking it opens the configuration window and generates a default `Opt + Freq / B3LYP / 6-31G(d) / 0 / 1` input; parameters and the GJF are editable, and the window only provides regenerate, close, and submit options—no longer split into "Direct Submit" and "Advanced Config".
+- The left-side cell cards should only display the type, title, and delete option; the molecule/reaction count and equation previews clutter space and offer low information value, so they should not be restored.
+- Multiple precursors of the same step in route candidates must be grouped into a single reactant block with SMILES connected by dots, e.g., `O=C(O)c1ccccc1O.CC(=O)OC(C)=O` as a single node connecting to the product, rather than splitting into parallel edges. For manual user inputs of multiple independent molecules, they can still be created as multiple nodes via multiple lines.
+- When triggering retrosynthesis prediction from an existing SMILES block, inserting the candidate route must bind the prediction target back to this existing block; do not create a duplicate `C` block with the same product. For single-step results like `A+B>>C`, the canvas should create an `A.B` dot-separated reactant block pointing to the existing `C` block via a single arrow, distinguishing "multiple reactants of a single reaction" from "two independent routes".
+- If a user triggers retrosynthesis prediction from an inner component of a dot-separated multi-molecule block, the reaction arrow still belongs to the outer container node upon insertion, but the SVG path endpoint must pierce the outer container and land on the edge of the inner component's card; other component cards in the same container should be bypassed as obstacles to avoid arrows crossing adjacent molecules.
+- Multiple molecule IDs in the route candidate tree may share the same target SMILES. For retrosynthesis insertion initiated from an inner component, all route molecules with the same SMILES as the target component must map back to the original inner target, rather than duplicating the "synthesis target" outside; self-loop reaction edges generated after mapping should be skipped.
+- After making frontend changes, try to check the actual UI using a browser/Playwright instead of just checking `npm run build`.
+- The permanent "View Job Queue (Gaussian)" and "View Route Candidates" buttons have been removed from the task panel. The job queue status and results are unified inside the bottom task log drawer; upon successful route prediction, clicking the green prediction task button or the corresponding success log entry directly opens the route candidate popup with interactive actions ("Add to Current Canvas" / "Create Route Cell"), rather than a static non-interactive display.
+- The green "Completed" task button should not only view stale results; when clicking a completed task from the task panel to open the results/route candidate window, a "Recompute" entry must be kept at the bottom of the window, reusing the task's original run/retry logic. Tasks requiring parameters like Gaussian should also retain the "Modify Configuration" option.
+- The `ketcher-react/dist/index.css` imported by Ketcher contains global styles that conflict with the project's modal styles (like `.modal-backdrop`, `.modal-header`), causing off-center modals and displaced Wasm interactions. All basic modal class names have been prefixed (e.g., `.osf-modal-backdrop`). Avoid CSS Grid for modal containers embedding complex third-party components, as Grid forces dynamically generated auxiliary elements into grid items, ruining layouts. Flexbox must be used, applying `flex: 1` and `position: relative` to ensure child container height fills the containing block properly.
+- The Ketcher editor must not render inside containers with broad descendant selectors like `.editor-strip`; `.editor-strip div/button/textarea` recursively pollutes hundreds of divs/buttons inside Ketcher, disabling toolbars and canvases. It should render via React Portal attached to `document.body`, and `.editor-strip` styles must be narrowed to direct child selectors.
+- Ketcher 3.15 under Vite dev requires pre-bundling `ketcher-react`, `ketcher-core`, `lodash`, and `@babel/runtime/regenerator` to avoid "does not provide an export named default" errors. However, do not pre-bundle `ketcher-standalone/dist/binaryWasm`, as Vite's optimizer would break the Indigo worker path, leading to `getSmiles()` hanging or missing worker files.
+- The TS parameter window once used an undefined `osf-modal-window` class, making the background fully transparent, and lacking shadows, clipping, or relative positioning. The TS window must reuse the `.osf-config-modal` base class, with `.ts-config-modal` overriding size and grid layouts; do not create modal classes without a base styling contract.
+- Route prediction results should not be plain text; they are rendered as a synthetic tree preview inside the popup using `RouteCandidatePreview` with `MoleculeDrawing` and SVG paths, offering an intuitive experience.
+- The route candidate preview must focus on reaction steps: multiple reactants render as structures separated by `+`, leading to the product via a clear arrow. As route candidate details can be long, they must use a result popup with `max-height` and internal scrolling rather than reusing unrestricted config popups.
+- The Chemformer checkpoint depends on Python 3.10, PyTorch, and `aizynthmodels`, so it should not be mixed into the main project's Python 3.11 `uv` environment. It is exposed via a separate Conda sidecar HTTP API, and OrgSynFlow only performs health checks and unified route format conversions.
+- Chemformer beam search may contain invalid SMILES, normalized duplicates, or cyclic candidates containing the target itself in the precursors. The adapter should request more raw beams than displayed, then filter the top 5 valid, de-duplicated, target-free candidates; `log_likelihood` should only be shown as the raw model score, not as a probability.
+- Chemformer normalizes target SMILES. The route inserter must not rely solely on SMILES string equality to reuse existing target nodes; it should prioritize mapping `route.target_id` to the anchor node where the user initiated the prediction.
+- `/compute/status` must not run full adapter scans for every backend on every call; WSL detection is slow, so it should compile status maps once and reuse them. Otherwise, the frontend engine selector will show an undetected state for a long time.
+- The Gaussian optimization convergence chart can be extracted by parsing all `SCF Done:` and `Maximum Force` entries in the log file, rendering iteration details in `GaussianJobView` (similar to the implementation in `temp/main.py`).
+- The "output preview" for Gaussian/TS tasks should not wait for computation completion. The status endpoints of the queue and TS workflow should read the latest `.log/.out` file in the current working directory, returning `log_tail` and structured `log_progress` (SCF cycles, optimization convergence tables, warnings/errors), which the frontend polls for real-time progress.
+- The standard Gaussian queue must support termination during execution. The queue maintains a `threading.Event` for each job; `run_gaussian_job` terminates processes using `cancel_event`. The frontend displays a "Force Terminate Gaussian Process" button only for tasks with a `job_id` that are still running.
+- The GJF preview in the standard Gaussian parameter window should regenerate in real-time as the task type, method, basis set, charge, or multiplicity changes. However, if the user manually edits the textarea, automatic overrides must pause, show "Manually Edited", and offer "Restore Auto Preview" to sync parameters again.
+- TS initial conformation generation must not accept obvious fragment overlaps. After RDKit embeds dot-separated multi-molecule reactants, it must check the minimum heavy-atom distance between non-bonded fragments; if it falls below the threshold, extrapolate along the centroids of the fragments to prevent atomic interpenetration.
+- The FastAPI backend must explicitly map all managers; if a new manager (such as `TsWorkflowManager`) is added, corresponding `GET / POST` routes must be added in `api/main.py` to prevent frontend 404 errors.
 
-- 不要把 heuristic/demo 逻辑包装成真实模型结果。
-- AiZynthFinder、OPERA、RXNMapper、DRFP/RXNFP、xTB、CREST、GoodVibes、cclib 都是可选工具；不可用时应返回明确 unavailable/disabled/fallback，而不是抛未处理异常。
-- 公开权重审计结论记录在 `docs/public-model-weights-audit.md`：AiZynthFinder、OPERA、RXNMapper 是当前可直接依赖的公开模型/权重；ASKCOS 公开模型和数据但部署重且模型/数据为 CC BY-NC-SA；DRFP 不需要权重；RXNFP 有公开预训练反应 BERT 但不是通用产率预测器；没有找到可负责任直接接入的官方通用 organic reaction yield 权重，产率模块应继续明确显示 heuristic/features/no trained model。
-- `rxn4chemistry/rxn_yields` 官方安装说明仍基于 Python 3.6 与 RDKit 2020.03.3，且官方 README 明确说明 USPTO 产率分布随质量尺度变化、限制模型适用性。不能把它直接安装进当前 `orgsynflow-chem` 环境或包装成通用产率模型；如后续评估，应使用独立隔离环境并在 UI 展示反应族、数据集和适用域。
-- 计算后端调研：xTB 官方仓库是 `grimme-lab/xtb`；CREST 官方仓库/文档是 `crest-lab/crest` 和 `crest-lab.github.io/crest-docs`；cclib 可解析多类量化输出；GoodVibes 可从 Gaussian/ORCA/NWChem/Q-Chem/xTB/ASE 结果计算准谐热化学校正；PySCF、Psi4、geomeTRIC、ASE 可作为开源量化/优化/工作流后端候选。
-- Gaussian 是商业闭源软件，不能从 GitHub 或公开源直接安装；WSL 集成需要用户提供合法 Gaussian 安装包和 license/环境变量信息。
-- 本机 Windows 已安装 Gaussian 16W：`C:\Users\Meta\AppData\Local\Programs\g16w\g16.exe`。WSL 可通过 `/mnt/c/Users/Meta/AppData/Local/Programs/g16w/g16.exe` 调用该 Windows 可执行文件；`core.gaussian_runner.find_gaussian_executable()` 已加固为先查 PATH，再查 `GAUSS_EXEDIR`，最后扫描 WSL 挂载的 Windows Gaussian 常见路径。
-- WSL `orgsynflow-chem` 计算工具链当前可用：xTB 6.7.1、CREST 3.0.2、Open Babel 3.1.0、ASE 3.28.0、geomeTRIC 1.1.1、PySCF 2.13.1、Psi4 1.10.1、cclib、GoodVibes、RDKit。
-- Windows 后端服务如果直接找不到 xTB/CREST/Open Babel/Psi4/geomeTRIC，可以桥接 WSL `orgsynflow-chem` 的固定路径：`wsl:/home/meta/.local/opt/miniforge3/envs/orgsynflow-chem/bin/<tool>`。`adapters/xtb_adapter.py` 已支持通过 stdin 把 XYZ 写入 WSL `/tmp/codex/orgsynflow/...` 再运行 CLI，避免 Windows/WSL 路径转换和编码问题。
-- 计算后端状态统一由 `/compute/status` 暴露，包含 Gaussian、xTB、CREST、Open Babel、GoodVibes、PySCF、Psi4、geomeTRIC、ASE 的 `available/executable/source`。前端右侧任务面板会显示这些状态。
-- WSL 中 OPERA 2.9 已安装在 `/home/meta/.local/opt/OPERA2.9`，可通过 `/home/meta/.local/bin/opera` 运行。Windows 后端需要通过 `wsl:/home/meta/.local/bin/opera` bridge 调用，否则“RDKit + OPERA”会退化为 unavailable。
-- WSL `orgsynflow-chem` 中已安装 AiZynthFinder CLI：`/home/meta/.local/opt/miniforge3/envs/orgsynflow-chem/bin/aizynthcli`。但 CLI 需要真实 `--config`/policy/stock/model 文件；若未配置，路线预测应返回明确的 demo fallback 候选，不能显示空成功态或假装真实预测。
-- 分子任务面板已有 xTB 和 CREST 按钮。当前实现会用 RDKit 从 SMILES 生成 3D XYZ，再调用 `/compute/xtb` 或 `/compute/crest`；结果和 stdout/stderr 返回到中间结果面板。
-- Gaussian opt/freq 默认动作应直接生成 gjf 并提交队列；需要修改方法/基组/电荷/多重度时再打开“Gaussian 高级配置”弹窗。不要让用户先点“生成 gjf”再点“提交作业”作为主路径。
-- 路线预测结果要作为可查看候选集，而不是只显示 status。候选集应能从右侧卡片查看详情、插入当前画布并连接到被点击预测的分子，或新建一个路线单元承载整条路线。
-- Windows 调 WSL CLI 时必须显式设置 `encoding="utf-8", errors="replace"`，否则 CREST/xTB 输出里的 UTF-8 字符可能被 GBK 解码线程打断，导致 `stdout` 为 `None` 或测试崩溃。
-- 长时间 CREST / WSL 外部工具任务被强制中断后，可能留下 `wsl.exe` 客户端挂起，导致 AiZynthFinder、OPERA、RXNMapper、DRFP、xTB、CREST 等所有依赖 WSL 的能力一起表现为“缺失/不可用”。恢复顺序：先停止 OrgSynFlow API/Web，精确清理由 API 派生且命令行含 `/tmp/codex/orgsynflow` 或 `orgsynflow-chem` 的残留 `wsl.exe`，再用 `wsl -e true` 验证基础 WSL；只有清理后仍失败时才升级到重启 `WslService`/WSL。
-- TS 相关功能只能说“计划/候选/未验证/验证等级”，不能宣称自动找到正确过渡态。
-- 点式多分子画布块必须区分“路线节点身份”和“分子计算身份”：路线仍把 `A.B` 作为一个节点，但分子级任务必须绑定用户在节点内点击的具体组分；结果键使用 `node-id:component:index`，相同 SMILES 也不能合并。
-- 通用 TS 扫描不能把所有成键/断键平衡距离写死为 1.5 Å。应按元素共价半径估算（例如 C–Br 约 1.96 Å），且每个受限优化点提交前要把扫描原子实际移动到目标距离，否则 Gaussian 可能在 NewRed/RedCar 内坐标转换阶段失败。
-- Windows Gaussian 16W 的 `g16.exe` launcher 可能退出后留下独立 `l*.exe` Link 进程。取消 TS 工作流时除了终止 launcher，还必须只按包含该 workflow 目录的命令行精确终止对应 Link 进程，不能全局结束所有 Gaussian 计算。
-- 产率输出必须带 `method`、`confidence`、`applicability_domain`、`note`。
-- 结果弹窗不应默认展示大段原始 stdout/stderr/JSON。前端应优先展示结构化摘要、关键数值、警告和路径；原始日志放在可展开的“原始日志 / 原始数据”中。包含 XYZ/GJF 坐标的结果必须先渲染可交互 3D 分子视图。
-- 依赖隔离与运行环境统一：Gradio、py3Dmol 与 matplotlib 必须在 Windows (uv) 和 WSL (mamba) 中同时声明与安装。在过渡态库中通过 `core.gaussian_runner.find_gaussian_executable()` 代替硬编码的 `g16.exe` 路径，保证计算服务跨 Windows 和 WSL 均可自动发现和调用 Gaussian 可执行文件，并把中间结果输出至工程统一的工作目录下。
-- EAS TS 应用调试经验：`app/eas_ts_app.py` 如果直接用 `python app/eas_ts_app.py` 运行，`app/` 目录会作为工作目录，`from core.eas_ts_lib import *` 因 `core` 不在 sys.path 上而抛 `ModuleNotFoundError`。修复方式是在文件头加 `sys.path.insert(0, str(Path(__file__).resolve().parent.parent))`，同样适用于 `core/eas_ts_lib.py` 自身对 `core.gaussian_runner` 的引用。
-- WSL 下运行 Windows Gaussian：直接在 WSL bash 中以 Linux 路径调用 `g16.exe` 会报 `Thread and Process ID are zero in wsystem: No such file or directory`，传入 UNC 路径会报 `PGFIO/stdio: No such file or directory`。正确做法是：①将 OUT_DIR 映射到 `/mnt/c/...` 而非 `/home/...`；②用 `cmd.exe /c 'g16.exe input.gjf'` 而非直接 `subprocess.Popen(['g16.exe', ...])` 启动。
-- Gradio UI 锁死：若 Gradio 回调函数中含同步 `process.wait()`，整个 Gradio event loop 会被阻塞，UI 无响应。必须改为 generator 函数，用 `time.sleep(2)` + `process.poll()` 轮询，每次循环 `yield` 进度给 Gradio，既能实时更新界面，也能响应取消请求。
-- Conda/Miniforge 路径：本机 WSL 的 conda/mamba 安装位置为 `~/.local/opt/miniforge3`，而非 `~/miniconda3` 或 `~/anaconda3`。正确的初始化命令：`source ~/.local/opt/miniforge3/etc/profile.d/conda.sh && conda activate orgsynflow-chem`。
-- WSL Gradio 浏览器错误：WSL 无桌面环境时，Gradio 的 `inbrowser=True` 会触发 `gio: http://localhost:7861/: Operation not supported`，这是无害信息，不代表服务启动失败；可在 WSL 中用 `server_name="0.0.0.0"` 并在 Windows 浏览器访问 WSL 的端口。
+Chemical Result Presentation Lessons:
 
-服务和启动经验：
+- Do not package heuristic/demo logic as authentic model results.
+- AiZynthFinder, OPERA, RXNMapper, DRFP/RXNFP, xTB, CREST, GoodVibes, and cclib are optional tools; when unavailable, they must return a clear "unavailable/disabled/fallback" instead of throwing unhandled exceptions.
+- The public weight audit conclusions are recorded in [docs/public-model-weights-audit.md](file:///C:/Users/Meta/Project/Workspaces/orgsynflow/docs/public-model-weights-audit.md): AiZynthFinder, OPERA, and RXNMapper are public models/weights directly relied upon; ASKCOS has public models and data but is heavy to deploy and licensed CC BY-NC-SA; DRFP requires no weights; RXNFP has a public pre-trained reaction BERT but is not a general yield predictor; no officially supported general organic reaction yield weights were found to integrate responsibly, so the yield module continues to show heuristic/features/no trained model.
+- The official installation guide for `rxn4chemistry/rxn_yields` is still based on Python 3.6 and RDKit 2020.03.3, and the official README explicitly notes that the USPTO yield distribution varies by mass scale, limiting model applicability. It cannot be installed directly into the current `orgsynflow-chem` environment or wrapped as a general yield model; if evaluated later, use an isolated environment and present reaction families, datasets, and applicability domains in the UI.
+- Computation backend survey: xTB's official repository is `grimme-lab/xtb`; CREST's official repository/documentation are `crest-lab/crest` and `crest-lab.github.io/crest-docs`; cclib can parse various quantum chemistry outputs; GoodVibes calculates quasi-harmonic thermochemical corrections from Gaussian/ORCA/NWChem/Q-Chem/xTB/ASE results; PySCF, Psi4, geomeTRIC, and ASE are open-source quantum chemistry/optimization/workflow backend candidates.
+- Gaussian is commercial proprietary software and cannot be installed from GitHub or public sources; WSL integration requires the user to provide a valid Gaussian installer, license, and environment variable info.
+- Local Windows has Gaussian 16W installed: `C:\Users\Meta\AppData\Local\Programs\g16w\g16.exe`. WSL can invoke this Windows executable via `/mnt/c/Users/Meta/AppData/Local/Programs/g16w/g16.exe`; `core.gaussian_runner.find_gaussian_executable()` has been hardened to check PATH, then check `GAUSS_EXEDIR`, and finally scan common paths of Windows Gaussian mounted in WSL.
+- WSL `orgsynflow-chem` computation toolchain is currently available: xTB 6.7.1, CREST 3.0.2, Open Babel 3.1.0, ASE 3.28.0, geomeTRIC 1.1.1, PySCF 2.13.1, Psi4 1.10.1, cclib, GoodVibes, RDKit.
+- If the Windows backend service cannot directly locate xTB/CREST/Open Babel/Psi4/geomeTRIC, it can bridge to the fixed WSL `orgsynflow-chem` path: `wsl:/home/meta/.local/opt/miniforge3/envs/orgsynflow-chem/bin/<tool>`. `adapters/xtb_adapter.py` supports writing XYZ to WSL `/tmp/codex/orgsynflow/...` via stdin and running the CLI, avoiding Windows/WSL path translation and encoding issues.
+- Computational backend status is unified and exposed via `/compute/status`, including `available/executable/source` for Gaussian, xTB, CREST, Open Babel, GoodVibes, PySCF, Psi4, geomeTRIC, and ASE. The frontend's right-side task panel displays these statuses.
+- OPERA 2.9 is installed in WSL under `/home/meta/.local/opt/OPERA2.9` and can be run via `/home/meta/.local/bin/opera`. The Windows backend must bridge via `wsl:/home/meta/.local/bin/opera`; otherwise, "RDKit + OPERA" degrades to unavailable.
+- The AiZynthFinder CLI is installed in WSL `orgsynflow-chem`: `/home/meta/.local/opt/miniforge3/envs/orgsynflow-chem/bin/aizynthcli`. However, the CLI requires real `--config`/policy/stock/model files; if unconfigured, route predictions must return a clear demo fallback candidate, and not display an empty success state or fake real predictions.
+- The molecular task panel has xTB and CREST buttons. The current implementation uses RDKit to generate a 3D XYZ from SMILES, then calls `/compute/xtb` or `/compute/crest`; results and stdout/stderr return to the middle results panel.
+- The default Gaussian opt/freq action should generate a GJF and submit it to the queue directly; only open the "Gaussian Advanced Config" popup when method/basis/charge/multiplicity modifications are needed. Do not make users click "Generate GJF" and then "Submit Job" as the primary path.
+- Route prediction results must serve as a viewable candidate set, rather than just showing a status. The candidate set should support viewing details from the right-side cards, inserting them into the current canvas (connected to the clicked molecule), or creating a new route cell for the entire route.
+- When calling WSL CLI from Windows, explicitly set `encoding="utf-8", errors="replace"`; otherwise, UTF-8 characters in CREST/xTB outputs may disrupt the GBK decoding thread, causing `stdout` to be `None` or tests to crash.
+- When long-running CREST / WSL tasks are forcibly interrupted, hanging `wsl.exe` clients may be left behind, causing all WSL-dependent features (AiZynthFinder, OPERA, RXNMapper, DRFP, xTB, CREST, etc.) to show as "missing/unavailable". Recovery order: stop the OrgSynFlow API/Web, precisely clean up residual `wsl.exe` instances spawned by the API with command lines containing `/tmp/codex/orgsynflow` or `orgsynflow-chem` in command line, then verify basic WSL via `wsl -e true`; upgrade to restarting `WslService`/WSL only if failure persists after cleanup.
+- TS-related features must only claim to be "planned/candidate/unverified/verification level", never claiming to automatically find the correct transition state.
+- Dot-separated multi-molecule canvas blocks must distinguish between "route node identity" and "molecular computation identity": the route still treats `A.B` as a single node, but molecular-level tasks must bind to the specific component clicked by the user inside the node; result keys use `node-id:component:index`, and identical SMILES must not be merged.
+- General TS scans must not hardcode all bond-forming/breaking equilibrium distances to 1.5 Å. They should be estimated using elemental covalent radii (e.g., C–Br is ~1.96 Å), and the scanning atoms must be physically moved to the target distance before submitting each constrained optimization point, otherwise Gaussian may fail during the NewRed/RedCar internal coordinate conversion phase.
+- The launcher `g16.exe` of Windows Gaussian 16W may exit leaving independent `l*.exe` Link processes. When canceling a TS workflow, in addition to terminating the launcher, precisely terminate the corresponding Link processes containing the workflow directory in their command lines, rather than ending all Gaussian computations globally.
+- Yield outputs must include `method`, `confidence`, `applicability_domain`, and `note`.
+- The results popup should not display long stretches of raw stdout/stderr/JSON by default. The frontend should prioritize structured summaries, key values, warnings, and paths; raw logs belong in expandable "Raw Logs / Raw Data" sections. Results containing XYZ/GJF coordinates must render interactive 3D molecular views first.
+- Dependency isolation and environment unification: Gradio, py3Dmol, and matplotlib must be declared and installed in both Windows (uv) and WSL (mamba). In the TS library, use `core.gaussian_runner.find_gaussian_executable()` instead of hardcoded `g16.exe` paths to ensure the calculation service automatically discovers and invokes Gaussian executables across Windows and WSL, writing intermediate results to the unified project directory.
+- EAS TS App Debugging Lessons: If `app/eas_ts_app.py` is run directly via `python app/eas_ts_app.py`, the `app/` directory becomes the working directory, and `from core.eas_ts_lib import *` throws a `ModuleNotFoundError` because `core` is not in `sys.path`. The fix is adding `sys.path.insert(0, str(Path(__file__).resolve().parent.parent))` at the top of the file, which also applies to `core/eas_ts_lib.py` referencing `core.gaussian_runner`.
+- Running Windows Gaussian under WSL: Calling `g16.exe` with Linux paths directly in WSL bash throws `Thread and Process ID are zero in wsystem: No such file or directory`, and passing UNC paths throws `PGFIO/stdio: No such file or directory`. Correct approach: ① Map `OUT_DIR` under `/mnt/c/...` instead of `/home/...`; ② Launch via `cmd.exe /c 'g16.exe input.gjf'` instead of direct `subprocess.Popen(['g16.exe', ...])`.
+- Gradio UI Lockups: If a Gradio callback contains a synchronous `process.wait()`, the entire Gradio event loop freezes, making the UI unresponsive. It must be refactored into a generator function, polling with `time.sleep(2)` + `process.poll()`, yielding progress to Gradio on each loop, which enables both UI updates and cancellation requests.
+- Conda/Miniforge Path: The conda/mamba installation on this local WSL is at `~/.local/opt/miniforge3` rather than `~/miniconda3` or `~/anaconda3`. Correct initialization command: `source ~/.local/opt/miniforge3/etc/profile.d/conda.sh && conda activate orgsynflow-chem`.
+- WSL Gradio Browser Error: When running in WSL without a desktop environment, Gradio's `inbrowser=True` triggers `gio: http://localhost:7861/: Operation not supported`. This is harmless and does not indicate startup failure; set `server_name="0.0.0.0"` in WSL and access WSL ports from a Windows browser.
 
-- 桌面开关脚本 `scripts/orgsynflow-toggle.ps1` 用 8765 和 5173 端口判断运行状态。
-- 启动时后台运行 `uv run python run_api.py` and `npm run dev`。
-- 同一个桌面 `.cmd` 再次双击会关闭服务。
-- PowerShell 脚本需要兼容 Windows PowerShell 5.1，避免使用 PowerShell 7 独有语法，例如 `??`。
-- `.cmd` 中不要用在非交互环境会报错的 `timeout /t`；已改为 `powershell Start-Sleep`。
-- 每次对 Python 适配器代码（如 `adapters/aizynth_adapter.py`）进行更改后，必须通过 `scripts/orgsynflow-toggle.ps1` 重启 API 后端服务（Uvicorn 进程），否则进程会一直加载旧的内存模块而忽略新的路径自动解析逻辑，导致即使在 WSL 成功部署并配置好了 policy/stock，API 后端还是会报告未配置 policy/stock/config 并回退到内置演示候选路线。
+Service & Startup Lessons:
 
-数据和测试经验：
+- The desktop toggle script `scripts/orgsynflow-toggle.ps1` determines status using ports 8765 and 5173.
+- Background processes `uv run python run_api.py` and `npm run dev` are launched on startup.
+- Double-clicking the same desktop `.cmd` script again shuts down the services.
+- PowerShell scripts must remain compatible with Windows PowerShell 5.1; avoid PowerShell 7 exclusive syntax like `??`.
+- Do not use `timeout /t` in `.cmd` files as it fails in non-interactive environments; use `powershell Start-Sleep` instead.
+- Every time changes are made to Python adapter code (e.g., `adapters/aizynth_adapter.py`), the API backend (Uvicorn process) must be restarted via `scripts/orgsynflow-toggle.ps1`. Otherwise, the process keeps loading old memory modules and ignores new path resolution logic, causing the API backend to report unconfigured policy/stock/config and fall back to built-in demo routes even after successful WSL setup.
 
-- `data/workspaces/example-workspace.json` 很容易在浏览器测试、保存工作区、自动化点击时被弄脏。不要把测试创建 of cell、route candidate 或 updated_at 混入提交，除非明确要更新 fixture。
-- Vite/Ketcher 构建会出现大 chunk warning，当前是预期现象，不等于构建失败。
-- 浏览器自动化若用按钮文本选择，注意 `添加` 与 `添加到画布` 会模糊匹配冲突，应用 exact 匹配。
-- Windows 与 WSL 项目副本不会自动同步。Windows 提交推送后，如需 WSL 可用，要在 `/home/meta/Project/Workspaces/orgsynflow` 执行 `git pull --ff-only`。
-- 默认工作区文件 `data/workspaces/example-workspace.json` 中如果有之前的 fallback/未配置警告缓存记录（例如 `molecule:mol-ethanol:retrosynthesis` 里的 status / used_fallback 记录），页面初次加载时会由于缓存导致直接在页面展示出“已检测到 AiZynthFinder，但尚未配置...”的失效提示。必须手动清理此类任务结果缓存，恢复为初始的“未计算”状态，以便用户重新发起真实的逆合成计算。
+Data & Testing Lessons:
 
-- AiZynthFinder JSON 树的 `children` 会交替出现 molecule 与 reaction 节点；reaction 节点的 `smiles` 是逆合成 reaction SMILES，绝不能作为普通分子加入路线。解析时应跳过 reaction 节点，读取其 molecule children 作为前体，并生成正向 `前体>>产物` 反应式。
-- 对组合节点内单个组分预测路线时，插入器必须保留所选 `MoleculeComponent`：复用其外层画布节点作为路线 target，不再创建重复 target 或 `target -> anchor` 伪反应边。
-- 路线每个 `precursor_id` 必须生成独立分子节点和独立的 `precursor -> product` 边，不能把同一步全部前体合并为点式伪分子；多组分节点的布局宽度按组件卡实际宽度估算，否则相邻节点会重叠并让正向箭头视觉上折返。
-- WSL 的 `/tmp` 在服务重启后可能被清空。AiZynthFinder 每次运行前必须自行 `mkdir -p /tmp/codex/orgsynflow`，不能依赖历史目录残留。
-- React Flow 的选中状态同步：在使用 React Flow 内置的 `onNodesChange` / `onEdgesChange` 交互（如 Shift + 点击反选、框选等）时，本地定义的 `selectedNodeId` 和 `selectedEdgeId` 需通过 `useEffect` 进行同步清空或更新。否则会导致“删除选中项”按钮在无选中状态下错误显示，且点击后可能误删未选中的历史节点或由于删除非现有节点导致状态不一致发生卡死。
+- `data/workspaces/example-workspace.json` is easily dirtied during browser tests, workspace saves, or automated clicks. Do not include test-created cells, route candidates, or modified `updated_at` fields in commits unless explicitly intending to update the fixture.
+- Vite/Ketcher builds will emit large chunk warnings; this is expected and does not mean build failure.
+- For browser automation selecting by button text, note that "Add" and "Add to Canvas" can trigger fuzzy match conflicts; use exact matching.
+- Windows and WSL project directories do not sync automatically. After pushing Windows commits, run `git pull --ff-only` in `/home/meta/Project/Workspaces/orgsynflow` on WSL to sync.
+- If the default workspace file `data/workspaces/example-workspace.json` contains cached warnings/fallback states (e.g., status/used_fallback records in `molecule:mol-ethanol:retrosynthesis`), the page will immediately display warning banners like "AiZynthFinder detected but not configured..." on initial load. Such task result caches must be manually cleaned to restore the initial "uncomputed" state, allowing users to run real retrosynthesis calculations.
+- The `children` in AiZynthFinder's JSON tree alternate between molecule and reaction nodes; the `smiles` of a reaction node is a retrosynthesis reaction SMILES and must never be inserted into the route as an ordinary molecule. Skip reaction nodes during parsing, read their molecule children as precursors, and generate forward `precursor>>product` equations.
+- When predicting routes for a single component inside a multi-molecule container node, the inserter must preserve the selected `MoleculeComponent`: reuse its outer canvas node as the route target, rather than creating duplicate targets or `target -> anchor` fake reaction edges.
+- Each `precursor_id` in the route must generate an independent molecular node and an independent `precursor -> product` edge, rather than merging all precursors of the same step into a dot-separated pseudo-molecule; the layout width of multi-component nodes is estimated by actual card width, otherwise adjacent nodes overlap and cause forward arrows to visually double back.
+- WSL's `/tmp` may be cleared upon reboot. AiZynthFinder must execute `mkdir -p /tmp/codex/orgsynflow` before each run, without relying on legacy persistence.
+- React Flow selection sync: When using React Flow's built-in `onNodesChange` / `onEdgesChange` interactions (like Shift+Click toggle, box selection, etc.), the locally tracked `selectedNodeId` and `selectedEdgeId` must be synced or cleared via `useEffect`. Otherwise, the "Delete Selected" button may show incorrectly when nothing is selected, and clicking it could delete untargeted nodes or crash due to deleting non-existent nodes.
 
 ## 3. Task Board
 
-当前状态：
+Current Status:
 
-- [done] 2026-06-20 新增 Chemformer 单步逆合成选项：复用 `chem-ai/work-4` 的本地 Conda sidecar 和 checkpoint，返回 Top 5 合法候选且不使用演示回退；AiZynthFinder、ASKCOS、Chemformer 候选统一显示分子结构、`+` 和反应箭头；一键脚本可自动管理 8000/8765/5173 三个服务并将日志写入 `%LOCALAPPDATA%\Temp\.agents\orgsynflow`。
-- [done] 2026-06-20 在 AiZynthFinder 和 ASKCOS 适配器中增加基于 RDKit Canonical SMILES 的路线去重和循环路径拦截（如果前体与目标或祖先节点完全一致，则自动剪除该冗余节点），以解决相同分子重复出现并导致冗余的问题。
-- [done] 2026-06-20 修复删除选中项按钮在无选中时显示以及点击卡住/误删的问题：更新 `web/src/App.tsx` 中的渲染判定条件和删除逻辑为仅限当前实际选中的节点和边；引入了 `useEffect` 用于同步 React Flow 的 selection 状态，确保在 deselect 时 `selectedNodeId` 和 `selectedEdgeId` 能够同步清空，并同步更新任务面板。
-- [done] 2026-06-20 合并 temp/ 目录下的 3 个过渡态搜索/绘图文件到 WSL 和 Windows 仓库，并更新 Python 依赖关系：安装/配置了 gradio、py3Dmol、matplotlib；测试均能正常 import 且编译成功。
-- [done] 2026-06-20 修复 EAS TS 应用合并后完全无效问题：诊断出三个根本原因：①`from core.eas_ts_lib import *` 因 sys.path 未包含项目根目录而失败；②Gradio 回调中 `process.wait()` 阻塞导致 UI 完全锁死；③WSL 下直接调用 `g16.exe` 产生 `wsystem` 错误/UNC 路径错误。已分别修复：添加 sys.path bootstrap、改 generator 函数 yield 进度、将 OUT_DIR 映射到 `/mnt/c/...` 并用 `cmd.exe /c` 包装 g16.exe 启动命令。验证：WSL 下 `conda activate orgsynflow-chem && python app/eas_ts_app.py` 可正常启动 Gradio 服务，无异常退出。
-- [done] 2026-06-20 增加 SMILES 块删除：选中块后可显式删除，同时清理相邻箭头、关联反应及选中/连线状态；保存工作区后刷新不会复活。
-- [done] 2026-06-20 修复组合节点组分级逆合成插入：AiZynthFinder reaction 节点不再误作分子；多个前体拆为独立结构；复用所选目标节点；路线和原反应箭头均保持前体到产物的正向顺序；多组分宽度与下游间距已校正。
-- [done] 2026-06-20 修复逆合成候选插入语义：从现有 SMILES 块预测路线时强制复用该产物块；同一步多个前体合并为一个点式 SMILES 反应物块，并只生成一条反应箭头指向产物。
-- [done] 2026-06-20 修复点式多分子目标的路线箭头端点：从内层组分预测路线后，新增反应边会把 `targetComponentIndex` 持久化到 edge data，渲染时把终点定位到目标组分边缘，并把同块其它组分作为路由障碍。
-- [done] 2026-06-20 修复路线候选重复目标节点：从任务日志/旧结果打开路线候选时，会按 `target_smiles` 在当前 cell 中反查目标分子/组分；所有与目标组分同 SMILES 的 route molecule id 映射到原节点，并跳过映射后 source=target 的自环边。
-- [done] 2026-06-20 优化任务面板已完成任务：点击绿色完成态任务打开结果或路线候选窗口时，窗口底部提供“重新计算”按钮，失败态仍沿用错误窗口重试逻辑。
-- [done] 三阶段计划已写入 `plan.md`。
-- [done] 基础 CLI、适配器、API、测试面已建立。
-- [done] OPERA 已由用户下载并安装到 WSL 本地 opt 路径，且可被全局引用。
-- [done] React/Vite 主工作区前端已建立。
-- [done] 深色永久侧栏已移除。
-- [done] 顶部工作区下拉菜单已实现。
-- [done] 白色可隐藏单元栏已实现。
-- [done] 通用化学单元已替代 UI 层面的分子/反应/路线固定分型。
-- [done] 分子节点已改为结构图渲染，不再显示巨大标题。
-- [done] `CO2.H2O` 等点式小分子组合已支持多组分结构图显示；无法可靠推断结构的公式/水合物点式再降级为公式 SVG，不再卡在结构渲染加载态。
-- [done] 结果/日志面板已移入中间工作面板并改为浅色显示。
-- [done] 手动画布箭头已支持选中删除，禁止自连接，且不会再误打开无关反应任务。
-- [done] 同一个 SMILES/结构已允许重复加入画布。
-- [done] 分子节点连接位点已扩展为 8 个。
-- [done] 分子节点周边可见蓝色连接点已隐藏；连接关系改为“连接分子”连续连线模式，支持按钮切换或按住 Shift 临时进入；连接线已加粗加深，并提供删除全部连线。
-- [done] 连接线已改为按节点相对位置自动选择上下/左右中心锚点，并使用直线边，避免上下连接时出现歪斜和多段弯折。
-- [done] WSL 已可复用 Windows Gaussian 16W；项目 Gaussian runner 能在 Windows 与 WSL 路径下发现该可执行文件。
-- [done] WSL `orgsynflow-chem` 已安装/确认 xTB、CREST、Open Babel、ASE、geomeTRIC、PySCF、Psi4、cclib、GoodVibes 等计算工具。
-- [done] Windows 后端已桥接 WSL OPERA 和 WSL AiZynthFinder CLI，并在 `/compute/status` 暴露 OPERA/AiZynthFinder 状态。
-- [done] 路线预测 UI 已改为可查看候选卡，候选可加入当前画布或新建路线单元；无 AiZynthFinder config 时显示明确 demo fallback。
-- [done] Gaussian 分子任务已改为默认直接提交 opt/freq，高级配置弹窗提供 job type、method、basis、charge、multiplicity 和 gjf 预览。
-- [done] 右侧面板已移除常驻后端状态、路线候选集和 Gaussian 队列；后端状态移到顶部小弹窗入口，候选与队列移到当前对象任务下的二级窗口。
-- [done] 任务结果已改为 modal 展示，中间常驻结果区已移除；路线预测完成后直接打开候选 modal 并可执行插入操作。
-- [done] 任务按钮已统一为中文“计算内容（引擎）”，并接入蓝/黄/绿/红持久状态、结果查看、错误提示和重试流程。
-- [done] Gaussian Opt/Freq 已合并为单一按钮；配置弹窗打开后自动生成默认 GJF，允许修改参数和原始输入后提交。
-- [done] 中间面板底部已恢复可折叠任务日志抽屉；左侧单元卡的数量与反应式预览已删除。
-- [done] 新增单元任务结果原子更新接口；Gaussian 队列状态会轮询回写任务记录，页面刷新后不可恢复的同步任务会标记为失败。
-- [done] 画布关系线已移除 marker 箭头楔形；旧边加载时重新计算最近边中心 handle，edge label 默认隐藏。
-- [done] 路线同一步多个前体插入画布时会合并为一个点式 SMILES 反应物节点，并用单条带箭头反应边连接产物。
-- [done] 单元删除入口已加入。
-- [done] 桌面一键开关脚本已创建并验证。
-- [done] `AIREADME.md` 已按项目日志结构重写。
-- [done] “查看计算队列（Gaussian）”与“查看路线候选”常驻按钮已从分子/反应面板中移除，Gaussian 队列统一收拢至任务日志。
-- [done] 路线候选弹窗已直接作为逆合成预测成功及后续查看结果的交互式弹窗，支持通过 TaskButton 及 TaskLogDrawer 随时触发。
-- [done] Ketcher 绘图窗口已全局隔离 Modal 类名，并将弹窗重构为 Flexbox 布局，彻底解决了由于第三方组件动态插入辅助节点导致的排版错乱、不居中，以及高度塌陷导致绘图器无法正常画图的问题。
-- [done] 已在 WSL 中成功部署下载 AiZynthFinder 官方公开的模型和 stock 数据库，并配置了默认 `config.yml` 路径以进行真实的路线预测。
-- [done] 新建了 ASKCOS 逆合成路线预测适配器，支持向 Docker 接口查询，并在离线时优雅 Mock/演示降级。
-- [done] 修改 `/route/predict` API 支持 `engine` 分发参数，并在前端添加了引擎选择弹窗，让用户选择使用哪个引擎进行计算并呈现计算就绪状态。
-- [done] 2026-06-20 检查确认 AiZynthFinder 公开权重已下载到 WSL：`/home/meta/data/aizynthfinder/config.yml`、`uspto_model.onnx`、`uspto_ringbreaker_model.onnx`、`uspto_filter_model.onnx`、`uspto_templates.csv.gz`、`uspto_ringbreaker_templates.csv.gz`、`zinc_stock.hdf5`。API smoke test 对 aspirin 返回 `used_fallback=false`。
-- [done] RXNMapper 和 DRFP 已改为通过 WSL `orgsynflow-chem` fallback 调用和探测，`/compute/status` 中 `rxnmapper`、`drfp` 均显示可用。
-- [done] Phenol acetylation 示例已改为单个点式反应物块 `O=C(O)c1ccccc1O.CC(=O)OC(C)=O` 指向 aspirin，旧的失败/不可用任务缓存已清空。
-- [done] 过渡态任务已合并为单一“计算过渡态（Gaussian）”入口；点击后打开参数化窗口，包含 TS 搜索建议、方法/基组/电荷/多重度/作业类型、相对位移/旋转滑块、3D 构象预览和 GJF 预览。
-- [done] 反应/路线箭头已改为智能正交路由，支持四侧中心自动端点选择、横竖折线、避开其它 SMILES 块，以及按路径长度/弯折数/前段长度排序。
-- [done] 完成公开模型/权重审计并写入 `docs/public-model-weights-audit.md`：确认 AiZynthFinder/OPERA/RXNMapper/DRFP 当前状态，记录 ASKCOS、RXNFP、Yield-BERT、Chemprop 的可用性与限制。
-- [done] 结果展示已从直接铺原始 log/JSON 改为摘要化展示：xTB/CREST/Gaussian 提取状态、关键指标、日志摘要和警告，原始日志折叠；xTB/CREST payload 会返回 `data.input_xyz`，前端对 XYZ/GJF 坐标渲染 3Dmol 可交互分子结构。
-- [done] “过渡态构象编辑器”窗口已接入统一 `osf-config-modal` 基类，恢复不透明白色背景、阴影、裁剪和正确定位。
-- [done] 点式多分子节点已支持在画布内直接点击具体组分；全部分子级任务、结果状态和 Gaussian object ID 均隔离到组分级，路线/反应仍使用外层组合节点。
-- [done] 新增持久化通用 Gaussian TS 工作流：RXNMapper 键变化、三个初始构象、1D/2D 扫描、自适应细化、TS/Freq、虚频模式投影、IRC、端点热化学、暂停/续算/取消/导出以及 API/CLI/React 看板。
-- [done] TS 默认理论级别更新为 wB97XD/def2SVP；电荷/多重度自动推断，方法、基组、溶剂、资源、温度和虚频阈值可编辑。
-- [done] 用户授权后通过管理员权限重启 `WslService`，Ubuntu WSL 已恢复；AiZynthFinder 官方公开数据、RXNMapper 和 OPERA 均完成文件/运行时/真实推理复核。AiZynthFinder 对 aspirin 返回 2 条真实路线且 `used_fallback=false`；RXNMapper 对 `CCO>>CC=O` 的映射置信度为 `0.998663`；OPERA 对乙醇返回 5 项 QSAR 预测及适用域。
+- [done] 2026-06-20 Added Chemformer single-step retrosynthesis option: reuses the local Conda sidecar and checkpoint of `chem-ai/work-4`, returning Top 5 valid candidates without demo fallback. AiZynthFinder, ASKCOS, and Chemformer candidates uniformly display molecular structures, `+`, and reaction arrows. A one-click script automatically manages 8000/8765/5173 services and logs to `%LOCALAPPDATA%\Temp\.agents\orgsynflow`.
+- [done] 2026-06-20 Added route de-duplication and cyclic path interception based on RDKit Canonical SMILES to AiZynthFinder and ASKCOS adapters (automatically pruning redundant nodes if a precursor is identical to the target or ancestor), resolving duplicates.
+- [done] 2026-06-20 Fixed issue where the "Delete Selected" button showed without selection or caused hangs/accidental deletions: updated `web/src/App.tsx` rendering checks and deletion logic to target only selected nodes/edges, and added a `useEffect` to sync selection status, ensuring `selectedNodeId` and `selectedEdgeId` clear appropriately on deselect and update the task panel.
+- [done] 2026-06-20 Merged three transition state search/plotting files under `temp/` into Windows/WSL repositories and updated Python dependencies (gradio, py3Dmol, matplotlib installed and verified via import tests).
+- [done] 2026-06-20 Fixed EAS TS app integration failure by diagnosing three root causes: ① `from core.eas_ts_lib import *` failed because `sys.path` did not contain the project root; ② sync `process.wait()` blocked Gradio event loop and locked UI; ③ calling `g16.exe` directly under WSL threw `wsystem`/UNC path errors. Fixed by adding `sys.path` bootstrap, yielding progress from generator function, mapping `OUT_DIR` under `/mnt/c/...`, and wrapping `g16.exe` with `cmd.exe /c`. Verified: running `conda activate orgsynflow-chem && python app/eas_ts_app.py` under WSL starts Gradio service without abnormal exit.
+- [done] 2026-06-20 Added SMILES block deletion: selected blocks can be explicitly deleted, clearing adjacent arrows, associated reactions, and selection/connection states; deletion persists across page refreshes.
+- [done] 2026-06-20 Fixed retrosynthesis route insertion for inner components of multi-molecule blocks: AiZynthFinder reaction nodes are no longer mistaken for molecules; multiple precursors are split into independent nodes; reuse the selected target node; routes and original arrows keep the precursor-to-product forward direction; multi-component width and downstream spacing are corrected.
+- [done] 2026-06-20 Fixed retrosynthesis candidate insertion semantics: when predicting a route from an existing SMILES block, reuse that product block; precursors of the same step are grouped into a single dot-separated reactant block pointing to the product via a single arrow.
+- [done] 2026-06-20 Fixed route arrow endpoints for dot-separated multi-molecule targets: when initiating prediction from an inner component, the new reaction edge persists `targetComponentIndex` to edge data, rendering the endpoint on the target component's edge and treating other components in the block as routing obstacles.
+- [done] 2026-06-20 Fixed duplicate target nodes in route candidates: when opening candidates from task logs/old results, find matching target molecules/components in the current cell using `target_smiles`. Map all route molecules with identical SMILES to the original node and skip self-loop edges.
+- [done] 2026-06-20 Optimized task panel completed tasks: clicking green completed task buttons to view results/candidates includes a "Recompute" button at the bottom, while failed states continue using the error retry popup.
+- [done] Three-phase plan written to `plan.md`.
+- [done] Established basic CLI, adapters, API, and test suite.
+- [done] OPERA downloaded and installed by user to WSL local opt path and globally accessible.
+- [done] React/Vite main workspace frontend established.
+- [done] Dark permanent sidebar removed.
+- [done] Top workspace dropdown menu implemented.
+- [done] White collapsible cell sidebar implemented.
+- [done] General chemistry cells replaced UI-level hardcoded Molecule/Reaction/Route cell types.
+- [done] Molecular nodes changed to structure diagram rendering, removing giant titles.
+- [done] Supported multi-component structure drawing for dot-separated small molecule mixtures like `CO2.H2O`; inputs unable to be resolved fallback to formula SVGs rather than hanging on "Rendering...".
+- [done] Results/logs panel moved inside the middle workspace panel with a light background.
+- [done] Hand-drawn canvas arrows can be selected and deleted, self-connections are forbidden, and they no longer open irrelevant reaction tasks.
+- [done] Allowed duplicate SMILES/structures to be added as independent nodes on the canvas.
+- [done] Molecular node handles expanded to 8 handles.
+- [done] Hidden blue handle dots around molecular nodes; connections are drawn via "Connect Molecules" continuous mode (toggled via button or Shift); connection lines are thicker and darker, and a "Delete All Connections" function is provided.
+- [done] Connection lines automatically choose top/bottom or left/right center anchors based on relative node positions and draw as straight lines, avoiding bends and offsets.
+- [done] WSL can reuse Windows Gaussian 16W; the project Gaussian runner automatically discovers the executable across Windows/WSL paths.
+- [done] WSL `orgsynflow-chem` calculation tools confirmed (xTB, CREST, Open Babel, ASE, geomeTRIC, PySCF, Psi4, cclib, GoodVibes, RDKit).
+- [done] Windows backend bridges WSL OPERA and WSL AiZynthFinder CLI, exposing statuses in `/compute/status`.
+- [done] Route prediction UI changed to candidate cards, allowing insertion into the current canvas or creating new route cells; displays clear demo fallback when AiZynthFinder config is missing.
+- [done] Gaussian molecular tasks submit opt/freq directly by default; advanced config popup provides job type, method, basis, charge, multiplicity, and GJF preview.
+- [done] Removed permanent backend status, route candidates, and Gaussian queues from the right panel; backend status moved to a top-right compact popup, and candidates/queues moved to secondary popups under active tasks.
+- [done] Task results shown via modals, removing the permanent center results panel; route predictions open candidate modals directly for insertion.
+- [done] Task buttons standardized as "Compute Task (Engine)", integrating blue/yellow/green/red persistent states, result viewing, error messages, and retry flows.
+- [done] Gaussian Opt/Freq merged into a single button; config popup generates default GJF, allowing parameter/input edits before submission.
+- [done] Collapsible task log drawer restored at the bottom of the middle panel; cell counts and equation previews removed from left cell cards.
+- [done] Added atomic update endpoint for cell task results; Gaussian queue status updates task records via polling, and sync tasks that cannot be restored after refresh are marked failed.
+- [done] Replaced edge markers with non-wedge closed arrows; legacy edges recalculate nearest side handles upon loading, and edge labels are hidden by default.
+- [done] Route insertion groups multiple precursors into a single dot-separated reactant node, connecting to the product with a single arrow.
+- [done] Added cell delete button.
+- [done] Created and verified desktop one-click toggle script.
+- [done] `AIREADME.md`已按项目日志结构重写。 (AIREADME.md rewritten according to the project log structure)
+- [done] "View Job Queue (Gaussian)" and "View Route Candidates" permanent buttons removed from molecular/reaction panels, with queues consolidated in task logs.
+- [done] Route candidate popup serves as the direct interactive modal for successful retrosynthesis predictions and log/result reviews.
+- [done] Ketcher drawing window isolated modal classes globally and refactored layout to Flexbox, resolving off-center popups, Wasm interaction misalignments, and collapsed editor boxes.
+- [done] Deployed official AiZynthFinder models and stock databases to WSL, and configured default `config.yml` paths for authentic route predictions.
+- [done] Created ASKCOS retrosynthesis route prediction adapter, querying Docker or downgrading gracefully to Mock/demo when offline.
+- [done] Modified `/route/predict` API to support `engine` parameter dispatch, adding an engine selector popup to the frontend.
+- [done] 2026-06-20 Checked and confirmed AiZynthFinder public weights in WSL: `/home/meta/data/aizynthfinder/config.yml`, `uspto_model.onnx`, etc. API smoke test for aspirin returns `used_fallback=false`.
+- [done] RXNMapper and DRFP modified to fallback query WSL `orgsynflow-chem`, showing available in `/compute/status`.
+- [done] Changed phenol acetylation example to single dot-separated reactant node `O=C(O)c1ccccc1O.CC(=O)OC(C)=O` pointing to aspirin, clearing stale results.
+- [done] Transition state tasks merged into a single "Compute Transition State (Gaussian)" action; clicking opens a parameterized window with TS search recommendations, method/basis/charge/multiplicity/job type, displacement/rotation sliders, 3D conformation previews, and GJF previews.
+- [done] Reaction/route edges changed to smart orthogonal routing, supporting side-center automatic handle selection, horizontal/vertical segments, obstacle bypass, and ranking by length/bends/segment length.
+- [done] Completed public weight audit in [docs/public-model-weights-audit.md](file:///C:/Users/Meta/Project/Workspaces/orgsynflow/docs/public-model-weights-audit.md), documenting AiZynthFinder/OPERA/RXNMapper/DRFP statuses, and limitations of ASKCOS, RXNFP, Yield-BERT, and Chemprop.
+- [done] Summarized results display: xTB/CREST/Gaussian parse key values, warnings, and log tails, folding raw logs; xTB/CREST returns `data.input_xyz` for 3Dmol interactive rendering.
+- [done] Transition State Conformation Editor modal integrated base class `.osf-config-modal`, restoring white background, shadows, overflow clip, and correct positioning.
+- [done] Supported clicking specific components inside dot-separated multi-molecule canvas blocks; molecular tasks, results, and Gaussian object IDs isolate to components, while routes/reactions use the outer container node.
+- [done] Added persistent Gaussian TS workflow: RXNMapper mapping, three initial conformations, 1D/2D scanning, adaptive refinement, TS/Freq, imaginary frequency mode projection, IRC, endpoint thermochemistry, pause/resume/cancel/export, and API/CLI/React boards.
+- [done] Updated default TS theory level to wB97XD/def2SVP; charge/multiplicity are auto-inferred, and method, basis, solvent, resources, temperature, and imaginary frequency threshold are editable.
+- [done] Restarted WSL service under admin elevation, restoring Ubuntu WSL; validated AiZynthFinder/RXNMapper/OPERA files and real runtime inference. AiZynthFinder for aspirin returns 2 real routes with `used_fallback=false`; RXNMapper maps `CCO>>CC=O` with confidence `0.998663`; OPERA returns 5 QSAR predictions for ethanol.
 
-当前可运行入口：
+Currently Runable Entries:
 
-- [ready] 桌面双击 `C:\Users\Meta\Desktop\OrgSynFlow Toggle.cmd` 开关服务。
-- [ready] 前端 `http://127.0.0.1:5173/`。
-- [ready] API `http://127.0.0.1:8765/health`。
-- [ready] CLI `uv run python run_cli.py ...`。
-- [ready] WSL 镜像 `/home/meta/Project/Workspaces/orgsynflow`。
+- [ready] Desktop double-click `C:\Users\Meta\Desktop\OrgSynFlow Toggle.cmd` to start/stop services.
+- [ready] Frontend: `http://127.0.0.1:5173/`.
+- [ready] API: `http://127.0.0.1:8765/health`.
+- [ready] CLI: `uv run python run_cli.py ...`.
+- [ready] WSL Mirror: `/home/meta/Project/Workspaces/orgsynflow`.
 
-待继续增强：
+To Be Enhanced:
 
-- [todo] 路线候选预览窗口还需要做得更像“候选路线浏览器”：预览多条路径、选择满意路径后插入当前工作区画布。
-- [todo] 路线画布的多步反应布局还需要优化，尤其是多反应、多反应物、多产物时的分层布局。
-- [done] 反应箭头的可视化应更明确：箭头可选中、可显示 step label、可打开反应任务。
-- [done] Ketcher 绘图输入已验证：弹窗居中且脱离 `.editor-strip`，Ketcher 内部控件正常加载；`CCO` 可通过 Ketcher API 回填输入框并关闭弹窗；随后点击“添加到画布”会新增 React Flow 节点并渲染结构 SVG。
-- [todo] 工作区保存/自动保存策略需要更清楚，避免测试或打开示例时污染 fixture。
-- [todo] AiZynthFinder 真实配置、stock/policy 路径和路线树解析仍可继续强化。
-- [todo] OPERA 输出字段在 UI 中还需要更好地结构化展示。
-- [done] Gaussian TS 已具备映射反应中心、可编辑 scan 坐标、1D/2D 扫描、freq/IRC 回填和验证等级闭环；后续重点转为更多反应类型基准与长时间真实计算验证。
-- [done] WSL 计算工具状态和 Gaussian bridge 状态已暴露到 `/compute/status` 和右侧任务面板。
-- [done] xTB/CREST 已接入分子任务按钮，可从当前前端直接运行并把结果送到中间结果面板。
-- [todo] 继续把 PySCF/Psi4/geomeTRIC 接入具体任务按钮，而不只是环境可用。
-- [todo] 产率/动力学/热力学结果还需要聚合到路线级评分：总收率、最高能垒、限速步、主要风险。
-- [todo] 如需真实 ML 产率层，优先评估 `rxn4chemistry/rxn_yields` 或其他窄领域公开模型，并在 UI 中强制展示训练数据来源、反应族/适用域和不确定性；不要把 RXNFP/DRFP 特征本身显示成预测产率。
-- [todo] README 中部分 React 工作区描述可能滞后于当前“通用化学单元”设计，后续可同步更新。
+- [todo] The route candidate preview window needs to function more like a "Route Candidate Browser": previewing multiple paths, selecting the preferred path, and then inserting it into the current workspace canvas.
+- [todo] Multi-step reaction layouts on the route canvas still need optimization, especially hierarchical layouts when multiple reactions, reactants, and products are present.
+- [done] Visual feedback for reaction arrows should be clearer: arrows should be selectable, display step labels, and open reaction tasks.
+- [done] Ketcher drawing input verified: modal centered and isolated from `.editor-strip`, Ketcher internal controls loaded properly; `CCO` fills the input and closes via Ketcher API, and clicking "Add to Canvas" adds a React Flow node rendering the structure SVG.
+- [todo] Workspace save/autosave policies need to be clearer to avoid dirtying fixtures when testing or opening examples.
+- [todo] Real AiZynthFinder config, stock/policy paths, and route tree parsing can be further reinforced.
+- [todo] OPERA output fields need better structured display in the UI.
+- [done] Gaussian TS features reaction center mapping, editable scan coordinates, 1D/2D scanning, freq/IRC feedback, and validation level loop closing; subsequent focus shifts to benchmarking more reaction types and long-term calculation validations.
+- [done] WSL calculation tool status and Gaussian bridge status are exposed to `/compute/status` and the right-side task panel.
+- [done] xTB/CREST are integrated into molecular task buttons, runnable directly from the frontend, sending outputs to the middle results panel.
+- [todo] Integrate PySCF/Psi4/geomeTRIC into specific task buttons, rather than just showing environmental availability.
+- [todo] Yield/kinetics/thermodynamics results need to aggregate to route-level scoring: overall yield, highest energy barrier, rate-determining step, major risks.
+- [todo] If a real ML yield layer is needed, prioritize evaluating `rxn4chemistry/rxn_yields` or other niche-domain public models, forcing UI display of training sources, reaction families/applicable domains, and uncertainties; do not display RXNFP/DRFP features as predicted yields.
+- [todo] Some React workspace descriptions in the README may lag behind the current "General Chemistry Cell" design and can be updated later.
 
-最近一次验证基线：
+Most Recent Verification Baseline:
 
-- 2026-06-20 SMILES 块删除回归：`cd web; npm run build` 成功；浏览器中 4 节点/2 边场景删除首个相连节点后变为 3 节点/1 边，保存并刷新后仍为 3/1；测试后已从 `%LOCALAPPDATA%\Temp\codex\orgsynflow-smiles-delete-test\` 恢复原工作区文件并复核为 4/2，SHA256 与测试前一致。
-- 2026-06-20 组分级路线回归：`uv run pytest -q tests/test_aizynth_adapter.py tests/test_route_layout.py` 为 3 passed；`cd web; npm run build` 成功。隔离工作区真实运行 AiZynthFinder 后返回 1 步、2 个前体；加入画布得到两个独立前体节点，位置为 `x=40`，复用的组合 target 为 `x=300`，原下游产物调整为 `x=738`；两条新边均为前体 → 组合 target，原边为组合 target → 产物，全部 marker 位于终点。隔离工作区验证后已删除。
-- `uv run pytest -q`：36 passed。
-- 前端构建命令：`cd web; npm run build`。
-- 任务面板状态回归：浏览器确认蓝色 `rgb(37,99,235)`、黄色 `rgb(244,180,0)`、绿色 `rgb(22,128,60)`、红色 `rgb(201,52,52)`；成功/失败状态刷新后仍存在，失败按钮先打开错误窗口。
-- 任务面板布局回归：1280px 与 819px 视口均无页面横向滚动；819px 下三栏宽度约为 210/369/240px，工具按钮不再逐字换行；左侧预览为空，底部日志入口可见。
-- `CO2.H2O` UI 回归检查：本机 Chrome + Playwright 打开 `http://127.0.0.1:5173/`，添加节点后确认多组分结构 SVG 已显示；截图在 `%LOCALAPPDATA%\Temp\codex\orgsynflow\co2-h2o-component-structures-ui-check.png`。
-- 布局/箭头 UI 回归检查：本机 Chrome + Playwright 确认结果面板在 `.detail` 内、浅色显示；手动画布边可创建并通过“删除箭头”删除；819px 视口下中间面板宽度约 280px；截图在 `%LOCALAPPDATA%\Temp\codex\orgsynflow\layout-edge-fix-ui-check.png`。
-- 重复结构/连接位点 UI 回归检查：本机 Chrome + Playwright 输入 `CCO\nCCO` 后新增 2 个 CCO 节点；每个分子节点有 8 个 handle；截图在 `%LOCALAPPDATA%\Temp\codex\orgsynflow\duplicate-molecule-handles-ui-check.png`。
-- WSL 计算环境检查：Windows `g16.exe` 可从 WSL 调用；`core.gaussian_runner.run_gaussian_job()` 在 WSL 下跑水分子 HF/STO-3G smoke test 正常结束，并解析出 final energy/HOMO/LUMO；xTB/CREST/Open Babel/ASE/geomeTRIC/PySCF/Psi4/cclib/GoodVibes/RDKit 可用。
-- WSL 量化 smoke test：PySCF H2/STO-3G energy `-1.11675931`；Psi4 H2/STO-3G energy `-1.11678332`；Gaussian16W H2O HF/STO-3G 正常结束。
-- 计算 API smoke test：`/compute/status` 返回 Gaussian Windows bridge 和 WSL xTB/CREST/Open Babel/PySCF/Psi4/geomeTRIC/GoodVibes/ASE；`/compute/xtb` 对 `O` 返回 `total_energy_hartree=-5.06897994546`；`/compute/crest` 对 `O` 正常 returncode 0。
-- 前端 UI 检查：内置浏览器刷新 `http://127.0.0.1:5173/` 后右侧任务面板显示计算后端状态；选中 CCO 分子后出现 `xTB 优化/能量`、`CREST 构象搜索`；点击 xTB 后结果面板显示 `xTB CLI via WSL` 和 `/tmp/codex/orgsynflow/xtb_jobs/...`。
-- WSL OPERA/AiZynthFinder 检查：`/compute/status` 返回 `opera` 为 `wsl:/home/meta/.local/bin/opera`、`aizynthfinder` 为 `wsl:/home/meta/.local/opt/miniforge3/envs/orgsynflow-chem/bin/aizynthcli`；`/molecule/properties include_opera=true` 对 `CCO` 返回 OPERA `melting_point=-114`、`boiling_point=78`、`logp=-0.31`。
-- 路线候选 UI 检查：内置浏览器选中 CCO 后可见 `RDKit + OPERA QSAR 物性`、`预测逆合成路线`、`提交 Gaussian opt/freq`、`Gaussian 高级配置`；点击路线预测后出现候选卡、fallback 提示、`加入当前画布` 和 `新建路线单元`。
-- 二级窗口/连线 UI 检查：右侧未选中对象时仅显示任务提示，不再出现后端列表、候选卡或队列；顶部有紧凑 `后端` 入口；弹窗内显示后端/路线/队列；反应/路线边必须带 arrow marker，默认可见 edge label 数为 0。
-- 路线预测直接弹窗检查：点击 `预测逆合成路线` 后 modal 标题为 `路线候选`，出现 2 个候选卡，并直接显示 `加入当前画布` 与 `新建路线单元`；中间常驻结果面板数量为 0。
-- 点式路线插入回归：同一步多个前体现在应合并为一个点式 SMILES 节点，示例检查确认 `O=C(O)c1ccccc1O.CC(=O)OC(C)=O` 为一个节点、到 aspirin 为一条带箭头边。
-- 连接 UI 检查：内置浏览器添加三个 CCO 后打开 `连接分子`，依次点击三个分子得到 `edgeCount=2`、`visibleHandles=0`，模式保持开启且提示继续选择下一个分子；点击 `删除全部连线` 后 `edgeCount=0`。
-- 直线连接 UI 检查：内置浏览器临时把示例工作区放成上下两个节点，打开 `连接分子` 后点击下方 A 再点击上方 B，生成 `react-flow__edge-straight canvas-edge`，SVG path 为单段 `M 315,317.5L 315,196.5`，`visibleHandles=0`；验证后已恢复示例数据。
-- 桌面开关脚本：已验证可启动、关闭、重新启动 8765/5173。
-- 2026-06-20 本次验证：`uv run pytest -q` 为 36 passed；`cd web; npm run build` 成功（仅 Vite 大 chunk warning）；API `/compute/status` 返回 AiZynthFinder、RXNMapper、DRFP 均可用；API `/route/predict` 对 aspirin 返回 `used_fallback=false`；浏览器确认前端 `http://127.0.0.1:5173/` 可打开、任务日志默认展开、路线只有一个点式反应物节点和一条带 `marker-end` 的箭头、选中反应后只有一个 TS 按钮、TS 窗口含 6 个移动/旋转滑块和 3D canvas。
-- 2026-06-20 正交箭头验证：`cd web; npm run build` 成功；浏览器刷新 `http://127.0.0.1:5173/` 后示例反应边 SVG path 为 `M 310,344L 402,344L 402,336.5L 430,336.5`，所有 segment 均为水平/垂直，且保留 `marker-end` 箭头。
-- 2026-06-20 结果展示验证：`cd web; npm run build` 成功；`/compute/xtb` 对 `O` 返回 `data.input_xyz`，可供结果弹窗 3D 渲染；`uv run pytest -q tests/test_route_layout.py tests/test_v5_yield.py` 为 3 passed。全量 `uv run pytest -q` 与 `tests/test_v6_api_service.py` 在本次环境中超时且无输出，需后续单独诊断测试收集/环境探测卡点。
-- 2026-06-20 TS 白色背景回归：修复前浏览器计算样式为 `background=rgba(0,0,0,0)`、`overflow=visible`、`position=static`；改用 `osf-config-modal ts-config-modal` 后为 `background=rgb(255,255,255)`、`overflow=hidden`、`position=relative`，并恢复 modal 阴影，1000×648 视口内截图确认白色内容层完整覆盖。
-- 2026-06-20 组分/TS 工作流验证：前端构建成功；浏览器确认水杨酸/乙酸酐两个结构可分别选中且任务面板只使用所选 SMILES；TS/Gaussian/API 核心回归 17 passed，非外部探测测试集合 25 passed。真实 SN2 准备对 `CBr.[Cl-]>>CCl.[Br-]` 得到 RXNMapper confidence=1.000、C–Cl 成键/C–Br 断键、3 个候选与 5×5 网格；实际 DFT 全网格未在本轮跑完，取消链路已验证且未保留 workflow Gaussian Link 进程。旧 phase1/phase2/v6 外部适配器测试组仍会受 WSL 探测挂起影响。
-- 2026-06-20 公开权重恢复验证：重启 `WslService` 后，`/compute/status` 中 AiZynthFinder、OPERA、RXNMapper、DRFP 及 WSL 计算后端全部 available；`/route/predict` 对 aspirin 返回 `Loaded 2 route(s) from AiZynthFinder via WSL.`、`used_fallback=false`；RXNMapper 映射 `CCO>>CC=O` 得到 `[CH3:1][CH2:2][OH:3]>>[CH3:1][CH:2]=[O:3]`、confidence `0.998663`；OPERA 对 CCO 返回 melting point `-114`、boiling point `78`、LogP `-0.31`、water solubility `1.26`、vapor pressure `1.77`，对应 AD 均为 `1`。
-- 2026-06-20 WSL 挂起事故恢复验证：停止 OrgSynFlow 服务后，发现 API 派生的 CREST 与 `/compute/status` WSL 探测残留 `wsl.exe`；`wsl --terminate Ubuntu-24.04` 与 `wsl --shutdown` 均超时，非管理员 shell 无法 `Restart-Service WslService`。精确停止 10 个命令行含 `/tmp/codex/orgsynflow` / `orgsynflow-chem` 的残留 `wsl.exe` 后，`wsl -e true` 恢复为 exit code 0；重启 OrgSynFlow 后，`/route/predict` 对 aspirin 返回 `used_fallback=false`、`available=true`，OPERA 对 CCO 返回 melting point `-114`、boiling point `78`、LogP `-0.31`、water solubility `1.26`、vapor pressure `1.77`，`/compute/status` 中 AiZynthFinder、OPERA、RXNMapper、DRFP、CREST 均 available。
-- 2026-06-20 已完成任务重新计算入口验证：`cd web; npm run build` 成功（仅 Vite 大 chunk warning）；使用本机 Chrome headless 打开 `http://127.0.0.1:5173/`，临时添加 CCO 节点并运行“计算分子描述符（RDKit）”，任务按钮变为 `task-status-succeeded`，首次结果弹窗和再次点击绿色按钮打开的结果弹窗均出现“重新计算”。测试前后已从 `%LOCALAPPDATA%\Temp\.agents\orgsynflow\example-workspace.before-recompute-ui.json` 恢复 `data/workspaces/example-workspace.json`，SHA256 均为 `0D7CA51DD36D940DFDAC7CAE89722F0298C6AE6155A44F3B7B0F1A36B8F2756F`。
-- 2026-06-20 逆合成候选插入修复验证：`cd web; npm run build` 成功（仅 Vite 大 chunk warning）；`uv run pytest -q tests/test_route_layout.py tests/test_workspace_api.py` 为 5 passed。代码检查确认 `addRouteCandidateToCell()` 会复用当前选中产物节点，并把同一步多前体候选投影为一个点式 SMILES reactant 节点与一条产物箭头。
-- 2026-06-20 组分级路线箭头端点验证：`cd web; npm run build` 成功（仅 Vite 大 chunk warning）；`uv run pytest -q tests/test_route_layout.py tests/test_workspace_api.py` 为 5 passed。Chrome/Playwright 使用临时工作区验证 `c1ccccc1.O=C1CCC(=O)N1Br` 中第二个组分作为逆合成目标时，插入候选后 edge path 为 `M 528,337.5L 678,337.5L 678,252L 706,252`，终点落在目标组分左边缘，且绕开左侧相邻组分；截图在 `%LOCALAPPDATA%\Temp\.agents\orgsynflow-route-component-endpoint.png`，临时工作区已删除。
-- 2026-06-20 重复目标节点回归验证：`cd web; npm run build` 成功（仅 Vite 大 chunk warning）；`uv run pytest -q tests/test_route_layout.py tests/test_workspace_api.py` 为 5 passed。Chrome/Playwright 使用临时工作区构造 route 中 `target` 与 `dup` 两个 molecule id 共享 `O=C1CCC(=O)N1Br` 的候选路线；插入后 `targetStandaloneNodes=[]`，只保留原组合块中的目标组分，edge path 为 `M 468,297.5L 678,297.5L 678,252L 706,252`；截图在 `%LOCALAPPDATA%\Temp\.agents\orgsynflow-no-duplicate-target.png`，临时工作区已删除。
-- 2026-06-20 Gaussian/TS 输出预览验证：`uv run pytest -q tests/test_v3_gaussian.py tests/test_gaussian_runner.py tests/test_ts_workflow.py tests/test_workspace_api.py` 为 17 passed；`cd web; npm run build` 成功（仅 3Dmol eval 与大 chunk 既有警告）。Gaussian parser 现在解析 SCF cycles、优化收敛表、warning/error、最终坐标和虚频位移；`/jobs` 与 `/ts/workflow/{id}` 会返回最新 log tail/progress；TS 窗口提交后从 GJF 输入预览切换为输出预览；TS 候选生成会分离重叠碎片，`CBr.[Cl-]` 候选最小碎片距离回归通过。
-- 2026-06-20 Gaussian 强制结束与实时输入预览验证：`uv run pytest -q tests/test_gaussian_job_queue.py tests/test_gaussian_runner.py tests/test_v3_gaussian.py tests/test_ts_workflow.py tests/test_workspace_api.py` 为 18 passed；`cd web; npm run build` 成功（仅既有 3Dmol eval 与大 chunk 警告）。普通 Gaussian 队列 running job 可通过 cancel event 强制结束并记录为 `cancelled`；分子任务面板 running 状态显示“强制结束 Gaussian 进程”；TS 活跃工作流 footer 显示“强制结束进程”；普通 Gaussian 参数变化会自动刷新 GJF，手动编辑后暂停自动覆盖。
-- 2026-06-20 TS 输入预览与可用性修复验证：`uv run pytest -q tests/test_ts_workflow.py tests/test_gaussian_runner.py tests/test_gaussian_job_queue.py` 为 12 passed；`cd web; npm run build` 成功（仅既有 3Dmol eval 与大 chunk 警告）。TS 配置窗口现在有可编辑 GJF textarea、`自动预览已开启/已手动编辑` 状态和“恢复自动预览”；手动编辑后参数变化不覆盖文本，恢复后按当前 B3LYP/def2SVP 重新生成。`preparing/queued` 等未产生 Gaussian 运行上下文时继续显示输入预览；输出预览只在已有运行上下文后显示。TS footer 恢复“强制结束进程”，说明其停止 workflow/Gaussian 子进程但不删除历史。后端已重启并通过 `/health`。
-
-## 4. New Issues
-
-- [done] 2026-06-20 修复三维构象编辑器：3Dmol 改为前端本地依赖并统一加载，viewer 高度不再被 flex 压缩；补齐每个子模型的标准 XYZ 头，球棍结构正常显示，原子编号默认关闭。普通左键拖拽视角；Shift/Ctrl 起点通过 3Dmol 射线拾取自动确定命中的分子，分别执行当前视图平面平移和刚体旋转，无需预先切换操作对象。预览坐标与 GJF 输入联动。浏览器回归：从分子 2 上直接 Shift 拖拽会自动选择分子 2 并只改变平移；随后从分子 1 上直接 Ctrl 拖拽会自动选择分子 1 并只改变旋转；`npm run build` 成功。
-- [done] 2026-06-20 修复 CREST 不可用结果被前端误记为成功的问题：通用任务会根据 payload 的 `available/status` 推断失败状态并保留 `reason`；历史上已缓存为 `succeeded + unavailable` 的记录也会显示为失败、允许重试。实时 API 已通过 WSL CREST 3.0.2 对水分子完成构象搜索（return code 0），确认当前工具链可用。
-- [done] 2026-06-20 修复 Ketcher 绘图窗口无法使用：`KetcherModal` 改为 React Portal 挂到 `document.body`，避开 `.editor-strip` 后代选择器污染；`.editor-strip` 样式收窄为直接子元素；移除重复 `.osf-modal-backdrop/.osf-ketcher-modal` 定义；Vite dev optimizer 改为预构建 `ketcher-react/ketcher-core/lodash/@babel/runtime/regenerator`，同时排除 `ketcher-standalone/dist/binaryWasm` 以保留 Indigo worker 路径。验证：`cd web; npm run build` 成功；临时 5174 dev server + headless Chrome/CDP 打开 Ketcher，modal 1180×754 居中、`portalEscapedEditorStrip=true`、内部控件 108 个，`CCO` 回填并关闭，添加画布后节点数 9→10 且 React Flow 节点内 SVG 存在。
-
-- [done] 2026-06-20 Fix canvas UI interactions: allow dragging blocks from sub-molecules, and add selected styling to single-molecule blocks.
-- [done] 2026-06-20 加入 Gaussian/TS 实时输出预览：参考 `temp/main.py` 的 SCF/收敛表/告警解析，增强 `core.gaussian` parser；普通 Gaussian 队列和 TS workflow 状态返回当前 log 摘要；前端在结果窗口和 TS modal 中显示实时 SCF、优化步骤、最新收敛表及日志告警。TS 自动闭环窗口提交后不再继续显示静态 GJF，而改为 Gaussian 输出预览。另修复 `run_gaussian_job(cancel_event=...)` 接口缺失，并为 TS 初始构象添加碎片重叠防护。
-- [done] 2026-06-20 加入强制结束按钮与实时 GJF 预览：普通 Gaussian 队列为 running job 维护 cancel event，前端分子任务面板显示“强制结束 Gaussian 进程”；TS 活跃工作流按钮文案改为“强制结束进程”。普通 Gaussian 配置窗口参数变化实时重生成 GJF，手动编辑 textarea 会暂停自动同步并可恢复。
-- [done] 2026-06-20 产率估计公开权重结论：当前没有已安装且适合通用 OrgSynFlow 产率预测的公开 checkpoint；`rxn4chemistry/rxn_yields` 可作为后续窄领域模型候选，但不应直接宣称为通用产率模型。已在 `/reaction/yield` 增加 `llm_estimate`：配置 `DEEPSEEK_API_KEY` 时调用 DeepSeek JSON 模式做临时代估，默认模型为 `deepseek-v4-flash`（可用 `DEEPSEEK_MODEL` 覆盖），`trained_model.available` 仍保持 false，避免把 LLM 输出伪装成专用模型。验证：`uv run pytest` 54 passed；`cd web; npm run build` 成功（仅既有 3Dmol eval 和大 chunk warning）。
+- 2026-06-20 SMILES block delete regression: `cd web; npm run build` succeeded; in browser, deleting the first connected node in a 4-node/2-edge scenario resulted in 3 nodes/1 edge, and persisted after saving and refreshing. Workspace file restored from `%LOCALAPPDATA%\Temp\codex\orgsynflow-smiles-delete-test\` after testing, and verified 4 nodes/2 edges with identical SHA256 before testing.
+- 2026-06-20 Component-level route regression: `uv run pytest -q tests/test_aizynth_adapter.py tests/test_route_layout.py` passed with 3; `cd web; npm run build` succeeded. Real AiZynthFinder execution in isolated workspace returned 1 step and 2 precursors; adding to canvas yielded two independent precursor nodes at `x=40`, reused group target at `x=300`, and original downstream product moved to `x=738`; two new edges were precursor → group target, and original edge was group target → product, with all markers at endpoints. Deleted isolated workspace after testing.
+- `uv run pytest -q`: 36 passed.
+- Frontend build command: `cd web; npm run build`.
+- Task panel state regression: browser confirmed blue `rgb(37,99,235)`, yellow `rgb(244,180,0)`, green `rgb(22,128,60)`, and red `rgb(201,52,52)`. Success/failed states persist after refresh, and clicking a failed button opens the error window.
+- Task panel layout regression: no horizontal scrollbar at 1280px and 819px viewports. At 819px, the three columns are ~210/369/240px, buttons do not wrap character-by-character, left sidebar is empty, and bottom log drawer is visible.
+- `CO2.H2O` UI regression check: Chrome + Playwright opened `http://127.0.0.1:5173/`, added node, and confirmed multi-component structure SVG rendered. Screenshot stored at `%LOCALAPPDATA%\Temp\codex\orgsynflow\co2-h2o-component-structures-ui-check.png`.
+- Layout/edge UI regression check: Chrome + Playwright confirmed results panel is inside `.detail` and light-themed. Hand-drawn canvas edges can be created and deleted via "Delete Arrow"; middle panel width is ~280px at 819px viewport. Screenshot stored at `%LOCALAPPDATA%\Temp\codex\orgsynflow\layout-edge-fix-ui-check.png`.
+- Duplicate structure/connections UI regression check: Chrome + Playwright inputted `CCO\nCCO` to add 2 CCO nodes. Each node has 8 handles. Screenshot stored at `%LOCALAPPDATA%\Temp\codex\orgsynflow\duplicate-molecule-handles-ui-check.png`.
+- WSL computation environment check: Windows `g16.exe` can be invoked from WSL; `core.gaussian_runner.run_gaussian_job()` ran H2O HF/STO-3G smoke test in WSL, parsing final energy/HOMO/LUMO. xTB, CREST, Open Babel, ASE, geomeTRIC, PySCF, Psi4, cclib, GoodVibes, and RDKit are functional.
+- WSL quantum chemistry smoke test: PySCF H2/STO-3G energy `-1.11675931`; Psi4 H2/STO-3G energy `-1.11678332`; Gaussian16W H2O HF/STO-3G finished successfully.
+- Computation API smoke test: `/compute/status` returns Gaussian Windows bridge and WSL xTB/CREST/Open Babel/PySCF/Psi4/geomeTRIC/GoodVibes/ASE; `/compute/xtb` for `O` returns `total_energy_hartree=-5.06897994546`; `/compute/crest` for `O` exits with code 0.
+- Frontend UI check: browser opened `http://127.0.0.1:5173/` and right panel displayed computation backend statuses. Selecting CCO shows "xTB Opt/Energy" and "CREST Conformation Search". Clicking xTB shows `xTB CLI via WSL` and `/tmp/codex/orgsynflow/xtb_jobs/...` in results panel.
+- WSL OPERA/AiZynthFinder check: `/compute/status` returns `opera` as `wsl:/home/meta/.local/bin/opera`, and `aizynthfinder` as `wsl:/home/meta/.local/opt/miniforge3/envs/orgsynflow-chem/bin/aizynthcli`. `/molecule/properties include_opera=true` for `CCO` returns OPERA `melting_point=-114`, `boiling_point=78`, `logp=-0.31`.
+- Route candidate UI check: selecting CCO in browser shows "RDKit + OPERA QSAR Properties", "Predict Retrosynthetic Route", "Submit Gaussian Opt/Freq", and "Gaussian Advanced Config". Clicking route prediction opens candidate cards, fallback alerts, "Add to Current Canvas", and "Create Route Cell".
+- Secondary window/edges UI check: when no object is selected, the right panel shows only task hints, hiding the backend list, candidate cards, or queue. Top-right "Backend" button launches popup. Backend/routes/queues are shown inside popups; reaction/route edges have arrow markers, and the count of visible edge labels defaults to 0.
+- Route prediction direct popup check: clicking "Predict Retrosynthetic Route" displays the "Route Candidates" modal with 2 candidate cards and direct buttons for "Add to Current Canvas" and "Create Route Cell". There are 0 permanent results panels in the center.
+- Dot-separated route insertion regression: multiple precursors of the same step now merge into a single dot-separated SMILES node. Verified `O=C(O)c1ccccc1O.CC(=O)OC(C)=O` as a single node pointing to aspirin via an arrow.
+- Connection UI check: added three CCOs in browser, entered "Connect Molecules", clicked all three, and got `edgeCount=2` and `visibleHandles=0` with connection mode remaining active. Clicking "Delete All Connections" reset `edgeCount=0`.
+- Straight connection UI check: arranged two nodes vertically, entered "Connect Molecules", clicked bottom A then top B, generating `react-flow__edge-straight canvas-edge` with path `M 315,317.5L 315,196.5` and `visibleHandles=0`. Restored example data after testing.
+- Desktop toggle script: verified start, stop, and restart of 8765/5173.
+- 2026-06-20 Validation: `uv run pytest -q` passed with 36; `cd web; npm run build` succeeded (Vite large chunk warning only); API `/compute/status` returns AiZynthFinder, RXNMapper, and DRFP as available. API `/route/predict` for aspirin returns `used_fallback=false`. Verified frontend `http://127.0.0.1:5173/` opens, task log defaults to expanded, route contains a single dot-separated reactant node and a marker-ended arrow, reaction selection displays only a TS button, and the TS window contains 6 displacement/rotation sliders and a 3D canvas.
+- 2026-06-20 Orthogonal edge validation: `cd web; npm run build` succeeded; browser reload of `http://127.0.0.1:5173/` shows example reaction edge path as `M 310,344L 402,344L 402,336.5L 430,336.5`, all segments are horizontal/vertical, and retain `marker-end`.
+- 2026-06-20 Results display validation: `cd web; npm run build` succeeded; `/compute/xtb` on `O` returns `data.input_xyz` for 3D rendering. `uv run pytest -q tests/test_route_layout.py tests/test_v5_yield.py` passed with 3. Standard `uv run pytest -q` and `tests/test_v6_api_service.py` timed out due to environmental detection blocks under WSL.
+- 2026-06-20 TS white background regression: before fix, browser computed style was `background=rgba(0,0,0,0)`, `overflow=visible`, and `position=static`. Using `.osf-config-modal.ts-config-modal` restored `background=rgb(255,255,255)`, `overflow=hidden`, `position=relative`, and modal shadows. Confirmed white content layer completely covers the 1000x648 viewport.
+- 2026-06-20 Component/TS workflow validation: frontend builds successfully; browser confirmed salicylic acid and acetic anhydride components can be independently selected, and the task panel uses the selected SMILES only. TS/Gaussian/API core regressions passed 17, and non-external test suites passed 25. SN2 configuration for `CBr.[Cl-]>>CCl.[Br-]` returned RXNMapper confidence=1.000, C–Cl forming / C–Br breaking, 3 candidates, and a 5x5 grid; full DFT grid calculation was not completed within the turn; the cancellation path was verified, and no residual Gaussian Link processes remained. Legacy phase1/phase2/v6 external adapters are still affected by WSL detection hangs.
+- 2026-06-20 Public weights recovery validation: restarted `WslService`. `/compute/status` shows AiZynthFinder, OPERA, RXNMapper, DRFP, and WSL computation backends as available. `/route/predict` on aspirin returns `Loaded 2 route(s) from AiZynthFinder via WSL.` and `used_fallback=false`. RXNMapper mapping for `CCO>>CC=O` yields `[CH3:1][CH2:2][OH:3]>>[CH3:1][CH:2]=[O:3]` with confidence `0.998663`. OPERA on CCO returns melting point `-114`, boiling point `78`, LogP `-0.31`, water solubility `1.26`, vapor pressure `1.77`, all with AD=1.
+- 2026-06-20 WSL hang recovery validation: stopped services, found API-spawned CREST and `/compute/status` WSL query left orphaned `wsl.exe`. Terminates/shutdown commands timed out under non-admin shell. Terminated 10 `wsl.exe` instances containing `/tmp/codex/orgsynflow` or `orgsynflow-chem` in command line, restoring `wsl -e true` to exit code 0. Restarted services; aspirin retrosynthesis returns `used_fallback=false` and `available=true`; CCO properties return melting point `-114`, boiling point `78`, etc. Status shows AiZynthFinder, OPERA, RXNMapper, DRFP, and CREST as available.
+- 2026-06-20 Completed task recompute validation: `cd web; npm run build` succeeded (Vite large chunk warning only); added CCO node in browser and ran "Compute Molecular Descriptors (RDKit)". Task button changed to `task-status-succeeded`. Both the initial result popup and subsequent clicks on the green button display "Recompute" at the bottom. Restored `data/workspaces/example-workspace.json` from backup, keeping SHA256 identical before testing.
+- 2026-06-20 Retrosynthesis candidate insertion validation: `cd web; npm run build` succeeded (Vite large chunk warning only); `uv run pytest -q tests/test_route_layout.py tests/test_workspace_api.py` passed with 5. Code inspection confirmed `addRouteCandidateToCell()` reuses the selected target node and maps precursors of the same step into a single dot-separated reactant node.
+- 2026-06-20 Component-level route arrow endpoint validation: `cd web; npm run build` succeeded (Vite large chunk warning only); `uv run pytest -q tests/test_route_layout.py tests/test_workspace_api.py` passed with 5. In temporary workspace `c1ccccc1.O=C1CCC(=O)N1Br`, predicting from the second component and inserting candidates resulted in edge path `M 528,337.5L 678,337.5L 678,252L 706,252`, landing on the left edge of the target component and bypassing adjacent components. Deleted temporary workspace after testing.
+- 2026-06-20 Duplicate target node regression validation: `cd web; npm run build` succeeded (Vite large chunk warning only); `uv run pytest -q tests/test_route_layout.py tests/test_workspace_api.py` passed with 5. Set up candidate route in temporary workspace where `target` and `dup` molecule IDs share `O=C1CCC(=O)N1Br`. Insertion resulted in `targetStandaloneNodes=[]`, keeping only the original component card, with path `M 468,297.5L 678,297.5L 678,252L 706,252`. Deleted temporary workspace after testing.
+- 2026-06-20 Gaussian/TS output preview validation: `uv run pytest -q tests/test_v3_gaussian.py tests/test_gaussian_runner.py tests/test_ts_workflow.py tests/test_workspace_api.py` passed with 17; `cd web; npm run build` succeeded. The Gaussian parser extracts SCF cycles, convergence status, warnings/errors, final coordinates, and imaginary frequency displacements; `/jobs` and `/ts/workflow/{id}` return latest log tails/progress. TS window switches from GJF preview to output preview upon submission. TS candidate generation separates overlapping fragments, passing H-transfer distance regression checks.
+- 2026-06-20 Gaussian force-termination and real-time input preview validation: `uv run pytest -q tests/test_gaussian_job_queue.py tests/test_gaussian_runner.py tests/test_v3_gaussian.py tests/test_ts_workflow.py tests/test_workspace_api.py` passed with 18; `cd web; npm run build` succeeded. Standard running Gaussian jobs can be force-terminated via cancel event, changing status to `cancelled`. Running task buttons display "Force Terminate Gaussian Process", and active TS footer shows "Force Terminate Process". Ordinary Gaussian parameter changes refresh GJF, pausing auto-sync on manual edits.
+- 2026-06-20 TS input preview and availability validation: `uv run pytest -q tests/test_ts_workflow.py tests/test_gaussian_runner.py tests/test_gaussian_job_queue.py` passed with 12; `cd web; npm run build` succeeded. TS config window features editable GJF textarea, auto-sync status, and "Restore Auto Preview". Manual edits pause auto-sync, which can be restored to regenerate with wB97XD/def2SVP. `preparing`/`queued` workflows display input preview; output preview shows once running. TS footer retains "Force Terminate Process". Backend restarted and healthy.
+- 2026-06-20 3D Conformation Editor fix validation: 3Dmol loaded via local import, preventing flex viewer height collapse. Atoms are labeled with indices off by default. Standard dragging controls rotation; Shift/Ctrl select clicked fragments dynamically, allowing translation and rotation within camera views. Preview coordinates sync with GJF inputs. Browser tests: dragging with Shift on component 2 translates component 2 only; dragging with Ctrl on component 1 rotates component 1 only. `npm run build` succeeded.
+- 2026-06-20 CREST failure state validation: task buttons correctly map `available/status` fields from task payloads, reflecting failures with reasons instead of falsely marking failed or unavailable CREST runs as successful. Conformation search for water completed via WSL CREST 3.0.2 with exit code 0.
+- 2026-06-20 Ketcher drawing editor modal fix validation: `KetcherModal` mounted via React Portal under `document.body` to bypass `.editor-strip` styling pollution. Removed duplicate modal wrappers, and added pre-bundling exclusions for Wasm worker paths. Verified `npm run build` builds successfully. Opened Ketcher in browser: modal centered at 1180x754, verified `portalEscapedEditorStrip=true`, returned `CCO` to input, and confirmed structure node added in React Flow.
+- 2026-06-20 Fix canvas UI interactions: allow dragging blocks from sub-molecules, and add selected styling to single-molecule blocks.
+- 2026-06-20 Gaussian/TS real-time output preview validation: enhanced `core.gaussian` parser to extract SCF energy, convergence status, warnings, and log tails. The frontend displays real-time progress inside result modals and TS config drawers. Submission switches the TS modal directly to the output preview. Fixed `run_gaussian_job` cancel parameters and added fragment overlap checks for TS candidate generation.
+- 2026-06-20 Force termination and real-time GJF preview validation: standard Gaussian running jobs terminate via cancel events. Task buttons display "Force Terminate Gaussian Process" and active TS footers display "Force Terminate Process". Ordinary Gaussian parameter updates refresh GJF previews dynamically, pausing on manual edits.
+- 2026-06-20 Yield estimation public weights validation: confirmed no default yield models exist in environment. Niche models like `rxn4chemistry/rxn_yields` remain future candidates. Added DeepSeek LLM estimations under `/reaction/yield` using `DEEPSEEK_API_KEY`, defaulting to `deepseek-v4-flash`. `trained_model.available` remains false to prevent misrepresenting LLM outputs as dedicated chemical yield models. All 54 tests passed; `cd web; npm run build` succeeded.

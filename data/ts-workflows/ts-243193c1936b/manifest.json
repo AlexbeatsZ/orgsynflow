@@ -1,0 +1,99 @@
+{
+  "workflow_id": "ts-243193c1936b",
+  "workspace_id": "example-workspace",
+  "cell_id": "cell-b0c67d80",
+  "reaction_id": "rxn-route-1781939759467-aizynth-route-1-s3-2",
+  "reaction_smiles": "O=C1C=CC(=O)N1Br>>O=C1CCC(=O)N1Br",
+  "included_agents": [],
+  "status": "awaiting_confirmation",
+  "stage": "awaiting_confirmation",
+  "validation_level": "未验证",
+  "created_at": "2026-06-20T10:26:00.647504+00:00",
+  "updated_at": "2026-06-20T10:26:39.494580+00:00",
+  "mapping": {
+    "reaction_smiles": "O=C1C=CC(=O)N1Br>>O=C1CCC(=O)N1Br",
+    "mapped_reaction_smiles": "[O:1]=[C:2]1[CH:3]=[CH:4][C:5](=[O:6])[N:7]1[Br:8]>>[O:1]=[C:2]1[CH2:3][CH2:4][C:5](=[O:6])[N:7]1[Br:8]",
+    "method": "rxnmapper_wsl",
+    "status": "mapped",
+    "confidence": "高",
+    "reaction_center": [
+      "反应物与产物结构差异区域"
+    ],
+    "formed_bonds": [
+      "待原子映射确认"
+    ],
+    "broken_bonds": [
+      "待原子映射确认"
+    ],
+    "note": "已通过 rxnmapper_wsl 运行 RXNMapper (confidence=0.912)；成键/断键已成功识别。"
+  },
+  "coordinates": [
+    {
+      "map1": 3,
+      "map2": 4,
+      "atom1": 3,
+      "atom2": 4,
+      "label": "C3–C4",
+      "element1": "C",
+      "element2": "C",
+      "kind": "order_changed",
+      "reactant_order": 2.0,
+      "product_order": 1.0,
+      "start": 1.55,
+      "end": 1.75
+    }
+  ],
+  "candidates": [
+    {
+      "candidate_id": "candidate-1",
+      "label": "候选构象 1",
+      "xyz": "10\nOrgSynFlow candidate 1\nO  -1.80138003 -1.54354921  0.22268404\nC  -0.88789356 -0.74591749  0.10943411\nC   0.51734589 -1.15357127 -0.02890341\nC   1.25689619 -0.04843251 -0.13067194\nC   0.35295169  1.10832663 -0.06132301\nO   0.74390017  2.25996408 -0.12757953\nN  -0.90345571  0.61206814  0.08125719\nBr -2.43845971  1.65199520  0.21931899\nH   0.83699807 -2.18080933 -0.03985991\nH   2.32309702  0.03992575 -0.24435653\n",
+      "fallback_method": "MMFF",
+      "preoptimization": "available",
+      "preoptimization_source": "xTB CLI via WSL",
+      "energy_hartree": -24.677186461205
+    },
+    {
+      "candidate_id": "candidate-3",
+      "label": "候选构象 3",
+      "xyz": "10\nOrgSynFlow candidate 3\nO   1.11871523 -2.10355992 -0.02476468\nC   0.55686376 -1.02297518 -0.01215621\nC  -0.90601248 -0.88223900  0.00209130\nC  -1.19267038  0.42018744  0.01374056\nC   0.07589825  1.16228591  0.00738844\nO   0.13213613  2.37895097  0.01532530\nN   1.06866325  0.23527976 -0.00805380\nBr  2.88436156  0.63502840 -0.02176049\nH  -1.58096345 -1.72006759  0.00239030\nH  -2.15699187  0.89710920  0.02579927\n",
+      "fallback_method": "MMFF",
+      "preoptimization": "available",
+      "preoptimization_source": "xTB CLI via WSL",
+      "energy_hartree": -24.677186448642
+    },
+    {
+      "candidate_id": "candidate-2",
+      "label": "候选构象 2",
+      "xyz": "10\nOrgSynFlow candidate 2\nO  -2.01775960 -1.21227329 -0.36897472\nC  -0.99222039 -0.58292272 -0.18006476\nC   0.33048738 -1.21729510 -0.09044036\nC   1.23238219 -0.25743635  0.11903576\nC   0.52101235  1.02756413  0.17140933\nO   1.08625421  2.09123217  0.35199620\nN  -0.79581540  0.75095021 -0.01462925\nBr -2.14795473  2.02682494 -0.03932128\nH   0.48564561 -2.27772181 -0.18497480\nH   2.29796838 -0.34892218  0.23596389\n",
+      "fallback_method": "MMFF",
+      "preoptimization": "available",
+      "preoptimization_source": "xTB CLI via WSL",
+      "energy_hartree": -24.6771864348
+    }
+  ],
+  "grid_points": [],
+  "ts_candidates": [],
+  "validation": {
+    "level": "未验证",
+    "warnings": []
+  },
+  "thermochemistry": null,
+  "config": {
+    "method": "wB97XD",
+    "basis": "def2SVP",
+    "solvent": null,
+    "charge": 0,
+    "multiplicity": 1,
+    "nproc": 4,
+    "memory": "4GB",
+    "temperature_k": 298.15,
+    "imaginary_threshold_cm1": -50.0,
+    "mode_overlap_threshold": 0.15,
+    "max_grid_points": 40,
+    "max_retries": 2
+  },
+  "error": null,
+  "warnings": [],
+  "requires_manual_coordinates": false
+}

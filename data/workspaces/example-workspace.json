@@ -3,14 +3,14 @@
   "id": "example-workspace",
   "title": "Example workspace",
   "created_at": "2026-06-14T00:00:00+00:00",
-  "updated_at": "2026-06-20T09:46:46.302962+00:00",
+  "updated_at": "2026-06-20T11:15:52.371612+00:00",
   "cells": [
     {
       "id": "cell-example-molecule",
       "type": "molecule",
       "title": "Ethanol",
       "created_at": "2026-06-14T00:00:00+00:00",
-      "updated_at": "2026-06-20T09:13:03.798194+00:00",
+      "updated_at": "2026-06-20T11:09:27.554215+00:00",
       "canvas": {
         "nodes": [
           {
@@ -2668,6 +2668,1868 @@
             },
             "engine": "chemformer"
           }
+        },
+        "reaction:rxn-route-1781939635373-aizynth-route-1-s1-0:transition-state-compute": {
+          "task_id": "transition-state-compute",
+          "task_label": "计算过渡态（Gaussian）",
+          "object_id": "rxn-route-1781939635373-aizynth-route-1-s1-0",
+          "object_kind": "reaction",
+          "object_label": "AiZynth step",
+          "engine": "Gaussian",
+          "status": "failed",
+          "updated_at": "2026-06-20T10:58:02.866Z",
+          "payload": {
+            "workflow_id": "ts-c259f8ae0f10",
+            "workspace_id": "example-workspace",
+            "cell_id": "cell-example-molecule",
+            "reaction_id": "rxn-route-1781939635373-aizynth-route-1-s1-0",
+            "reaction_smiles": "CC(=O)O.CCC(=O)OC(C)=O>>CC(=O)OC(C)=O",
+            "included_agents": [],
+            "status": "failed",
+            "stage": "failed",
+            "validation_level": "未验证",
+            "created_at": "2026-06-20T10:04:17.282670+00:00",
+            "updated_at": "2026-06-20T10:04:43.713616+00:00",
+            "mapping": {
+              "reaction_smiles": "CC(=O)O.CCC(=O)OC(C)=O>>CC(=O)OC(C)=O",
+              "mapped_reaction_smiles": "[OH:4][C:5]([CH3:6])=[O:7].CCC(=O)O[C:2]([CH3:1])=[O:3]>>[CH3:1][C:2](=[O:3])[O:4][C:5]([CH3:6])=[O:7]",
+              "method": "rxnmapper_wsl",
+              "status": "mapped",
+              "confidence": "中",
+              "reaction_center": [
+                "反应物与产物结构差异区域"
+              ],
+              "formed_bonds": [
+                "待原子映射确认"
+              ],
+              "broken_bonds": [
+                "待原子映射确认"
+              ],
+              "note": "已通过 rxnmapper_wsl 运行 RXNMapper (confidence=0.546)；成键/断键已成功识别。"
+            },
+            "coordinates": [
+              {
+                "map1": 2,
+                "map2": 4,
+                "atom1": 10,
+                "atom2": 1,
+                "label": "C2–O4",
+                "element1": "C",
+                "element2": "O",
+                "kind": "formed",
+                "reactant_order": 0,
+                "product_order": 1,
+                "start": 3,
+                "end": 1.42
+              }
+            ],
+            "candidates": [
+              {
+                "candidate_id": "candidate-3",
+                "label": "候选构象 3",
+                "xyz": "24\nOrgSynFlow candidate 3\nC  -0.94901420 -0.13212679 -0.10048085\nC   0.46992396  0.32066341  0.00030966\nO   0.88332348  1.45524307 -0.16460619\nO   1.30932018 -0.68558536  0.30678688\nC  -4.53414758 -2.79083359  0.72366267\nC  -3.08882362 -2.87668043  1.18277729\nC  -2.11334997 -2.80673298  0.02613720\nO  -2.44827496 -2.69422482 -1.14211349\nO  -0.85417476 -2.89105964  0.53533666\nC   0.18350205 -2.84767334 -0.33980689\nC   1.46609514 -2.95582155  0.43434235\nO   0.15338194 -2.74074910 -1.55557352\nH  -1.58431446  0.72231632 -0.35038778\nH  -1.27619279 -0.54175127  0.85830694\nH  -1.04380274 -0.88059175 -0.89100647\nH   2.19075657 -0.25816762  0.34107782\nH  -4.72400314 -1.85013225  0.19619740\nH  -5.21059925 -2.84426839  1.58221143\nH  -4.77985206 -3.61232914  0.04251630\nH  -2.87694667 -2.04669008  1.86529452\nH  -2.93327407 -3.82384121  1.71031546\nH   1.55237708 -2.11626732  1.12886917\nH   1.49562970 -3.90654529  0.97277918\nH   2.31246018 -2.92229217 -0.25790726\n",
+                "fallback_method": "MMFF",
+                "preoptimization": "available",
+                "preoptimization_source": "xTB CLI via WSL",
+                "energy_hartree": -41.417151570318
+              },
+              {
+                "candidate_id": "candidate-2",
+                "label": "候选构象 2",
+                "xyz": "24\nOrgSynFlow candidate 2\nC  -0.95117085 -0.09011818  0.12382769\nC   0.46431728  0.27854491 -0.17457269\nO   0.85050023  1.30497588 -0.70624485\nO   1.33499114 -0.67111204  0.21417689\nC  -4.41385800  2.47189605  0.14873352\nC  -3.03516323  3.06626446 -0.08156314\nC  -1.93582321  2.22069184  0.52729949\nO  -2.13305903  1.18026223  1.13413649\nO  -0.74726497  2.83131163  0.26963768\nC   0.38127320  2.23390999  0.73228919\nC   1.56253490  3.07294756  0.33646378\nO   0.49139092  1.19629356  1.36604693\nH  -1.61265100  0.71323264 -0.21262761\nH  -1.08075071 -0.22096708  1.20095269\nH  -1.21570188 -1.00643974 -0.40955681\nH   2.21046579 -0.30811639 -0.03595531\nH  -4.49050102  1.47320200 -0.29388321\nH  -5.18269658  3.10625948 -0.30294952\nH  -4.62949654  2.38163854  1.21856317\nH  -2.85278332  3.14850535 -1.15839988\nH  -2.99292881  4.06461035  0.36690462\nH   1.61944834  3.14344394 -0.75277690\nH   1.47839641  4.06679041  0.78351381\nH   2.48053094  2.60401231  0.70258702\n",
+                "fallback_method": "MMFF",
+                "preoptimization": "available",
+                "preoptimization_source": "xTB CLI via WSL",
+                "energy_hartree": -41.251318434461
+              },
+              {
+                "candidate_id": "candidate-1",
+                "label": "候选构象 1",
+                "xyz": "24\nOrgSynFlow candidate 1\nC  -0.93652674 -0.03862148  0.22272395\nC   0.48669053  0.27779961 -0.09803991\nO   0.99148686  1.38617581 -0.14336823\nO   1.21406275 -0.82630193 -0.34893450\nC   5.68633238 -0.15338195  0.21574746\nC   4.28165411  0.29843721  0.57610363\nC   3.23144312 -0.31441489 -0.32707100\nO   3.48295085 -1.08384171 -1.24051293\nO   2.01530167  0.14768086  0.07216295\nC   0.92292892 -0.28138914 -0.61132475\nC  -0.29810673  0.34850192 -0.00440223\nO   0.86826410 -1.04479631 -1.56245479\nH  -1.40389405 -0.54444597 -0.62570095\nH  -0.98441821 -0.66412169  1.11747413\nH  -1.47869868  0.89113361  0.41701534\nH   2.11129752 -0.48161796 -0.54116983\nH   5.78289358 -1.24105909  0.29830131\nH   5.93851440  0.12828314 -0.81199356\nH   6.41855099  0.30699188  0.88616405\nH   4.06269856  0.00749207  1.60906585\nH   4.21968897  1.38850569  0.48941811\nH  -0.23376152  1.43658851 -0.08558077\nH  -0.39175788  0.04452127  1.04129778\nH  -1.18759553  0.01188055 -0.54492113\n",
+                "fallback_method": "MMFF",
+                "preoptimization": "available",
+                "preoptimization_source": "xTB CLI via WSL",
+                "energy_hartree": -33.028554580947
+              }
+            ],
+            "grid_points": [
+              {
+                "point_id": "scan-00",
+                "indices": [
+                  0
+                ],
+                "values": [
+                  3
+                ],
+                "status": "running",
+                "refined": false,
+                "started_at": "2026-06-20T10:04:43.708954+00:00"
+              },
+              {
+                "point_id": "scan-01",
+                "indices": [
+                  1
+                ],
+                "values": [
+                  2.8025
+                ],
+                "status": "pending",
+                "refined": false
+              },
+              {
+                "point_id": "scan-02",
+                "indices": [
+                  2
+                ],
+                "values": [
+                  2.605
+                ],
+                "status": "pending",
+                "refined": false
+              },
+              {
+                "point_id": "scan-03",
+                "indices": [
+                  3
+                ],
+                "values": [
+                  2.4074999999999998
+                ],
+                "status": "pending",
+                "refined": false
+              },
+              {
+                "point_id": "scan-04",
+                "indices": [
+                  4
+                ],
+                "values": [
+                  2.21
+                ],
+                "status": "pending",
+                "refined": false
+              },
+              {
+                "point_id": "scan-05",
+                "indices": [
+                  5
+                ],
+                "values": [
+                  2.0125
+                ],
+                "status": "pending",
+                "refined": false
+              },
+              {
+                "point_id": "scan-06",
+                "indices": [
+                  6
+                ],
+                "values": [
+                  1.815
+                ],
+                "status": "pending",
+                "refined": false
+              },
+              {
+                "point_id": "scan-07",
+                "indices": [
+                  7
+                ],
+                "values": [
+                  1.6175
+                ],
+                "status": "pending",
+                "refined": false
+              },
+              {
+                "point_id": "scan-08",
+                "indices": [
+                  8
+                ],
+                "values": [
+                  1.42
+                ],
+                "status": "pending",
+                "refined": false
+              }
+            ],
+            "ts_candidates": [],
+            "validation": {
+              "level": "未验证",
+              "warnings": []
+            },
+            "thermochemistry": null,
+            "config": {
+              "method": "wB97XD",
+              "basis": "def2SVP",
+              "solvent": null,
+              "charge": 0,
+              "multiplicity": 1,
+              "nproc": 4,
+              "memory": "4GB",
+              "temperature_k": 298.15,
+              "imaginary_threshold_cm1": -50,
+              "mode_overlap_threshold": 0.15,
+              "max_grid_points": 40,
+              "max_retries": 2
+            },
+            "error": "run_gaussian_job() got an unexpected keyword argument 'cancel_event'",
+            "warnings": [
+              "RXNMapper 映射置信度不足，必须人工确认原子对。"
+            ],
+            "requires_manual_coordinates": true,
+            "selected_candidate_id": "candidate-3"
+          },
+          "config": {
+            "workflow_id": "ts-c259f8ae0f10",
+            "method": "wB97XD",
+            "basis": "def2SVP",
+            "solvent": null,
+            "charge": 0,
+            "multiplicity": 1,
+            "nproc": 4,
+            "memory": "4GB",
+            "temperature_k": 298.15,
+            "imaginary_threshold_cm1": -50,
+            "mode_overlap_threshold": 0.15,
+            "max_grid_points": 40,
+            "max_retries": 2
+          },
+          "error": "run_gaussian_job() got an unexpected keyword argument 'cancel_event'"
+        },
+        "molecule:route-1781939635373-aizynth-route-1-step-s1-reactants:component:0:xtb-geometry-energy": {
+          "task_id": "xtb-geometry-energy",
+          "task_label": "计算几何优化与能量（xTB）",
+          "object_id": "route-1781939635373-aizynth-route-1-step-s1-reactants:component:0",
+          "object_kind": "molecule",
+          "object_label": "组分 1",
+          "engine": "xTB",
+          "status": "succeeded",
+          "updated_at": "2026-06-20T10:17:19.599Z",
+          "payload": {
+            "available": true,
+            "status": "available",
+            "source": "xTB CLI via WSL",
+            "work_dir": "/tmp/codex/orgsynflow/xtb_jobs/20260620_181719",
+            "stdout": "      -----------------------------------------------------------      \n     |                   =====================                   |     \n     |                           x T B                           |     \n     |                   =====================                   |     \n     |                         S. Grimme                         |     \n     |          Mulliken Center for Theoretical Chemistry        |     \n     |                    University of Bonn                     |     \n      -----------------------------------------------------------      \n\n   * xtb version 6.7.1 (edcfbbe) compiled by 'conda@5dfe00f5fb80' on 2026-06-10\n\n   xtb is free software: you can redistribute it and/or modify it under\n   the terms of the GNU Lesser General Public License as published by\n   the Free Software Foundation, either version 3 of the License, or\n   (at your option) any later version.\n   \n   xtb is distributed in the hope that it will be useful,\n   but WITHOUT ANY WARRANTY; without even the implied warranty of\n   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n   GNU Lesser General Public License for more details.\n   \n   Cite this work as:\n   * C. Bannwarth, E. Caldeweyher, S. Ehlert, A. Hansen, P. Pracht,\n     J. Seibert, S. Spicher, S. Grimme, WIREs Comput. Mol. Sci., 2020, 11,\n     e01493. DOI: 10.1002/wcms.1493\n   \n   for GFN2-xTB:\n   * C. Bannwarth, S. Ehlert and S. Grimme., J. Chem. Theory Comput., 2019,\n     15, 1652-1671. DOI: 10.1021/acs.jctc.8b01176\n   for GFN1-xTB:\n   * S. Grimme, C. Bannwarth, P. Shushkov, J. Chem. Theory Comput., 2017,\n     13, 1989-2009. DOI: 10.1021/acs.jctc.7b00118\n   for GFN0-xTB:\n   * P. Pracht, E. Caldeweyher, S. Ehlert, S. Grimme, ChemRxiv, 2019, preprint.\n     DOI: 10.26434/chemrxiv.8326202.v1\n   for GFN-FF:\n   * S. Spicher and S. Grimme, Angew. Chem. Int. Ed., 2020, 59, 15665-15673.\n     DOI: 10.1002/anie.202004239\n   \n   for ALPB and GBSA implicit solvation:\n   * S. Ehlert, M. Stahn, S. Spicher, S. Grimme, J. Chem. Theory Comput.,\n     2021, 17, 4250-4261. DOI: 10.1021/acs.jctc.1c00471\n   \n   for ddCOSMO and CPCM-X implicit solvation:\n   * M. Stahn, S. Ehlert, S. Grimme, J. Phys. Chem. A,\n     2023, XX, XXXX-XXXX. DOI: 10.1021/acs.jpca.3c04382\n   \n   for DFT-D4:\n   * E. Caldeweyher, C. Bannwarth and S. Grimme, J. Chem. Phys., 2017,\n     147, 034112. DOI: 10.1063/1.4993215\n   * E. Caldeweyher, S. Ehlert, A. Hansen, H. Neugebauer, S. Spicher,\n     C. Bannwarth and S. Grimme, J. Chem. Phys., 2019, 150, 154122.\n     DOI: 10.1063/1.5090222\n   * E. Caldeweyher, J.-M. Mewes, S. Ehlert and S. Grimme, Phys. Chem. Chem. Phys.\n     2020, 22, 8499-8512. DOI: 10.1039/D0CP00502A\n   \n   for sTDA-xTB:\n   * S. Grimme and C. Bannwarth, J. Chem. Phys., 2016, 145, 054103.\n     DOI: 10.1063/1.4959605\n   \n   in the mass-spec context:\n   * V. Asgeirsson, C. Bauer and S. Grimme, Chem. Sci., 2017, 8, 4879.\n     DOI: 10.1039/c7sc00601b\n   * J. Koopman and S. Grimme, ACS Omega 2019, 4, 12, 15120-15133.\n     DOI: 10.1021/acsomega.9b02011\n   \n   for metadynamics refer to:\n   * S. Grimme, J. Chem. Theory Comput., 2019, 155, 2847-2862\n     DOI: 10.1021/acs.jctc.9b00143\n   \n   for SPH calculations refer to:\n   * S. Spicher and S. Grimme, J. Chem. Theory Comput., 2021, 17, 1701-1714\n     DOI: 10.1021/acs.jctc.0c01306\n   \n   for ONIOM refer to:\n   * C. Plett, A. Katbashev, S. Ehlert, S. Grimme, M. Bursch,\n     Phys. Chem. Chem. Phys., 2023, 25, 17860-17868. DOI: 10.1039/D3CP02178E\n   \n   for DIPRO refer to:\n   * J. Kohn, N. Gildemeister, S. Grimme, D. Fazzi, A. Hansen,\n     J. Chem. Phys., 2023, just accepted.\n   \n   for PTB refer to:\n   * S. Grimme, M. Mueller, A. Hansen, J. Chem. Phys., 2023, 158, 124111.\n     DOI: 10.1063/5.0137838\n   \n   with help from (in alphabetical order)\n   P. Atkinson, C. Bannwarth, F. Bohle, G. Brandenburg, E. Caldeweyher\n   M. Checinski, S. Dohm, S. Ehlert, S. Ehrlich, I. Gerasimov, C. Hölzer\n   A. Katbashev, J. Kohn, J. Koopman, C. Lavigne, S. Lehtola, F. März, M. Müller,\n   F. Musil, H. Neugebauer, J. Pisarek, C. Plett, P. Pracht, F. Pultar,\n   J. Seibert, P. Shushkov, S. Spicher, M. Stahn, M. Steiner, T. Strunk,\n   J. Stückrath, T. Rose, and J. Unsleber\n   \n * started run on 2026/06/20 at 18:17:39.136     \n   ID    Z sym.   atoms\n    1    6 C      1, 2\n    2    8 O      3, 4\n    3    1 H      5-8\n\n           -------------------------------------------------\n          |                Calculation Setup                |\n           -------------------------------------------------\n\n          program call               : /home/meta/.local/opt/miniforge3/envs/orgsynflow-chem/bin/xtb input.xyz\n          coordinate file            : input.xyz\n          omp threads                :                    32\n\n\n           -------------------------------------------------\n          |                 G F N 2 - x T B                 |\n           -------------------------------------------------\n\n        Reference                      10.1021/acs.jctc.8b01176\n      * Hamiltonian:\n        H0-scaling (s, p, d)           1.850000    2.230000    2.230000\n        zeta-weighting                 0.500000\n      * Dispersion:\n        s8                             2.700000\n        a1                             0.520000\n        a2                             5.000000\n        s9                             5.000000\n      * Repulsion:\n        kExp                           1.500000    1.000000\n        rExp                           1.000000\n      * Coulomb:\n        alpha                          2.000000\n        third order                    shell-resolved\n        anisotropic                    true\n        a3                             3.000000\n        a5                             4.000000\n        cn-shift                       1.200000\n        cn-exp                         4.000000\n        max-rad                        5.000000\n\n\n          ...................................................\n          :                      SETUP                      :\n          :.................................................:\n          :  # basis functions                  20          :\n          :  # atomic orbitals                  20          :\n          :  # shells                           12          :\n          :  # electrons                        24          :\n          :  max. iterations                   250          :\n          :  Hamiltonian                  GFN2-xTB          :\n          :  restarted?                      false          :\n          :  GBSA solvation                  false          :\n          :  PC potential                    false          :\n          :  electronic temp.          300.0000000     K    :\n          :  accuracy                    1.0000000          :\n          :  -> integral cutoff          0.2500000E+02      :\n          :  -> integral neglect         0.1000000E-07      :\n          :  -> SCF convergence          0.1000000E-05 Eh   :\n          :  -> wf. convergence          0.1000000E-03 e    :\n          :  Broyden damping             0.4000000          :\n          :  net charge                          0          :\n          :  unpaired electrons                  0          :\n          ...................................................\n\n iter      E             dE          RMSdq      gap      omega  full diag\n   1    -14.5000277 -0.145000E+02  0.517E+00    5.58       0.0  T\n   2    -14.5387208 -0.386931E-01  0.256E+00    4.14       1.0  T\n   3    -14.5442902 -0.556938E-02  0.171E+00    4.81       1.0  T\n   4    -14.5483275 -0.403733E-02  0.213E-01    4.47       1.0  T\n   5    -14.5484471 -0.119602E-03  0.888E-02    4.54       1.0  T\n   6    -14.5484705 -0.233534E-04  0.212E-02    4.53       1.7  T\n   7    -14.5484713 -0.846238E-06  0.757E-03    4.52       4.7  T\n   8    -14.5484713 -0.353479E-07  0.238E-03    4.52      14.8  T\n   9    -14.5484713 -0.447895E-08  0.116E-03    4.52      30.4  T\n  10    -14.5484714 -0.715399E-08  0.286E-04    4.52     123.6  T\n  11    -14.5484714 -0.170512E-10  0.759E-05    4.52     465.7  T\n\n   *** convergence criteria satisfied after 11 iterations ***\n\n         #    Occupation            Energy/Eh            Energy/eV\n      -------------------------------------------------------------\n         1        2.0000           -0.7313937             -19.9022\n       ...           ...                  ...                  ...\n         6        2.0000           -0.5655834             -15.3903\n         7        2.0000           -0.5555821             -15.1182\n         8        2.0000           -0.4995285             -13.5929\n         9        2.0000           -0.4948929             -13.4667\n        10        2.0000           -0.4865414             -13.2395\n        11        2.0000           -0.4648593             -12.6495\n        12        2.0000           -0.4227785             -11.5044 (HOMO)\n        13                         -0.2565716              -6.9817 (LUMO)\n        14                         -0.0385051              -1.0478\n        15                          0.1122545               3.0546\n        16                          0.1293518               3.5198\n        17                          0.1467889               3.9943\n       ...                                ...                  ...\n        20                          0.4596659              12.5081\n      -------------------------------------------------------------\n                  HL-Gap            0.1662069 Eh            4.5227 eV\n             Fermi-level           -0.3396751 Eh           -9.2430 eV\n\n SCC (total)                   0 d,  0 h,  0 min,  0.077 sec\n SCC setup                      ...        0 min,  0.023 sec ( 30.444%)\n Dispersion                     ...        0 min,  0.001 sec (  1.542%)\n classical contributions        ...        0 min,  0.007 sec (  8.952%)\n integral evaluation            ...        0 min,  0.001 sec (  1.350%)\n iterations                     ...        0 min,  0.042 sec ( 55.258%)\n molecular gradient             ...        0 min,  0.002 sec (  2.109%)\n printout                       ...        0 min,  0.000 sec (  0.275%)\n\n         :::::::::::::::::::::::::::::::::::::::::::::::::::::\n         ::                     SUMMARY                     ::\n         :::::::::::::::::::::::::::::::::::::::::::::::::::::\n         :: total energy             -14.444568984661 Eh    ::\n         :: gradient norm              0.125847175296 Eh/a0 ::\n         :: HOMO-LUMO gap              4.522718728424 eV    ::\n         ::.................................................::\n         :: SCC energy               -14.548470807866 Eh    ::\n         :: -> isotropic ES            0.052777877250 Eh    ::\n         :: -> anisotropic ES          0.000347291406 Eh    ::\n         :: -> anisotropic XC          0.001288404459 Eh    ::\n         :: -> dispersion             -0.002755107447 Eh    ::\n         :: repulsion energy           0.103901823205 Eh    ::\n         :: add. restraining           0.000000000000 Eh    ::\n         :: total charge              -0.000000000000 e     ::\n         :::::::::::::::::::::::::::::::::::::::::::::::::::::\n\n           -------------------------------------------------\n          |                Property Printout                |\n           -------------------------------------------------\n\n    * Orbital Energies and Occupations\n\n         #    Occupation            Energy/Eh            Energy/eV\n      -------------------------------------------------------------\n         1        2.0000           -0.7313937             -19.9022\n         2        2.0000           -0.7053731             -19.1942\n         3        2.0000           -0.6585506             -17.9201\n         4        2.0000           -0.6221952             -16.9308\n         5        2.0000           -0.5734024             -15.6031\n         6        2.0000           -0.5655834             -15.3903\n         7        2.0000           -0.5555821             -15.1182\n         8        2.0000           -0.4995285             -13.5929\n         9        2.0000           -0.4948929             -13.4667\n        10        2.0000           -0.4865414             -13.2395\n        11        2.0000           -0.4648593             -12.6495\n        12        2.0000           -0.4227785             -11.5044 (HOMO)\n        13                         -0.2565716              -6.9817 (LUMO)\n        14                         -0.0385051              -1.0478\n        15                          0.1122545               3.0546\n        16                          0.1293518               3.5198\n        17                          0.1467889               3.9943\n        18                          0.1742860               4.7426\n        19                          0.2410529               6.5594\n        20                          0.4596659              12.5081\n      -------------------------------------------------------------\n                  HL-Gap            0.1662069 Eh            4.5227 eV\n             Fermi-level           -0.3396751 Eh           -9.2430 eV\n\n     #   Z          covCN         q      C6AA      α(0)\n     1   6 C        3.743    -0.131    23.093     6.856\n     2   6 C        2.684     0.353    21.009     7.501\n     3   8 O        0.856    -0.420    22.076     6.299\n     4   8 O        1.647    -0.382    20.510     6.113\n     5   1 H        0.922     0.091     1.870     2.138\n     6   1 H        0.922     0.088     1.895     2.153\n     7   1 H        0.922     0.074     2.043     2.235\n     8   1 H        0.796     0.326     0.648     1.265\n\n Mol. C6AA /au·bohr⁶  :        552.881379\n Mol. C8AA /au·bohr⁸  :      11859.337870\n Mol. α(0) /au        :         34.561340\n\n\nWiberg/Mayer (AO) data.\nlargest (>0.10) Wiberg bond orders for each atom\n\n ---------------------------------------------------------------------------\n     #   Z sym  total        # sym  WBO       # sym  WBO       # sym  WBO\n ---------------------------------------------------------------------------\n     1   6 C    3.989 --     2 C    1.023     7 H    0.978     6 H    0.968\n                             5 H    0.947\n     2   6 C    3.913 --     3 O    1.748     4 O    1.117     1 C    1.023\n     3   8 O    2.008 --     2 C    1.748     4 O    0.170\n     4   8 O    2.185 --     2 C    1.117     8 H    0.867     3 O    0.170\n     5   1 H    0.992 --     1 C    0.947\n     6   1 H    0.992 --     1 C    0.968\n     7   1 H    0.995 --     1 C    0.978\n     8   1 H    0.893 --     4 O    0.867\n ---------------------------------------------------------------------------\n\nTopologies differ in total number of bonds\nWriting topology from bond orders to xtbtopo.mol\n\nmolecular dipole:\n                 x           y           z       tot (Debye)\n q only:       -0.305      -0.805       0.062\n   full:       -0.188      -0.878       0.080       2.292\nmolecular quadrupole (traceless):\n                xx          xy          yy          xz          yz          zz\n q only:        5.770      -2.670      -5.636       0.564       0.258      -0.134\n  q+dip:        7.282      -3.030      -7.662       0.624       0.449       0.380\n   full:        6.965      -2.990      -7.889       0.562       0.519       0.924\n\n\n           -------------------------------------------------\n          | TOTAL ENERGY              -14.444568984661 Eh   |\n          | GRADIENT NORM               0.125847175296 Eh/α |\n          | HOMO-LUMO GAP               4.522718728424 eV   |\n           -------------------------------------------------\n\n------------------------------------------------------------------------\n * finished run on 2026/06/20 at 18:17:39.294     \n------------------------------------------------------------------------\n total:\n * wall-time:     0 d,  0 h,  0 min,  0.158 sec\n *  cpu-time:     0 d,  0 h,  0 min,  4.670 sec\n * ratio c/w:    29.535 speedup\n SCF:\n * wall-time:     0 d,  0 h,  0 min,  0.077 sec\n *  cpu-time:     0 d,  0 h,  0 min,  2.126 sec\n * ratio c/w:    27.699 speedup\n\n",
+            "stderr": "normal termination of xtb\nNote: The following floating-point exceptions are signalling: IEEE_UNDERFLOW_FLAG IEEE_DENORMAL\n",
+            "data": {
+              "returncode": 0,
+              "total_energy_hartree": -14.444568984661,
+              "input_xyz": "8\nCC(=O)O\nC     -0.993952    -0.055131    -0.058724\nC      0.459643     0.273493    -0.010655\nO      0.836201     1.474017    -0.074495\nO      1.395864    -0.742578     0.151860\nH     -1.435428     0.071455     0.951556\nH     -1.513403     0.617884    -0.773125\nH     -1.134732    -1.105643    -0.389008\nH      2.385806    -0.533497     0.202591\n"
+            },
+            "reason": null
+          }
+        },
+        "reaction:rxn-route-1781939635373-aizynth-route-1-s1-0:reaction-validation": {
+          "task_id": "reaction-validation",
+          "task_label": "校验反应可行性",
+          "object_id": "rxn-route-1781939635373-aizynth-route-1-s1-0",
+          "object_kind": "reaction",
+          "object_label": "AiZynth step",
+          "status": "succeeded",
+          "updated_at": "2026-06-20T10:17:34.675Z",
+          "payload": {
+            "reaction_smiles": "CC(=O)O.CCC(=O)OC(C)=O>>CC(=O)OC(C)=O",
+            "valid": true,
+            "status": "valid",
+            "errors": [],
+            "warnings": [
+              "Element counts are not balanced; check missing reagents, salts, or byproducts."
+            ],
+            "element_balance": {
+              "available": true,
+              "reactants": {
+                "C": 7,
+                "O": 5
+              },
+              "products": {
+                "C": 4,
+                "O": 3
+              },
+              "delta": {
+                "C": -3,
+                "O": -2
+              },
+              "balanced": false
+            },
+            "explanation": {
+              "reaction_smiles": "CC(=O)O.CCC(=O)OC(C)=O>>CC(=O)OC(C)=O",
+              "reaction_type": "通用转化",
+              "formed_bonds": [
+                "待原子映射确认"
+              ],
+              "broken_bonds": [
+                "待原子映射确认"
+              ],
+              "reaction_center": [
+                "反应物与产物结构差异区域"
+              ],
+              "summary": "当前使用规则保底解释；后续可接入 RXNMapper 进行原子映射并精确定位成键和断键。"
+            },
+            "feasibility": {
+              "method": "layered_heuristic_plus_optional_features",
+              "status": "features_available",
+              "heuristic": {
+                "heuristic_yield_percent": 60,
+                "predicted_yield_percent": 60,
+                "method": "heuristic_rules",
+                "confidence": "低",
+                "applicability_domain": "规则启发式；仅适合演示和相对排序。",
+                "factors": [
+                  "当前反应类型未匹配到专门规则。",
+                  "存在卤素或潜在离去基，需关注副反应。",
+                  "多组分前体明确，适合做单步路线验证。"
+                ],
+                "note": "规则演示估计：用于相对排序和课堂展示，不是 DRFP/HTE 真实产率模型，不能替代实验测定。"
+              },
+              "ml_features": {
+                "reaction_smiles": "CC(=O)O.CCC(=O)OC(C)=O>>CC(=O)OC(C)=O",
+                "method": "drfp",
+                "status": "available",
+                "features": {
+                  "drfp_0": 0,
+                  "drfp_1": 0,
+                  "drfp_2": 0,
+                  "drfp_3": 0,
+                  "drfp_4": 0,
+                  "drfp_5": 0,
+                  "drfp_6": 0,
+                  "drfp_7": 0,
+                  "drfp_8": 0,
+                  "drfp_9": 0,
+                  "drfp_10": 1,
+                  "drfp_11": 0,
+                  "drfp_12": 0,
+                  "drfp_13": 0,
+                  "drfp_14": 1,
+                  "drfp_15": 0,
+                  "drfp_16": 0,
+                  "drfp_17": 0,
+                  "drfp_18": 0,
+                  "drfp_19": 0,
+                  "drfp_20": 0,
+                  "drfp_21": 0,
+                  "drfp_22": 0,
+                  "drfp_23": 0,
+                  "drfp_24": 0,
+                  "drfp_25": 0,
+                  "drfp_26": 0,
+                  "drfp_27": 0,
+                  "drfp_28": 0,
+                  "drfp_29": 0,
+                  "drfp_30": 0,
+                  "drfp_31": 0,
+                  "drfp_32": 0,
+                  "drfp_33": 0,
+                  "drfp_34": 0,
+                  "drfp_35": 0,
+                  "drfp_36": 0,
+                  "drfp_37": 0,
+                  "drfp_38": 0,
+                  "drfp_39": 0,
+                  "drfp_40": 0,
+                  "drfp_41": 0,
+                  "drfp_42": 0,
+                  "drfp_43": 0,
+                  "drfp_44": 0,
+                  "drfp_45": 0,
+                  "drfp_46": 0,
+                  "drfp_47": 0,
+                  "drfp_48": 0,
+                  "drfp_49": 0,
+                  "drfp_50": 0,
+                  "drfp_51": 0,
+                  "drfp_52": 0,
+                  "drfp_53": 0,
+                  "drfp_54": 0,
+                  "drfp_55": 0,
+                  "drfp_56": 0,
+                  "drfp_57": 0,
+                  "drfp_58": 0,
+                  "drfp_59": 0,
+                  "drfp_60": 0,
+                  "drfp_61": 0,
+                  "drfp_62": 1,
+                  "drfp_63": 0,
+                  "drfp_64": 0,
+                  "drfp_65": 0,
+                  "drfp_66": 0,
+                  "drfp_67": 0,
+                  "drfp_68": 0,
+                  "drfp_69": 0,
+                  "drfp_70": 0,
+                  "drfp_71": 0,
+                  "drfp_72": 0,
+                  "drfp_73": 0,
+                  "drfp_74": 0,
+                  "drfp_75": 0,
+                  "drfp_76": 0,
+                  "drfp_77": 0,
+                  "drfp_78": 0,
+                  "drfp_79": 1,
+                  "drfp_80": 0,
+                  "drfp_81": 0,
+                  "drfp_82": 0,
+                  "drfp_83": 0,
+                  "drfp_84": 0,
+                  "drfp_85": 0,
+                  "drfp_86": 0,
+                  "drfp_87": 0,
+                  "drfp_88": 0,
+                  "drfp_89": 0,
+                  "drfp_90": 1,
+                  "drfp_91": 0,
+                  "drfp_92": 0,
+                  "drfp_93": 0,
+                  "drfp_94": 0,
+                  "drfp_95": 0,
+                  "drfp_96": 0,
+                  "drfp_97": 0,
+                  "drfp_98": 0,
+                  "drfp_99": 0,
+                  "drfp_100": 0,
+                  "drfp_101": 0,
+                  "drfp_102": 0,
+                  "drfp_103": 0,
+                  "drfp_104": 0,
+                  "drfp_105": 0,
+                  "drfp_106": 0,
+                  "drfp_107": 0,
+                  "drfp_108": 0,
+                  "drfp_109": 0,
+                  "drfp_110": 0,
+                  "drfp_111": 0,
+                  "drfp_112": 0,
+                  "drfp_113": 0,
+                  "drfp_114": 0,
+                  "drfp_115": 0,
+                  "drfp_116": 0,
+                  "drfp_117": 0,
+                  "drfp_118": 0,
+                  "drfp_119": 0,
+                  "drfp_120": 0,
+                  "drfp_121": 0,
+                  "drfp_122": 0,
+                  "drfp_123": 0,
+                  "drfp_124": 0,
+                  "drfp_125": 0,
+                  "drfp_126": 0,
+                  "drfp_127": 0,
+                  "drfp_128": 0,
+                  "drfp_129": 0,
+                  "drfp_130": 0,
+                  "drfp_131": 0,
+                  "drfp_132": 0,
+                  "drfp_133": 0,
+                  "drfp_134": 0,
+                  "drfp_135": 0,
+                  "drfp_136": 0,
+                  "drfp_137": 0,
+                  "drfp_138": 0,
+                  "drfp_139": 0,
+                  "drfp_140": 0,
+                  "drfp_141": 0,
+                  "drfp_142": 0,
+                  "drfp_143": 0,
+                  "drfp_144": 0,
+                  "drfp_145": 0,
+                  "drfp_146": 0,
+                  "drfp_147": 0,
+                  "drfp_148": 0,
+                  "drfp_149": 0,
+                  "drfp_150": 0,
+                  "drfp_151": 0,
+                  "drfp_152": 0,
+                  "drfp_153": 0,
+                  "drfp_154": 0,
+                  "drfp_155": 0,
+                  "drfp_156": 0,
+                  "drfp_157": 0,
+                  "drfp_158": 0,
+                  "drfp_159": 1,
+                  "drfp_160": 0,
+                  "drfp_161": 0,
+                  "drfp_162": 0,
+                  "drfp_163": 0,
+                  "drfp_164": 0,
+                  "drfp_165": 0,
+                  "drfp_166": 0,
+                  "drfp_167": 1,
+                  "drfp_168": 0,
+                  "drfp_169": 0,
+                  "drfp_170": 0,
+                  "drfp_171": 0,
+                  "drfp_172": 0,
+                  "drfp_173": 0,
+                  "drfp_174": 0,
+                  "drfp_175": 0,
+                  "drfp_176": 0,
+                  "drfp_177": 0,
+                  "drfp_178": 0,
+                  "drfp_179": 1,
+                  "drfp_180": 0,
+                  "drfp_181": 0,
+                  "drfp_182": 0,
+                  "drfp_183": 0,
+                  "drfp_184": 0,
+                  "drfp_185": 0,
+                  "drfp_186": 0,
+                  "drfp_187": 0,
+                  "drfp_188": 0,
+                  "drfp_189": 0,
+                  "drfp_190": 0,
+                  "drfp_191": 0,
+                  "drfp_192": 0,
+                  "drfp_193": 0,
+                  "drfp_194": 0,
+                  "drfp_195": 0,
+                  "drfp_196": 0,
+                  "drfp_197": 0,
+                  "drfp_198": 0,
+                  "drfp_199": 0,
+                  "drfp_200": 0,
+                  "drfp_201": 0,
+                  "drfp_202": 0,
+                  "drfp_203": 0,
+                  "drfp_204": 0,
+                  "drfp_205": 0,
+                  "drfp_206": 0,
+                  "drfp_207": 0,
+                  "drfp_208": 0,
+                  "drfp_209": 0,
+                  "drfp_210": 0,
+                  "drfp_211": 0,
+                  "drfp_212": 0,
+                  "drfp_213": 0,
+                  "drfp_214": 0,
+                  "drfp_215": 0,
+                  "drfp_216": 0,
+                  "drfp_217": 0,
+                  "drfp_218": 0,
+                  "drfp_219": 0,
+                  "drfp_220": 0,
+                  "drfp_221": 0,
+                  "drfp_222": 0,
+                  "drfp_223": 0,
+                  "drfp_224": 0,
+                  "drfp_225": 0,
+                  "drfp_226": 0,
+                  "drfp_227": 0,
+                  "drfp_228": 0,
+                  "drfp_229": 0,
+                  "drfp_230": 0,
+                  "drfp_231": 0,
+                  "drfp_232": 0,
+                  "drfp_233": 0,
+                  "drfp_234": 0,
+                  "drfp_235": 0,
+                  "drfp_236": 0,
+                  "drfp_237": 0,
+                  "drfp_238": 0,
+                  "drfp_239": 0,
+                  "drfp_240": 0,
+                  "drfp_241": 0,
+                  "drfp_242": 0,
+                  "drfp_243": 0,
+                  "drfp_244": 0,
+                  "drfp_245": 0,
+                  "drfp_246": 0,
+                  "drfp_247": 0,
+                  "drfp_248": 1,
+                  "drfp_249": 0,
+                  "drfp_250": 0,
+                  "drfp_251": 0,
+                  "drfp_252": 0,
+                  "drfp_253": 0,
+                  "drfp_254": 0,
+                  "drfp_255": 1
+                },
+                "applicability_domain": "取决于后续训练数据；DRFP 只提供反应指纹，不单独构成产率模型。",
+                "unavailable": [],
+                "note": "已通过 WSL chem 环境生成 DRFP 特征；需要配套训练模型才能输出 ML 产率。"
+              },
+              "trained_model": {
+                "available": false,
+                "method": "chemprop_or_rxn_yields_placeholder",
+                "reason": "当前未配置训练好的产率模型权重；不会输出伪 ML 产率。",
+                "predicted_yield": null
+              },
+              "confidence": "低",
+              "applicability_domain": "规则启发式；仅适合演示和相对排序。",
+              "note": "产率采用分层输出：启发式估计可用，DRFP/RXNFP/Chemprop 仅在安装和配置后作为特征或训练模型层使用。"
+            }
+          }
+        },
+        "reaction:rxn-route-1781939635373-aizynth-route-1-s1-0:reaction-yield": {
+          "task_id": "reaction-yield",
+          "task_label": "估算反应产率",
+          "object_id": "rxn-route-1781939635373-aizynth-route-1-s1-0",
+          "object_kind": "reaction",
+          "object_label": "AiZynth step",
+          "status": "succeeded",
+          "updated_at": "2026-06-20T10:17:42.724Z",
+          "payload": {
+            "method": "layered_heuristic_plus_optional_features",
+            "status": "features_available",
+            "heuristic": {
+              "heuristic_yield_percent": 60,
+              "predicted_yield_percent": 60,
+              "method": "heuristic_rules",
+              "confidence": "低",
+              "applicability_domain": "规则启发式；仅适合演示和相对排序。",
+              "factors": [
+                "当前反应类型未匹配到专门规则。",
+                "存在卤素或潜在离去基，需关注副反应。",
+                "多组分前体明确，适合做单步路线验证。"
+              ],
+              "note": "规则演示估计：用于相对排序和课堂展示，不是 DRFP/HTE 真实产率模型，不能替代实验测定。"
+            },
+            "ml_features": {
+              "reaction_smiles": "CC(=O)O.CCC(=O)OC(C)=O>>CC(=O)OC(C)=O",
+              "method": "drfp",
+              "status": "available",
+              "features": {
+                "drfp_0": 0,
+                "drfp_1": 0,
+                "drfp_2": 0,
+                "drfp_3": 0,
+                "drfp_4": 0,
+                "drfp_5": 0,
+                "drfp_6": 0,
+                "drfp_7": 0,
+                "drfp_8": 0,
+                "drfp_9": 0,
+                "drfp_10": 1,
+                "drfp_11": 0,
+                "drfp_12": 0,
+                "drfp_13": 0,
+                "drfp_14": 1,
+                "drfp_15": 0,
+                "drfp_16": 0,
+                "drfp_17": 0,
+                "drfp_18": 0,
+                "drfp_19": 0,
+                "drfp_20": 0,
+                "drfp_21": 0,
+                "drfp_22": 0,
+                "drfp_23": 0,
+                "drfp_24": 0,
+                "drfp_25": 0,
+                "drfp_26": 0,
+                "drfp_27": 0,
+                "drfp_28": 0,
+                "drfp_29": 0,
+                "drfp_30": 0,
+                "drfp_31": 0,
+                "drfp_32": 0,
+                "drfp_33": 0,
+                "drfp_34": 0,
+                "drfp_35": 0,
+                "drfp_36": 0,
+                "drfp_37": 0,
+                "drfp_38": 0,
+                "drfp_39": 0,
+                "drfp_40": 0,
+                "drfp_41": 0,
+                "drfp_42": 0,
+                "drfp_43": 0,
+                "drfp_44": 0,
+                "drfp_45": 0,
+                "drfp_46": 0,
+                "drfp_47": 0,
+                "drfp_48": 0,
+                "drfp_49": 0,
+                "drfp_50": 0,
+                "drfp_51": 0,
+                "drfp_52": 0,
+                "drfp_53": 0,
+                "drfp_54": 0,
+                "drfp_55": 0,
+                "drfp_56": 0,
+                "drfp_57": 0,
+                "drfp_58": 0,
+                "drfp_59": 0,
+                "drfp_60": 0,
+                "drfp_61": 0,
+                "drfp_62": 1,
+                "drfp_63": 0,
+                "drfp_64": 0,
+                "drfp_65": 0,
+                "drfp_66": 0,
+                "drfp_67": 0,
+                "drfp_68": 0,
+                "drfp_69": 0,
+                "drfp_70": 0,
+                "drfp_71": 0,
+                "drfp_72": 0,
+                "drfp_73": 0,
+                "drfp_74": 0,
+                "drfp_75": 0,
+                "drfp_76": 0,
+                "drfp_77": 0,
+                "drfp_78": 0,
+                "drfp_79": 1,
+                "drfp_80": 0,
+                "drfp_81": 0,
+                "drfp_82": 0,
+                "drfp_83": 0,
+                "drfp_84": 0,
+                "drfp_85": 0,
+                "drfp_86": 0,
+                "drfp_87": 0,
+                "drfp_88": 0,
+                "drfp_89": 0,
+                "drfp_90": 1,
+                "drfp_91": 0,
+                "drfp_92": 0,
+                "drfp_93": 0,
+                "drfp_94": 0,
+                "drfp_95": 0,
+                "drfp_96": 0,
+                "drfp_97": 0,
+                "drfp_98": 0,
+                "drfp_99": 0,
+                "drfp_100": 0,
+                "drfp_101": 0,
+                "drfp_102": 0,
+                "drfp_103": 0,
+                "drfp_104": 0,
+                "drfp_105": 0,
+                "drfp_106": 0,
+                "drfp_107": 0,
+                "drfp_108": 0,
+                "drfp_109": 0,
+                "drfp_110": 0,
+                "drfp_111": 0,
+                "drfp_112": 0,
+                "drfp_113": 0,
+                "drfp_114": 0,
+                "drfp_115": 0,
+                "drfp_116": 0,
+                "drfp_117": 0,
+                "drfp_118": 0,
+                "drfp_119": 0,
+                "drfp_120": 0,
+                "drfp_121": 0,
+                "drfp_122": 0,
+                "drfp_123": 0,
+                "drfp_124": 0,
+                "drfp_125": 0,
+                "drfp_126": 0,
+                "drfp_127": 0,
+                "drfp_128": 0,
+                "drfp_129": 0,
+                "drfp_130": 0,
+                "drfp_131": 0,
+                "drfp_132": 0,
+                "drfp_133": 0,
+                "drfp_134": 0,
+                "drfp_135": 0,
+                "drfp_136": 0,
+                "drfp_137": 0,
+                "drfp_138": 0,
+                "drfp_139": 0,
+                "drfp_140": 0,
+                "drfp_141": 0,
+                "drfp_142": 0,
+                "drfp_143": 0,
+                "drfp_144": 0,
+                "drfp_145": 0,
+                "drfp_146": 0,
+                "drfp_147": 0,
+                "drfp_148": 0,
+                "drfp_149": 0,
+                "drfp_150": 0,
+                "drfp_151": 0,
+                "drfp_152": 0,
+                "drfp_153": 0,
+                "drfp_154": 0,
+                "drfp_155": 0,
+                "drfp_156": 0,
+                "drfp_157": 0,
+                "drfp_158": 0,
+                "drfp_159": 1,
+                "drfp_160": 0,
+                "drfp_161": 0,
+                "drfp_162": 0,
+                "drfp_163": 0,
+                "drfp_164": 0,
+                "drfp_165": 0,
+                "drfp_166": 0,
+                "drfp_167": 1,
+                "drfp_168": 0,
+                "drfp_169": 0,
+                "drfp_170": 0,
+                "drfp_171": 0,
+                "drfp_172": 0,
+                "drfp_173": 0,
+                "drfp_174": 0,
+                "drfp_175": 0,
+                "drfp_176": 0,
+                "drfp_177": 0,
+                "drfp_178": 0,
+                "drfp_179": 1,
+                "drfp_180": 0,
+                "drfp_181": 0,
+                "drfp_182": 0,
+                "drfp_183": 0,
+                "drfp_184": 0,
+                "drfp_185": 0,
+                "drfp_186": 0,
+                "drfp_187": 0,
+                "drfp_188": 0,
+                "drfp_189": 0,
+                "drfp_190": 0,
+                "drfp_191": 0,
+                "drfp_192": 0,
+                "drfp_193": 0,
+                "drfp_194": 0,
+                "drfp_195": 0,
+                "drfp_196": 0,
+                "drfp_197": 0,
+                "drfp_198": 0,
+                "drfp_199": 0,
+                "drfp_200": 0,
+                "drfp_201": 0,
+                "drfp_202": 0,
+                "drfp_203": 0,
+                "drfp_204": 0,
+                "drfp_205": 0,
+                "drfp_206": 0,
+                "drfp_207": 0,
+                "drfp_208": 0,
+                "drfp_209": 0,
+                "drfp_210": 0,
+                "drfp_211": 0,
+                "drfp_212": 0,
+                "drfp_213": 0,
+                "drfp_214": 0,
+                "drfp_215": 0,
+                "drfp_216": 0,
+                "drfp_217": 0,
+                "drfp_218": 0,
+                "drfp_219": 0,
+                "drfp_220": 0,
+                "drfp_221": 0,
+                "drfp_222": 0,
+                "drfp_223": 0,
+                "drfp_224": 0,
+                "drfp_225": 0,
+                "drfp_226": 0,
+                "drfp_227": 0,
+                "drfp_228": 0,
+                "drfp_229": 0,
+                "drfp_230": 0,
+                "drfp_231": 0,
+                "drfp_232": 0,
+                "drfp_233": 0,
+                "drfp_234": 0,
+                "drfp_235": 0,
+                "drfp_236": 0,
+                "drfp_237": 0,
+                "drfp_238": 0,
+                "drfp_239": 0,
+                "drfp_240": 0,
+                "drfp_241": 0,
+                "drfp_242": 0,
+                "drfp_243": 0,
+                "drfp_244": 0,
+                "drfp_245": 0,
+                "drfp_246": 0,
+                "drfp_247": 0,
+                "drfp_248": 1,
+                "drfp_249": 0,
+                "drfp_250": 0,
+                "drfp_251": 0,
+                "drfp_252": 0,
+                "drfp_253": 0,
+                "drfp_254": 0,
+                "drfp_255": 1
+              },
+              "applicability_domain": "取决于后续训练数据；DRFP 只提供反应指纹，不单独构成产率模型。",
+              "unavailable": [],
+              "note": "已通过 WSL chem 环境生成 DRFP 特征；需要配套训练模型才能输出 ML 产率。"
+            },
+            "trained_model": {
+              "available": false,
+              "method": "chemprop_or_rxn_yields_placeholder",
+              "reason": "当前未配置训练好的产率模型权重；不会输出伪 ML 产率。",
+              "predicted_yield": null
+            },
+            "confidence": "低",
+            "applicability_domain": "规则启发式；仅适合演示和相对排序。",
+            "note": "产率采用分层输出：启发式估计可用，DRFP/RXNFP/Chemprop 仅在安装和配置后作为特征或训练模型层使用。"
+          }
+        },
+        "reaction:rxn-route-1781939635373-aizynth-route-1-s1-0:reaction-features": {
+          "task_id": "reaction-features",
+          "task_label": "计算反应特征",
+          "object_id": "rxn-route-1781939635373-aizynth-route-1-s1-0",
+          "object_kind": "reaction",
+          "object_label": "AiZynth step",
+          "status": "succeeded",
+          "updated_at": "2026-06-20T10:59:52.884Z",
+          "payload": {
+            "reaction_smiles": "CC(=O)O.CCC(=O)OC(C)=O>>CC(=O)OC(C)=O",
+            "method": "drfp",
+            "status": "available",
+            "features": {
+              "drfp_0": 0,
+              "drfp_1": 0,
+              "drfp_2": 0,
+              "drfp_3": 0,
+              "drfp_4": 0,
+              "drfp_5": 0,
+              "drfp_6": 0,
+              "drfp_7": 0,
+              "drfp_8": 0,
+              "drfp_9": 0,
+              "drfp_10": 1,
+              "drfp_11": 0,
+              "drfp_12": 0,
+              "drfp_13": 0,
+              "drfp_14": 1,
+              "drfp_15": 0,
+              "drfp_16": 0,
+              "drfp_17": 0,
+              "drfp_18": 0,
+              "drfp_19": 0,
+              "drfp_20": 0,
+              "drfp_21": 0,
+              "drfp_22": 0,
+              "drfp_23": 0,
+              "drfp_24": 0,
+              "drfp_25": 0,
+              "drfp_26": 0,
+              "drfp_27": 0,
+              "drfp_28": 0,
+              "drfp_29": 0,
+              "drfp_30": 0,
+              "drfp_31": 0,
+              "drfp_32": 0,
+              "drfp_33": 0,
+              "drfp_34": 0,
+              "drfp_35": 0,
+              "drfp_36": 0,
+              "drfp_37": 0,
+              "drfp_38": 0,
+              "drfp_39": 0,
+              "drfp_40": 0,
+              "drfp_41": 0,
+              "drfp_42": 0,
+              "drfp_43": 0,
+              "drfp_44": 0,
+              "drfp_45": 0,
+              "drfp_46": 0,
+              "drfp_47": 0,
+              "drfp_48": 0,
+              "drfp_49": 0,
+              "drfp_50": 0,
+              "drfp_51": 0,
+              "drfp_52": 0,
+              "drfp_53": 0,
+              "drfp_54": 0,
+              "drfp_55": 0,
+              "drfp_56": 0,
+              "drfp_57": 0,
+              "drfp_58": 0,
+              "drfp_59": 0,
+              "drfp_60": 0,
+              "drfp_61": 0,
+              "drfp_62": 1,
+              "drfp_63": 0,
+              "drfp_64": 0,
+              "drfp_65": 0,
+              "drfp_66": 0,
+              "drfp_67": 0,
+              "drfp_68": 0,
+              "drfp_69": 0,
+              "drfp_70": 0,
+              "drfp_71": 0,
+              "drfp_72": 0,
+              "drfp_73": 0,
+              "drfp_74": 0,
+              "drfp_75": 0,
+              "drfp_76": 0,
+              "drfp_77": 0,
+              "drfp_78": 0,
+              "drfp_79": 1,
+              "drfp_80": 0,
+              "drfp_81": 0,
+              "drfp_82": 0,
+              "drfp_83": 0,
+              "drfp_84": 0,
+              "drfp_85": 0,
+              "drfp_86": 0,
+              "drfp_87": 0,
+              "drfp_88": 0,
+              "drfp_89": 0,
+              "drfp_90": 1,
+              "drfp_91": 0,
+              "drfp_92": 0,
+              "drfp_93": 0,
+              "drfp_94": 0,
+              "drfp_95": 0,
+              "drfp_96": 0,
+              "drfp_97": 0,
+              "drfp_98": 0,
+              "drfp_99": 0,
+              "drfp_100": 0,
+              "drfp_101": 0,
+              "drfp_102": 0,
+              "drfp_103": 0,
+              "drfp_104": 0,
+              "drfp_105": 0,
+              "drfp_106": 0,
+              "drfp_107": 0,
+              "drfp_108": 0,
+              "drfp_109": 0,
+              "drfp_110": 0,
+              "drfp_111": 0,
+              "drfp_112": 0,
+              "drfp_113": 0,
+              "drfp_114": 0,
+              "drfp_115": 0,
+              "drfp_116": 0,
+              "drfp_117": 0,
+              "drfp_118": 0,
+              "drfp_119": 0,
+              "drfp_120": 0,
+              "drfp_121": 0,
+              "drfp_122": 0,
+              "drfp_123": 0,
+              "drfp_124": 0,
+              "drfp_125": 0,
+              "drfp_126": 0,
+              "drfp_127": 0,
+              "drfp_128": 0,
+              "drfp_129": 0,
+              "drfp_130": 0,
+              "drfp_131": 0,
+              "drfp_132": 0,
+              "drfp_133": 0,
+              "drfp_134": 0,
+              "drfp_135": 0,
+              "drfp_136": 0,
+              "drfp_137": 0,
+              "drfp_138": 0,
+              "drfp_139": 0,
+              "drfp_140": 0,
+              "drfp_141": 0,
+              "drfp_142": 0,
+              "drfp_143": 0,
+              "drfp_144": 0,
+              "drfp_145": 0,
+              "drfp_146": 0,
+              "drfp_147": 0,
+              "drfp_148": 0,
+              "drfp_149": 0,
+              "drfp_150": 0,
+              "drfp_151": 0,
+              "drfp_152": 0,
+              "drfp_153": 0,
+              "drfp_154": 0,
+              "drfp_155": 0,
+              "drfp_156": 0,
+              "drfp_157": 0,
+              "drfp_158": 0,
+              "drfp_159": 1,
+              "drfp_160": 0,
+              "drfp_161": 0,
+              "drfp_162": 0,
+              "drfp_163": 0,
+              "drfp_164": 0,
+              "drfp_165": 0,
+              "drfp_166": 0,
+              "drfp_167": 1,
+              "drfp_168": 0,
+              "drfp_169": 0,
+              "drfp_170": 0,
+              "drfp_171": 0,
+              "drfp_172": 0,
+              "drfp_173": 0,
+              "drfp_174": 0,
+              "drfp_175": 0,
+              "drfp_176": 0,
+              "drfp_177": 0,
+              "drfp_178": 0,
+              "drfp_179": 1,
+              "drfp_180": 0,
+              "drfp_181": 0,
+              "drfp_182": 0,
+              "drfp_183": 0,
+              "drfp_184": 0,
+              "drfp_185": 0,
+              "drfp_186": 0,
+              "drfp_187": 0,
+              "drfp_188": 0,
+              "drfp_189": 0,
+              "drfp_190": 0,
+              "drfp_191": 0,
+              "drfp_192": 0,
+              "drfp_193": 0,
+              "drfp_194": 0,
+              "drfp_195": 0,
+              "drfp_196": 0,
+              "drfp_197": 0,
+              "drfp_198": 0,
+              "drfp_199": 0,
+              "drfp_200": 0,
+              "drfp_201": 0,
+              "drfp_202": 0,
+              "drfp_203": 0,
+              "drfp_204": 0,
+              "drfp_205": 0,
+              "drfp_206": 0,
+              "drfp_207": 0,
+              "drfp_208": 0,
+              "drfp_209": 0,
+              "drfp_210": 0,
+              "drfp_211": 0,
+              "drfp_212": 0,
+              "drfp_213": 0,
+              "drfp_214": 0,
+              "drfp_215": 0,
+              "drfp_216": 0,
+              "drfp_217": 0,
+              "drfp_218": 0,
+              "drfp_219": 0,
+              "drfp_220": 0,
+              "drfp_221": 0,
+              "drfp_222": 0,
+              "drfp_223": 0,
+              "drfp_224": 0,
+              "drfp_225": 0,
+              "drfp_226": 0,
+              "drfp_227": 0,
+              "drfp_228": 0,
+              "drfp_229": 0,
+              "drfp_230": 0,
+              "drfp_231": 0,
+              "drfp_232": 0,
+              "drfp_233": 0,
+              "drfp_234": 0,
+              "drfp_235": 0,
+              "drfp_236": 0,
+              "drfp_237": 0,
+              "drfp_238": 0,
+              "drfp_239": 0,
+              "drfp_240": 0,
+              "drfp_241": 0,
+              "drfp_242": 0,
+              "drfp_243": 0,
+              "drfp_244": 0,
+              "drfp_245": 0,
+              "drfp_246": 0,
+              "drfp_247": 0,
+              "drfp_248": 1,
+              "drfp_249": 0,
+              "drfp_250": 0,
+              "drfp_251": 0,
+              "drfp_252": 0,
+              "drfp_253": 0,
+              "drfp_254": 0,
+              "drfp_255": 1
+            },
+            "applicability_domain": "取决于后续训练数据；DRFP 只提供反应指纹，不单独构成产率模型。",
+            "unavailable": [],
+            "note": "已通过 WSL chem 环境生成 DRFP 特征；需要配套训练模型才能输出 ML 产率。"
+          }
+        },
+        "reaction:rxn-route-example-aspirin-phenol-acetylation:reaction-mapping": {
+          "task_id": "reaction-mapping",
+          "task_label": "映射反应原子（RXNMapper）",
+          "object_id": "rxn-route-example-aspirin-phenol-acetylation",
+          "object_kind": "reaction",
+          "object_label": "Phenol acetylation",
+          "engine": "RXNMapper",
+          "status": "succeeded",
+          "updated_at": "2026-06-20T11:01:26.772Z",
+          "payload": {
+            "reaction_smiles": "O=C(O)c1ccccc1O.CC(=O)OC(C)=O>>CC(=O)Oc1ccccc1C(=O)O",
+            "mapped_reaction_smiles": "CC(=O)O[C:2]([CH3:1])=[O:3].[OH:4][c:5]1[cH:6][cH:7][cH:8][cH:9][c:10]1[C:11](=[O:12])[OH:13]>>[CH3:1][C:2](=[O:3])[O:4][c:5]1[cH:6][cH:7][cH:8][cH:9][c:10]1[C:11](=[O:12])[OH:13]",
+            "method": "rxnmapper_wsl",
+            "status": "mapped",
+            "confidence": "中",
+            "reaction_center": [
+              "反应物与产物结构差异区域"
+            ],
+            "formed_bonds": [
+              "待原子映射确认"
+            ],
+            "broken_bonds": [
+              "待原子映射确认"
+            ],
+            "note": "已通过 rxnmapper_wsl 运行 RXNMapper (confidence=0.603)；成键/断键已成功识别。"
+          }
+        },
+        "reaction:rxn-route-example-aspirin-phenol-acetylation:reaction-yield": {
+          "task_id": "reaction-yield",
+          "task_label": "估算反应产率",
+          "object_id": "rxn-route-example-aspirin-phenol-acetylation",
+          "object_kind": "reaction",
+          "object_label": "Phenol acetylation",
+          "status": "succeeded",
+          "updated_at": "2026-06-20T11:07:34.604Z",
+          "payload": {
+            "method": "layered_heuristic_plus_optional_features",
+            "status": "features_available",
+            "heuristic": {
+              "heuristic_yield_percent": 76,
+              "predicted_yield_percent": 76,
+              "method": "heuristic_rules",
+              "confidence": "中",
+              "applicability_domain": "规则启发式；仅适合演示和相对排序。",
+              "factors": [
+                "乙酰化通常是教学演示中较稳健的官能团转化。",
+                "存在卤素或潜在离去基，需关注副反应。",
+                "多组分前体明确，适合做单步路线验证。"
+              ],
+              "note": "规则演示估计：用于相对排序和课堂展示，不是 DRFP/HTE 真实产率模型，不能替代实验测定。"
+            },
+            "ml_features": {
+              "reaction_smiles": "O=C(O)c1ccccc1O.CC(=O)OC(C)=O>>CC(=O)Oc1ccccc1C(=O)O",
+              "method": "drfp",
+              "status": "available",
+              "features": {
+                "drfp_0": 0,
+                "drfp_1": 1,
+                "drfp_2": 1,
+                "drfp_3": 0,
+                "drfp_4": 0,
+                "drfp_5": 0,
+                "drfp_6": 0,
+                "drfp_7": 0,
+                "drfp_8": 0,
+                "drfp_9": 0,
+                "drfp_10": 0,
+                "drfp_11": 0,
+                "drfp_12": 1,
+                "drfp_13": 1,
+                "drfp_14": 0,
+                "drfp_15": 0,
+                "drfp_16": 0,
+                "drfp_17": 0,
+                "drfp_18": 1,
+                "drfp_19": 0,
+                "drfp_20": 0,
+                "drfp_21": 0,
+                "drfp_22": 0,
+                "drfp_23": 0,
+                "drfp_24": 0,
+                "drfp_25": 0,
+                "drfp_26": 0,
+                "drfp_27": 0,
+                "drfp_28": 0,
+                "drfp_29": 0,
+                "drfp_30": 0,
+                "drfp_31": 0,
+                "drfp_32": 0,
+                "drfp_33": 0,
+                "drfp_34": 0,
+                "drfp_35": 0,
+                "drfp_36": 0,
+                "drfp_37": 0,
+                "drfp_38": 1,
+                "drfp_39": 0,
+                "drfp_40": 0,
+                "drfp_41": 0,
+                "drfp_42": 0,
+                "drfp_43": 0,
+                "drfp_44": 0,
+                "drfp_45": 0,
+                "drfp_46": 0,
+                "drfp_47": 0,
+                "drfp_48": 0,
+                "drfp_49": 0,
+                "drfp_50": 0,
+                "drfp_51": 0,
+                "drfp_52": 0,
+                "drfp_53": 0,
+                "drfp_54": 0,
+                "drfp_55": 0,
+                "drfp_56": 0,
+                "drfp_57": 1,
+                "drfp_58": 0,
+                "drfp_59": 0,
+                "drfp_60": 0,
+                "drfp_61": 0,
+                "drfp_62": 0,
+                "drfp_63": 0,
+                "drfp_64": 0,
+                "drfp_65": 0,
+                "drfp_66": 0,
+                "drfp_67": 0,
+                "drfp_68": 0,
+                "drfp_69": 0,
+                "drfp_70": 0,
+                "drfp_71": 0,
+                "drfp_72": 0,
+                "drfp_73": 0,
+                "drfp_74": 0,
+                "drfp_75": 0,
+                "drfp_76": 0,
+                "drfp_77": 0,
+                "drfp_78": 0,
+                "drfp_79": 0,
+                "drfp_80": 0,
+                "drfp_81": 0,
+                "drfp_82": 0,
+                "drfp_83": 0,
+                "drfp_84": 0,
+                "drfp_85": 0,
+                "drfp_86": 1,
+                "drfp_87": 0,
+                "drfp_88": 0,
+                "drfp_89": 0,
+                "drfp_90": 0,
+                "drfp_91": 0,
+                "drfp_92": 0,
+                "drfp_93": 0,
+                "drfp_94": 0,
+                "drfp_95": 0,
+                "drfp_96": 0,
+                "drfp_97": 0,
+                "drfp_98": 0,
+                "drfp_99": 0,
+                "drfp_100": 1,
+                "drfp_101": 0,
+                "drfp_102": 1,
+                "drfp_103": 0,
+                "drfp_104": 0,
+                "drfp_105": 0,
+                "drfp_106": 0,
+                "drfp_107": 0,
+                "drfp_108": 1,
+                "drfp_109": 0,
+                "drfp_110": 1,
+                "drfp_111": 0,
+                "drfp_112": 0,
+                "drfp_113": 0,
+                "drfp_114": 0,
+                "drfp_115": 0,
+                "drfp_116": 0,
+                "drfp_117": 0,
+                "drfp_118": 1,
+                "drfp_119": 0,
+                "drfp_120": 0,
+                "drfp_121": 0,
+                "drfp_122": 0,
+                "drfp_123": 0,
+                "drfp_124": 0,
+                "drfp_125": 0,
+                "drfp_126": 0,
+                "drfp_127": 0,
+                "drfp_128": 0,
+                "drfp_129": 0,
+                "drfp_130": 0,
+                "drfp_131": 0,
+                "drfp_132": 0,
+                "drfp_133": 0,
+                "drfp_134": 0,
+                "drfp_135": 0,
+                "drfp_136": 0,
+                "drfp_137": 0,
+                "drfp_138": 0,
+                "drfp_139": 0,
+                "drfp_140": 0,
+                "drfp_141": 0,
+                "drfp_142": 0,
+                "drfp_143": 1,
+                "drfp_144": 1,
+                "drfp_145": 0,
+                "drfp_146": 0,
+                "drfp_147": 0,
+                "drfp_148": 0,
+                "drfp_149": 0,
+                "drfp_150": 0,
+                "drfp_151": 0,
+                "drfp_152": 0,
+                "drfp_153": 0,
+                "drfp_154": 0,
+                "drfp_155": 0,
+                "drfp_156": 0,
+                "drfp_157": 0,
+                "drfp_158": 0,
+                "drfp_159": 0,
+                "drfp_160": 0,
+                "drfp_161": 1,
+                "drfp_162": 0,
+                "drfp_163": 1,
+                "drfp_164": 0,
+                "drfp_165": 0,
+                "drfp_166": 1,
+                "drfp_167": 0,
+                "drfp_168": 0,
+                "drfp_169": 0,
+                "drfp_170": 0,
+                "drfp_171": 0,
+                "drfp_172": 0,
+                "drfp_173": 0,
+                "drfp_174": 0,
+                "drfp_175": 0,
+                "drfp_176": 0,
+                "drfp_177": 0,
+                "drfp_178": 0,
+                "drfp_179": 0,
+                "drfp_180": 0,
+                "drfp_181": 0,
+                "drfp_182": 0,
+                "drfp_183": 0,
+                "drfp_184": 0,
+                "drfp_185": 0,
+                "drfp_186": 0,
+                "drfp_187": 0,
+                "drfp_188": 0,
+                "drfp_189": 0,
+                "drfp_190": 0,
+                "drfp_191": 0,
+                "drfp_192": 0,
+                "drfp_193": 0,
+                "drfp_194": 0,
+                "drfp_195": 0,
+                "drfp_196": 0,
+                "drfp_197": 0,
+                "drfp_198": 0,
+                "drfp_199": 0,
+                "drfp_200": 0,
+                "drfp_201": 0,
+                "drfp_202": 0,
+                "drfp_203": 0,
+                "drfp_204": 0,
+                "drfp_205": 0,
+                "drfp_206": 0,
+                "drfp_207": 0,
+                "drfp_208": 0,
+                "drfp_209": 0,
+                "drfp_210": 0,
+                "drfp_211": 0,
+                "drfp_212": 0,
+                "drfp_213": 0,
+                "drfp_214": 0,
+                "drfp_215": 0,
+                "drfp_216": 1,
+                "drfp_217": 0,
+                "drfp_218": 0,
+                "drfp_219": 0,
+                "drfp_220": 0,
+                "drfp_221": 0,
+                "drfp_222": 0,
+                "drfp_223": 0,
+                "drfp_224": 0,
+                "drfp_225": 0,
+                "drfp_226": 0,
+                "drfp_227": 0,
+                "drfp_228": 0,
+                "drfp_229": 0,
+                "drfp_230": 0,
+                "drfp_231": 0,
+                "drfp_232": 0,
+                "drfp_233": 0,
+                "drfp_234": 0,
+                "drfp_235": 0,
+                "drfp_236": 0,
+                "drfp_237": 0,
+                "drfp_238": 1,
+                "drfp_239": 0,
+                "drfp_240": 0,
+                "drfp_241": 0,
+                "drfp_242": 0,
+                "drfp_243": 1,
+                "drfp_244": 0,
+                "drfp_245": 1,
+                "drfp_246": 0,
+                "drfp_247": 0,
+                "drfp_248": 0,
+                "drfp_249": 0,
+                "drfp_250": 0,
+                "drfp_251": 1,
+                "drfp_252": 0,
+                "drfp_253": 0,
+                "drfp_254": 0,
+                "drfp_255": 0
+              },
+              "applicability_domain": "取决于后续训练数据；DRFP 只提供反应指纹，不单独构成产率模型。",
+              "unavailable": [],
+              "note": "已通过 WSL chem 环境生成 DRFP 特征；需要配套训练模型才能输出 ML 产率。"
+            },
+            "trained_model": {
+              "available": false,
+              "method": "chemprop_or_rxn_yields_placeholder",
+              "reason": "当前未配置训练好的产率模型权重；不会输出伪 ML 产率。",
+              "predicted_yield": null
+            },
+            "confidence": "中",
+            "applicability_domain": "规则启发式；仅适合演示和相对排序。",
+            "note": "产率采用分层输出：启发式估计可用，DRFP/RXNFP/Chemprop 仅在安装和配置后作为特征或训练模型层使用。",
+            "llm_estimate": {
+              "available": true,
+              "method": "deepseek_chat_completion:deepseek-v4-flash",
+              "predicted_yield_percent": 82,
+              "confidence": "高",
+              "factors": [
+                "典型的苯酚乙酰化反应，转化率高",
+                "水杨酸具有酚羟基和羧基，反应选择性好",
+                "乙酸酐是常用乙酰化试剂",
+                "该反应在温和条件下即可进行"
+              ],
+              "risks": [
+                "产物和水杨酸结构相似，分离需注意",
+                "可能发生羧基的酯化副反应（需控制条件）",
+                "后处理可能因产物溶于水而损失"
+              ],
+              "recommendations": [
+                "使用乙酸酐和催化量硫酸或吡啶",
+                "反应后加水淬灭，用有机溶剂萃取",
+                "可通过重结晶或蒸馏纯化"
+              ],
+              "applicability_domain": "规则启发式；仅适合演示和相对排序。该估算基于已知化学知识，适用于酚羟基的乙酰化反应，不适用于其他类型反应。",
+              "note": "LLM 临时代估：用于补充说明和初筛，不计入 trained_model 层。"
+            }
+          }
+        },
+        "reaction:rxn-route-example-aspirin-phenol-acetylation:reaction-validation": {
+          "task_id": "reaction-validation",
+          "task_label": "校验反应可行性",
+          "object_id": "rxn-route-example-aspirin-phenol-acetylation",
+          "object_kind": "reaction",
+          "object_label": "Phenol acetylation",
+          "status": "succeeded",
+          "updated_at": "2026-06-20T11:09:27.540Z",
+          "payload": {
+            "reaction_smiles": "O=C(O)c1ccccc1O.CC(=O)OC(C)=O>>CC(=O)Oc1ccccc1C(=O)O",
+            "valid": true,
+            "status": "valid",
+            "errors": [],
+            "warnings": [
+              "Element counts are not balanced; check missing reagents, salts, or byproducts."
+            ],
+            "element_balance": {
+              "available": true,
+              "reactants": {
+                "O": 6,
+                "C": 11
+              },
+              "products": {
+                "C": 9,
+                "O": 4
+              },
+              "delta": {
+                "C": -2,
+                "O": -2
+              },
+              "balanced": false
+            },
+            "explanation": {
+              "reaction_smiles": "O=C(O)c1ccccc1O.CC(=O)OC(C)=O>>CC(=O)Oc1ccccc1C(=O)O",
+              "reaction_type": "酰化/乙酰化",
+              "formed_bonds": [
+                "C-O"
+              ],
+              "broken_bonds": [
+                "酸酐 C-O"
+              ],
+              "reaction_center": [
+                "酰基碳",
+                "酚羟基氧"
+              ],
+              "summary": "酚羟基氧作为亲核中心进攻酸酐酰基碳，形成酯键；该步骤可视为亲核取代型乙酰化。"
+            },
+            "feasibility": {
+              "method": "layered_heuristic_plus_optional_features",
+              "status": "features_available",
+              "heuristic": {
+                "heuristic_yield_percent": 76,
+                "predicted_yield_percent": 76,
+                "method": "heuristic_rules",
+                "confidence": "中",
+                "applicability_domain": "规则启发式；仅适合演示和相对排序。",
+                "factors": [
+                  "乙酰化通常是教学演示中较稳健的官能团转化。",
+                  "存在卤素或潜在离去基，需关注副反应。",
+                  "多组分前体明确，适合做单步路线验证。"
+                ],
+                "note": "规则演示估计：用于相对排序和课堂展示，不是 DRFP/HTE 真实产率模型，不能替代实验测定。"
+              },
+              "ml_features": {
+                "reaction_smiles": "O=C(O)c1ccccc1O.CC(=O)OC(C)=O>>CC(=O)Oc1ccccc1C(=O)O",
+                "method": "drfp",
+                "status": "available",
+                "features": {
+                  "drfp_0": 0,
+                  "drfp_1": 1,
+                  "drfp_2": 1,
+                  "drfp_3": 0,
+                  "drfp_4": 0,
+                  "drfp_5": 0,
+                  "drfp_6": 0,
+                  "drfp_7": 0,
+                  "drfp_8": 0,
+                  "drfp_9": 0,
+                  "drfp_10": 0,
+                  "drfp_11": 0,
+                  "drfp_12": 1,
+                  "drfp_13": 1,
+                  "drfp_14": 0,
+                  "drfp_15": 0,
+                  "drfp_16": 0,
+                  "drfp_17": 0,
+                  "drfp_18": 1,
+                  "drfp_19": 0,
+                  "drfp_20": 0,
+                  "drfp_21": 0,
+                  "drfp_22": 0,
+                  "drfp_23": 0,
+                  "drfp_24": 0,
+                  "drfp_25": 0,
+                  "drfp_26": 0,
+                  "drfp_27": 0,
+                  "drfp_28": 0,
+                  "drfp_29": 0,
+                  "drfp_30": 0,
+                  "drfp_31": 0,
+                  "drfp_32": 0,
+                  "drfp_33": 0,
+                  "drfp_34": 0,
+                  "drfp_35": 0,
+                  "drfp_36": 0,
+                  "drfp_37": 0,
+                  "drfp_38": 1,
+                  "drfp_39": 0,
+                  "drfp_40": 0,
+                  "drfp_41": 0,
+                  "drfp_42": 0,
+                  "drfp_43": 0,
+                  "drfp_44": 0,
+                  "drfp_45": 0,
+                  "drfp_46": 0,
+                  "drfp_47": 0,
+                  "drfp_48": 0,
+                  "drfp_49": 0,
+                  "drfp_50": 0,
+                  "drfp_51": 0,
+                  "drfp_52": 0,
+                  "drfp_53": 0,
+                  "drfp_54": 0,
+                  "drfp_55": 0,
+                  "drfp_56": 0,
+                  "drfp_57": 1,
+                  "drfp_58": 0,
+                  "drfp_59": 0,
+                  "drfp_60": 0,
+                  "drfp_61": 0,
+                  "drfp_62": 0,
+                  "drfp_63": 0,
+                  "drfp_64": 0,
+                  "drfp_65": 0,
+                  "drfp_66": 0,
+                  "drfp_67": 0,
+                  "drfp_68": 0,
+                  "drfp_69": 0,
+                  "drfp_70": 0,
+                  "drfp_71": 0,
+                  "drfp_72": 0,
+                  "drfp_73": 0,
+                  "drfp_74": 0,
+                  "drfp_75": 0,
+                  "drfp_76": 0,
+                  "drfp_77": 0,
+                  "drfp_78": 0,
+                  "drfp_79": 0,
+                  "drfp_80": 0,
+                  "drfp_81": 0,
+                  "drfp_82": 0,
+                  "drfp_83": 0,
+                  "drfp_84": 0,
+                  "drfp_85": 0,
+                  "drfp_86": 1,
+                  "drfp_87": 0,
+                  "drfp_88": 0,
+                  "drfp_89": 0,
+                  "drfp_90": 0,
+                  "drfp_91": 0,
+                  "drfp_92": 0,
+                  "drfp_93": 0,
+                  "drfp_94": 0,
+                  "drfp_95": 0,
+                  "drfp_96": 0,
+                  "drfp_97": 0,
+                  "drfp_98": 0,
+                  "drfp_99": 0,
+                  "drfp_100": 1,
+                  "drfp_101": 0,
+                  "drfp_102": 1,
+                  "drfp_103": 0,
+                  "drfp_104": 0,
+                  "drfp_105": 0,
+                  "drfp_106": 0,
+                  "drfp_107": 0,
+                  "drfp_108": 1,
+                  "drfp_109": 0,
+                  "drfp_110": 1,
+                  "drfp_111": 0,
+                  "drfp_112": 0,
+                  "drfp_113": 0,
+                  "drfp_114": 0,
+                  "drfp_115": 0,
+                  "drfp_116": 0,
+                  "drfp_117": 0,
+                  "drfp_118": 1,
+                  "drfp_119": 0,
+                  "drfp_120": 0,
+                  "drfp_121": 0,
+                  "drfp_122": 0,
+                  "drfp_123": 0,
+                  "drfp_124": 0,
+                  "drfp_125": 0,
+                  "drfp_126": 0,
+                  "drfp_127": 0,
+                  "drfp_128": 0,
+                  "drfp_129": 0,
+                  "drfp_130": 0,
+                  "drfp_131": 0,
+                  "drfp_132": 0,
+                  "drfp_133": 0,
+                  "drfp_134": 0,
+                  "drfp_135": 0,
+                  "drfp_136": 0,
+                  "drfp_137": 0,
+                  "drfp_138": 0,
+                  "drfp_139": 0,
+                  "drfp_140": 0,
+                  "drfp_141": 0,
+                  "drfp_142": 0,
+                  "drfp_143": 1,
+                  "drfp_144": 1,
+                  "drfp_145": 0,
+                  "drfp_146": 0,
+                  "drfp_147": 0,
+                  "drfp_148": 0,
+                  "drfp_149": 0,
+                  "drfp_150": 0,
+                  "drfp_151": 0,
+                  "drfp_152": 0,
+                  "drfp_153": 0,
+                  "drfp_154": 0,
+                  "drfp_155": 0,
+                  "drfp_156": 0,
+                  "drfp_157": 0,
+                  "drfp_158": 0,
+                  "drfp_159": 0,
+                  "drfp_160": 0,
+                  "drfp_161": 1,
+                  "drfp_162": 0,
+                  "drfp_163": 1,
+                  "drfp_164": 0,
+                  "drfp_165": 0,
+                  "drfp_166": 1,
+                  "drfp_167": 0,
+                  "drfp_168": 0,
+                  "drfp_169": 0,
+                  "drfp_170": 0,
+                  "drfp_171": 0,
+                  "drfp_172": 0,
+                  "drfp_173": 0,
+                  "drfp_174": 0,
+                  "drfp_175": 0,
+                  "drfp_176": 0,
+                  "drfp_177": 0,
+                  "drfp_178": 0,
+                  "drfp_179": 0,
+                  "drfp_180": 0,
+                  "drfp_181": 0,
+                  "drfp_182": 0,
+                  "drfp_183": 0,
+                  "drfp_184": 0,
+                  "drfp_185": 0,
+                  "drfp_186": 0,
+                  "drfp_187": 0,
+                  "drfp_188": 0,
+                  "drfp_189": 0,
+                  "drfp_190": 0,
+                  "drfp_191": 0,
+                  "drfp_192": 0,
+                  "drfp_193": 0,
+                  "drfp_194": 0,
+                  "drfp_195": 0,
+                  "drfp_196": 0,
+                  "drfp_197": 0,
+                  "drfp_198": 0,
+                  "drfp_199": 0,
+                  "drfp_200": 0,
+                  "drfp_201": 0,
+                  "drfp_202": 0,
+                  "drfp_203": 0,
+                  "drfp_204": 0,
+                  "drfp_205": 0,
+                  "drfp_206": 0,
+                  "drfp_207": 0,
+                  "drfp_208": 0,
+                  "drfp_209": 0,
+                  "drfp_210": 0,
+                  "drfp_211": 0,
+                  "drfp_212": 0,
+                  "drfp_213": 0,
+                  "drfp_214": 0,
+                  "drfp_215": 0,
+                  "drfp_216": 1,
+                  "drfp_217": 0,
+                  "drfp_218": 0,
+                  "drfp_219": 0,
+                  "drfp_220": 0,
+                  "drfp_221": 0,
+                  "drfp_222": 0,
+                  "drfp_223": 0,
+                  "drfp_224": 0,
+                  "drfp_225": 0,
+                  "drfp_226": 0,
+                  "drfp_227": 0,
+                  "drfp_228": 0,
+                  "drfp_229": 0,
+                  "drfp_230": 0,
+                  "drfp_231": 0,
+                  "drfp_232": 0,
+                  "drfp_233": 0,
+                  "drfp_234": 0,
+                  "drfp_235": 0,
+                  "drfp_236": 0,
+                  "drfp_237": 0,
+                  "drfp_238": 1,
+                  "drfp_239": 0,
+                  "drfp_240": 0,
+                  "drfp_241": 0,
+                  "drfp_242": 0,
+                  "drfp_243": 1,
+                  "drfp_244": 0,
+                  "drfp_245": 1,
+                  "drfp_246": 0,
+                  "drfp_247": 0,
+                  "drfp_248": 0,
+                  "drfp_249": 0,
+                  "drfp_250": 0,
+                  "drfp_251": 1,
+                  "drfp_252": 0,
+                  "drfp_253": 0,
+                  "drfp_254": 0,
+                  "drfp_255": 0
+                },
+                "applicability_domain": "取决于后续训练数据；DRFP 只提供反应指纹，不单独构成产率模型。",
+                "unavailable": [],
+                "note": "已通过 WSL chem 环境生成 DRFP 特征；需要配套训练模型才能输出 ML 产率。"
+              },
+              "trained_model": {
+                "available": false,
+                "method": "chemprop_or_rxn_yields_placeholder",
+                "reason": "当前未配置训练好的产率模型权重；不会输出伪 ML 产率。",
+                "predicted_yield": null
+              },
+              "confidence": "中",
+              "applicability_domain": "规则启发式；仅适合演示和相对排序。",
+              "note": "产率采用分层输出：启发式估计可用，DRFP/RXNFP/Chemprop 仅在安装和配置后作为特征或训练模型层使用。"
+            }
+          }
         }
       }
     },
@@ -2676,7 +4538,7 @@
       "type": "chem",
       "title": "Chem cell",
       "created_at": "2026-06-20T07:14:21.582048+00:00",
-      "updated_at": "2026-06-20T09:46:46.302356+00:00",
+      "updated_at": "2026-06-20T11:15:52.371267+00:00",
       "canvas": {
         "nodes": [
           {
@@ -4422,268 +6284,455 @@
         },
         "molecule:route-1781939707005-aizynth-route-2-step-s1-reactants:component:0:retrosynthesis": {
           "task_id": "retrosynthesis",
-          "task_label": "预测逆合成路线（AiZynthFinder）",
+          "task_label": "预测逆合成路线（Chemformer · 单步候选）",
           "object_id": "route-1781939707005-aizynth-route-2-step-s1-reactants:component:0",
           "object_kind": "molecule",
           "object_label": "组分 1",
-          "engine": "aizynthfinder",
+          "engine": "chemformer",
           "status": "succeeded",
-          "updated_at": "2026-06-20T07:36:43.157Z",
+          "updated_at": "2026-06-20T10:31:43.721Z",
           "payload": {
             "available": true,
-            "status": "Loaded 3 route(s) from AiZynthFinder via WSL.",
+            "status": "Chemformer 已返回 5 个单步逆合成候选。",
             "used_fallback": false,
             "target_smiles": "c1ccccc1",
             "candidates": [
               {
-                "id": "aizynth-route-1",
-                "title": "AiZynthFinder Route 1",
-                "target_id": "m1",
-                "source": "aizynthfinder",
+                "id": "chemformer-route-1",
+                "title": "Chemformer 单步候选 #1",
+                "target_id": "chemformer-1-target",
+                "source": "chemformer",
                 "depth": 1,
                 "precursor_count": 1,
-                "stock_count": 1,
+                "stock_count": 0,
                 "molecules": [
                   {
-                    "id": "m1",
-                    "name": "Target",
+                    "id": "chemformer-1-target",
+                    "name": "目标产物",
                     "smiles": "c1ccccc1",
                     "in_stock": false
                   },
                   {
-                    "id": "m2",
-                    "name": "Mol 2",
-                    "smiles": "Clc1cccc(Cl)c1",
-                    "in_stock": true
+                    "id": "chemformer-1-precursor-1",
+                    "name": "反应物 1",
+                    "smiles": "OCc1ccccc1",
+                    "in_stock": false
                   }
                 ],
                 "steps": [
                   {
-                    "id": "s1",
-                    "product_id": "m1",
+                    "id": "chemformer-step-1",
+                    "product_id": "chemformer-1-target",
                     "precursor_ids": [
-                      "m2"
+                      "chemformer-1-precursor-1"
                     ],
-                    "reaction_smiles": "Clc1cccc(Cl)c1>>c1ccccc1",
-                    "policy_score": 0.009200000204145908,
-                    "template": "AiZynth step"
+                    "reaction_smiles": "OCc1ccccc1>>c1ccccc1",
+                    "policy_score": null,
+                    "template": "Chemformer 单步逆合成"
                   }
                 ],
                 "layout": {
                   "nodes": {
-                    "m1": {
-                      "id": "m1",
-                      "label": "Target\nc1ccccc1",
+                    "chemformer-1-target": {
+                      "id": "chemformer-1-target",
+                      "label": "目标产物\nc1ccccc1",
                       "x": 300,
                       "y": 40,
                       "in_stock": false
                     },
-                    "m2": {
-                      "id": "m2",
-                      "label": "Mol 2\nClc1cccc(Cl)c1",
+                    "chemformer-1-precursor-1": {
+                      "id": "chemformer-1-precursor-1",
+                      "label": "反应物 1\nOCc1ccccc1",
                       "x": 40,
                       "y": 40,
-                      "in_stock": true
+                      "in_stock": false
                     }
                   },
                   "edges": [
                     {
-                      "source_id": "m2",
-                      "target_id": "m1",
-                      "label": "AiZynth step"
+                      "source_id": "chemformer-1-precursor-1",
+                      "target_id": "chemformer-1-target",
+                      "label": "Chemformer 单步逆合成"
                     }
                   ]
+                },
+                "metadata": {
+                  "rank": 1,
+                  "log_likelihood": -2.3404102325439453,
+                  "prediction_type": "single_step"
                 }
               },
               {
-                "id": "aizynth-route-2",
-                "title": "AiZynthFinder Route 2",
-                "target_id": "m1",
-                "source": "aizynthfinder",
+                "id": "chemformer-route-2",
+                "title": "Chemformer 单步候选 #2",
+                "target_id": "chemformer-2-target",
+                "source": "chemformer",
                 "depth": 1,
                 "precursor_count": 1,
-                "stock_count": 1,
+                "stock_count": 0,
                 "molecules": [
                   {
-                    "id": "m1",
-                    "name": "Target",
+                    "id": "chemformer-2-target",
+                    "name": "目标产物",
                     "smiles": "c1ccccc1",
                     "in_stock": false
                   },
                   {
-                    "id": "m2",
-                    "name": "Mol 2",
-                    "smiles": "Clc1ccccc1",
-                    "in_stock": true
+                    "id": "chemformer-2-precursor-1",
+                    "name": "反应物 1",
+                    "smiles": "Oc1ccc2c(O)cccc2c1",
+                    "in_stock": false
                   }
                 ],
                 "steps": [
                   {
-                    "id": "s1",
-                    "product_id": "m1",
+                    "id": "chemformer-step-2",
+                    "product_id": "chemformer-2-target",
                     "precursor_ids": [
-                      "m2"
+                      "chemformer-2-precursor-1"
                     ],
-                    "reaction_smiles": "Clc1ccccc1>>c1ccccc1",
-                    "policy_score": 0.0031999999191612005,
-                    "template": "AiZynth step"
+                    "reaction_smiles": "Oc1ccc2c(O)cccc2c1>>c1ccccc1",
+                    "policy_score": null,
+                    "template": "Chemformer 单步逆合成"
                   }
                 ],
                 "layout": {
                   "nodes": {
-                    "m1": {
-                      "id": "m1",
-                      "label": "Target\nc1ccccc1",
+                    "chemformer-2-target": {
+                      "id": "chemformer-2-target",
+                      "label": "目标产物\nc1ccccc1",
                       "x": 300,
                       "y": 40,
                       "in_stock": false
                     },
-                    "m2": {
-                      "id": "m2",
-                      "label": "Mol 2\nClc1ccccc1",
+                    "chemformer-2-precursor-1": {
+                      "id": "chemformer-2-precursor-1",
+                      "label": "反应物 1\nOc1ccc2c(O)cccc2c1",
                       "x": 40,
                       "y": 40,
-                      "in_stock": true
+                      "in_stock": false
                     }
                   },
                   "edges": [
                     {
-                      "source_id": "m2",
-                      "target_id": "m1",
-                      "label": "AiZynth step"
+                      "source_id": "chemformer-2-precursor-1",
+                      "target_id": "chemformer-2-target",
+                      "label": "Chemformer 单步逆合成"
                     }
                   ]
+                },
+                "metadata": {
+                  "rank": 2,
+                  "log_likelihood": -2.4091782569885254,
+                  "prediction_type": "single_step"
                 }
               },
               {
-                "id": "aizynth-route-3",
-                "title": "AiZynthFinder Route 3",
-                "target_id": "m1",
-                "source": "aizynthfinder",
+                "id": "chemformer-route-3",
+                "title": "Chemformer 单步候选 #3",
+                "target_id": "chemformer-3-target",
+                "source": "chemformer",
                 "depth": 1,
                 "precursor_count": 1,
-                "stock_count": 1,
+                "stock_count": 0,
                 "molecules": [
                   {
-                    "id": "m1",
-                    "name": "Target",
+                    "id": "chemformer-3-target",
+                    "name": "目标产物",
                     "smiles": "c1ccccc1",
                     "in_stock": false
                   },
                   {
-                    "id": "m2",
-                    "name": "Mol 2",
-                    "smiles": "O=C1C=CC(=O)C=C1",
-                    "in_stock": true
+                    "id": "chemformer-3-precursor-1",
+                    "name": "反应物 1",
+                    "smiles": "Oc1ccccc1-c1ccccc1",
+                    "in_stock": false
                   }
                 ],
                 "steps": [
                   {
-                    "id": "s1",
-                    "product_id": "m1",
+                    "id": "chemformer-step-3",
+                    "product_id": "chemformer-3-target",
                     "precursor_ids": [
-                      "m2"
+                      "chemformer-3-precursor-1"
                     ],
-                    "reaction_smiles": "O=C1C=CC(=O)C=C1>>c1ccccc1",
-                    "policy_score": 0.0010000000474974513,
-                    "template": "AiZynth step"
+                    "reaction_smiles": "Oc1ccccc1-c1ccccc1>>c1ccccc1",
+                    "policy_score": null,
+                    "template": "Chemformer 单步逆合成"
                   }
                 ],
                 "layout": {
                   "nodes": {
-                    "m1": {
-                      "id": "m1",
-                      "label": "Target\nc1ccccc1",
+                    "chemformer-3-target": {
+                      "id": "chemformer-3-target",
+                      "label": "目标产物\nc1ccccc1",
                       "x": 300,
                       "y": 40,
                       "in_stock": false
                     },
-                    "m2": {
-                      "id": "m2",
-                      "label": "Mol 2\nO=C1C=CC(=O)C=C1",
+                    "chemformer-3-precursor-1": {
+                      "id": "chemformer-3-precursor-1",
+                      "label": "反应物 1\nOc1ccccc1-c1ccccc1",
                       "x": 40,
                       "y": 40,
-                      "in_stock": true
+                      "in_stock": false
                     }
                   },
                   "edges": [
                     {
-                      "source_id": "m2",
-                      "target_id": "m1",
-                      "label": "AiZynth step"
+                      "source_id": "chemformer-3-precursor-1",
+                      "target_id": "chemformer-3-target",
+                      "label": "Chemformer 单步逆合成"
                     }
                   ]
+                },
+                "metadata": {
+                  "rank": 3,
+                  "log_likelihood": -2.4715700149536133,
+                  "prediction_type": "single_step"
+                }
+              },
+              {
+                "id": "chemformer-route-4",
+                "title": "Chemformer 单步候选 #4",
+                "target_id": "chemformer-4-target",
+                "source": "chemformer",
+                "depth": 1,
+                "precursor_count": 1,
+                "stock_count": 0,
+                "molecules": [
+                  {
+                    "id": "chemformer-4-target",
+                    "name": "目标产物",
+                    "smiles": "c1ccccc1",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "chemformer-4-precursor-1",
+                    "name": "反应物 1",
+                    "smiles": "Oc1cccc2occc12",
+                    "in_stock": false
+                  }
+                ],
+                "steps": [
+                  {
+                    "id": "chemformer-step-4",
+                    "product_id": "chemformer-4-target",
+                    "precursor_ids": [
+                      "chemformer-4-precursor-1"
+                    ],
+                    "reaction_smiles": "Oc1cccc2occc12>>c1ccccc1",
+                    "policy_score": null,
+                    "template": "Chemformer 单步逆合成"
+                  }
+                ],
+                "layout": {
+                  "nodes": {
+                    "chemformer-4-target": {
+                      "id": "chemformer-4-target",
+                      "label": "目标产物\nc1ccccc1",
+                      "x": 300,
+                      "y": 40,
+                      "in_stock": false
+                    },
+                    "chemformer-4-precursor-1": {
+                      "id": "chemformer-4-precursor-1",
+                      "label": "反应物 1\nOc1cccc2occc12",
+                      "x": 40,
+                      "y": 40,
+                      "in_stock": false
+                    }
+                  },
+                  "edges": [
+                    {
+                      "source_id": "chemformer-4-precursor-1",
+                      "target_id": "chemformer-4-target",
+                      "label": "Chemformer 单步逆合成"
+                    }
+                  ]
+                },
+                "metadata": {
+                  "rank": 4,
+                  "log_likelihood": -2.5175490379333496,
+                  "prediction_type": "single_step"
+                }
+              },
+              {
+                "id": "chemformer-route-5",
+                "title": "Chemformer 单步候选 #5",
+                "target_id": "chemformer-5-target",
+                "source": "chemformer",
+                "depth": 1,
+                "precursor_count": 1,
+                "stock_count": 0,
+                "molecules": [
+                  {
+                    "id": "chemformer-5-target",
+                    "name": "目标产物",
+                    "smiles": "c1ccccc1",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "chemformer-5-precursor-1",
+                    "name": "反应物 1",
+                    "smiles": "Oc1ccccc1",
+                    "in_stock": false
+                  }
+                ],
+                "steps": [
+                  {
+                    "id": "chemformer-step-5",
+                    "product_id": "chemformer-5-target",
+                    "precursor_ids": [
+                      "chemformer-5-precursor-1"
+                    ],
+                    "reaction_smiles": "Oc1ccccc1>>c1ccccc1",
+                    "policy_score": null,
+                    "template": "Chemformer 单步逆合成"
+                  }
+                ],
+                "layout": {
+                  "nodes": {
+                    "chemformer-5-target": {
+                      "id": "chemformer-5-target",
+                      "label": "目标产物\nc1ccccc1",
+                      "x": 300,
+                      "y": 40,
+                      "in_stock": false
+                    },
+                    "chemformer-5-precursor-1": {
+                      "id": "chemformer-5-precursor-1",
+                      "label": "反应物 1\nOc1ccccc1",
+                      "x": 40,
+                      "y": 40,
+                      "in_stock": false
+                    }
+                  },
+                  "edges": [
+                    {
+                      "source_id": "chemformer-5-precursor-1",
+                      "target_id": "chemformer-5-target",
+                      "label": "Chemformer 单步逆合成"
+                    }
+                  ]
+                },
+                "metadata": {
+                  "rank": 5,
+                  "log_likelihood": -2.900989532470703,
+                  "prediction_type": "single_step"
                 }
               }
             ],
             "route_scores": {
-              "aizynth-route-1": {
-                "route_id": "aizynth-route-1",
-                "route_score": 0.554,
-                "model_score": 0.009,
-                "stock_score": 1,
+              "chemformer-route-1": {
+                "route_id": "chemformer-route-1",
+                "route_score": 0.448,
+                "model_score": 0.55,
+                "stock_score": 0,
                 "step_score": 1,
-                "explanation": "model=0.01, stock=1.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
+                "explanation": "model=0.55, stock=0.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
               },
-              "aizynth-route-2": {
-                "route_id": "aizynth-route-2",
-                "route_score": 0.551,
-                "model_score": 0.003,
-                "stock_score": 1,
+              "chemformer-route-2": {
+                "route_id": "chemformer-route-2",
+                "route_score": 0.448,
+                "model_score": 0.55,
+                "stock_score": 0,
                 "step_score": 1,
-                "explanation": "model=0.00, stock=1.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
+                "explanation": "model=0.55, stock=0.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
               },
-              "aizynth-route-3": {
-                "route_id": "aizynth-route-3",
-                "route_score": 0.55,
-                "model_score": 0.001,
-                "stock_score": 1,
+              "chemformer-route-3": {
+                "route_id": "chemformer-route-3",
+                "route_score": 0.448,
+                "model_score": 0.55,
+                "stock_score": 0,
                 "step_score": 1,
-                "explanation": "model=0.00, stock=1.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
+                "explanation": "model=0.55, stock=0.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
+              },
+              "chemformer-route-4": {
+                "route_id": "chemformer-route-4",
+                "route_score": 0.448,
+                "model_score": 0.55,
+                "stock_score": 0,
+                "step_score": 1,
+                "explanation": "model=0.55, stock=0.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
+              },
+              "chemformer-route-5": {
+                "route_id": "chemformer-route-5",
+                "route_score": 0.448,
+                "model_score": 0.55,
+                "stock_score": 0,
+                "step_score": 1,
+                "explanation": "model=0.55, stock=0.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
               }
             },
             "feasibility": {
-              "aizynth-route-1": {
-                "route_id": "aizynth-route-1",
-                "heuristic_overall_yield_percent": 57,
-                "heuristic_feasibility_score": 0.763,
-                "estimated_overall_yield_percent": 57,
-                "route_feasibility_score": 0.763,
+              "chemformer-route-1": {
+                "route_id": "chemformer-route-1",
+                "heuristic_overall_yield_percent": 62,
+                "heuristic_feasibility_score": 0.491,
+                "estimated_overall_yield_percent": 62,
+                "route_feasibility_score": 0.491,
                 "method": "heuristic_route_feasibility",
                 "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
                 "risk_flags": [
-                  "s1: 反应类型置信度低"
+                  "chemformer-step-1: 反应类型置信度低"
                 ],
                 "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
               },
-              "aizynth-route-2": {
-                "route_id": "aizynth-route-2",
-                "heuristic_overall_yield_percent": 57,
-                "heuristic_feasibility_score": 0.763,
-                "estimated_overall_yield_percent": 57,
-                "route_feasibility_score": 0.763,
+              "chemformer-route-2": {
+                "route_id": "chemformer-route-2",
+                "heuristic_overall_yield_percent": 62,
+                "heuristic_feasibility_score": 0.491,
+                "estimated_overall_yield_percent": 62,
+                "route_feasibility_score": 0.491,
                 "method": "heuristic_route_feasibility",
                 "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
                 "risk_flags": [
-                  "s1: 反应类型置信度低"
+                  "chemformer-step-2: 反应类型置信度低"
                 ],
                 "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
               },
-              "aizynth-route-3": {
-                "route_id": "aizynth-route-3",
-                "heuristic_overall_yield_percent": 57,
-                "heuristic_feasibility_score": 0.763,
-                "estimated_overall_yield_percent": 57,
-                "route_feasibility_score": 0.763,
+              "chemformer-route-3": {
+                "route_id": "chemformer-route-3",
+                "heuristic_overall_yield_percent": 62,
+                "heuristic_feasibility_score": 0.491,
+                "estimated_overall_yield_percent": 62,
+                "route_feasibility_score": 0.491,
                 "method": "heuristic_route_feasibility",
                 "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
                 "risk_flags": [
-                  "s1: 反应类型置信度低"
+                  "chemformer-step-3: 反应类型置信度低"
+                ],
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+              },
+              "chemformer-route-4": {
+                "route_id": "chemformer-route-4",
+                "heuristic_overall_yield_percent": 62,
+                "heuristic_feasibility_score": 0.491,
+                "estimated_overall_yield_percent": 62,
+                "route_feasibility_score": 0.491,
+                "method": "heuristic_route_feasibility",
+                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "risk_flags": [
+                  "chemformer-step-4: 反应类型置信度低"
+                ],
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+              },
+              "chemformer-route-5": {
+                "route_id": "chemformer-route-5",
+                "heuristic_overall_yield_percent": 62,
+                "heuristic_feasibility_score": 0.491,
+                "estimated_overall_yield_percent": 62,
+                "route_feasibility_score": 0.491,
+                "method": "heuristic_route_feasibility",
+                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "risk_flags": [
+                  "chemformer-step-5: 反应类型置信度低"
                 ],
                 "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
               }
             },
-            "engine": "aizynthfinder"
+            "engine": "chemformer"
           }
         },
         "molecule:route-1781939707005-aizynth-route-2-step-s1-reactants:component:0:gaussian-opt-freq": {
@@ -5032,6 +7081,460 @@
               "input_xyz": "12\nO=C1CCC(=O)N1Br\nO      1.982880    -1.509975     0.192631\nC      1.014505    -0.711053     0.096185\nC     -0.414291    -1.136718     0.015691\nC     -1.191109     0.193613    -0.088226\nC     -0.122047     1.235335    -0.055862\nO     -0.343065     2.473296    -0.118543\nN      1.176510     0.691151     0.053159\nBr     2.807576     1.649332     0.126851\nH     -0.700785    -1.694285     0.933033\nH     -0.577400    -1.764368    -0.886488\nH     -1.754698     0.251793    -1.043976\nH     -1.878077     0.321879     0.775545\n"
             },
             "reason": null
+          }
+        },
+        "molecule:route-1781939707005-aizynth-route-2-molecule-m1:crest-conformers": {
+          "task_id": "crest-conformers",
+          "task_label": "搜索低能构象（CREST）",
+          "object_id": "route-1781939707005-aizynth-route-2-molecule-m1",
+          "object_kind": "molecule",
+          "object_label": "Target",
+          "engine": "CREST",
+          "status": "failed",
+          "updated_at": "2026-06-20T10:30:59.756Z",
+          "payload": null,
+          "error": "页面刷新后无法恢复此同步任务，请重新计算。"
+        },
+        "reaction:rxn-route-1781939707005-aizynth-route-2-s1-0:transition-state-compute": {
+          "task_id": "transition-state-compute",
+          "task_label": "计算过渡态（Gaussian）",
+          "object_id": "rxn-route-1781939707005-aizynth-route-2-s1-0",
+          "object_kind": "reaction",
+          "object_label": "AiZynth step",
+          "engine": "Gaussian",
+          "status": "failed",
+          "updated_at": "2026-06-20T10:55:55.845Z",
+          "payload": {
+            "workflow_id": "ts-d8d8dcf70bc2",
+            "workspace_id": "example-workspace",
+            "cell_id": "cell-b0c67d80",
+            "reaction_id": "rxn-route-1781939707005-aizynth-route-2-s1-0",
+            "reaction_smiles": "c1ccccc1.O=C1CCC(=O)N1Br>>Brc1ccccc1",
+            "included_agents": [],
+            "status": "cancelled",
+            "stage": "cancelled",
+            "validation_level": "未验证",
+            "created_at": "2026-06-20T10:44:55.205694+00:00",
+            "updated_at": "2026-06-20T10:46:28.052890+00:00",
+            "mapping": {
+              "reaction_smiles": "c1ccccc1.O=C1CCC(=O)N1Br>>Brc1ccccc1",
+              "mapped_reaction_smiles": "O=C1CCC(=O)N1[Br:1].[cH:2]1[cH:3][cH:4][cH:5][cH:6][cH:7]1>>[Br:1][c:2]1[cH:3][cH:4][cH:5][cH:6][cH:7]1",
+              "method": "rxnmapper_wsl",
+              "status": "mapped",
+              "confidence": "中",
+              "reaction_center": [
+                "反应物与产物结构差异区域"
+              ],
+              "formed_bonds": [
+                "待原子映射确认"
+              ],
+              "broken_bonds": [
+                "待原子映射确认"
+              ],
+              "note": "已通过 rxnmapper_wsl 运行 RXNMapper (confidence=0.565)；成键/断键已成功识别。"
+            },
+            "coordinates": [
+              {
+                "map1": 1,
+                "map2": 2,
+                "atom1": 8,
+                "atom2": 9,
+                "label": "Br1–C2",
+                "element1": "Br",
+                "element2": "C",
+                "kind": "formed",
+                "reactant_order": 0,
+                "product_order": 1,
+                "start": 3.16,
+                "end": 1.96
+              }
+            ],
+            "candidates": [
+              {
+                "candidate_id": "candidate-3",
+                "label": "候选构象 3",
+                "xyz": "24\nOrgSynFlow candidate 3\nC   1.56883194  0.43329746 -0.02355744\nC   0.76889427  1.57470480 -0.07673903\nC  -0.62041183  1.45235543 -0.09670228\nC  -1.20978017  0.18859868 -0.06348533\nC  -0.40984233 -0.95280865 -0.01030475\nC   0.97946366 -0.83045913  0.00965984\nO  -1.25814003 -5.46201829 -0.31854430\nC  -1.46774164 -4.32082574  0.06693833\nC  -2.83863174 -3.71936973  0.16479373\nC  -2.60889785 -2.31141330  0.68119316\nC  -1.12174921 -2.20036139  0.84465682\nO  -0.56129440 -1.19130095  1.24781571\nN  -0.55736938 -3.38711838  0.47272515\nBr  1.28292293 -3.70288973  0.51497134\nH   2.65126136  0.52862148 -0.00800321\nH   1.22808017  2.55931671 -0.10261959\nH  -1.24365551  2.34164321 -0.13813574\nH  -2.29220965  0.09327451 -0.07903918\nH  -0.86902789 -1.93742075  0.01557453\nH   1.60270746 -1.71974680  0.05109485\nH  -3.31084010 -3.70961179 -0.82189247\nH  -3.45121867 -4.30292224  0.85821194\nH  -3.10085893 -2.15573213  1.64574584\nH  -2.96049247 -1.56241926 -0.03435793\n",
+                "fallback_method": "MMFF",
+                "minimum_interfragment_distance": 1.2895,
+                "preoptimization": "available",
+                "preoptimization_source": "xTB CLI via WSL",
+                "energy_hartree": -41.207790106828
+              },
+              {
+                "candidate_id": "candidate-2",
+                "label": "候选构象 2",
+                "xyz": "24\nOrgSynFlow candidate 2\nC   0.50950426  0.73838178 -0.04227164\nC  -0.75996750  0.16047159 -0.04302017\nC  -0.89422266 -1.22786076 -0.04996138\nC   0.24099401 -2.03828292 -0.05615417\nC   1.51046581 -1.46037275 -0.05540598\nC   1.64472092 -0.07204039 -0.04846467\nO  -0.81897772  1.14431260  0.87139123\nC  -1.28725516  2.22285630  0.53626515\nC  -2.71127582  2.62110819  0.78969072\nC  -2.83292199  4.01770807  0.20960623\nC  -1.47046075  4.32621438 -0.33737441\nO  -1.18796251  5.38057645 -0.88816024\nN  -0.65994319  3.25138141 -0.10705899\nBr  1.13427374  3.19359422 -0.62244086\nH   0.61410442  1.82005255 -0.03686331\nH  -1.64443197  0.79188385 -0.03819527\nH  -1.88328736 -1.67811934 -0.05054452\nH   0.13639376 -3.11995371 -0.06156209\nH   2.39493033 -2.09178495 -0.06023118\nH   2.63378558  0.37821827 -0.04788165\nH  -2.91177939  2.61763200  1.86505622\nH  -3.38693824  1.92158729  0.28891554\nH  -3.57245341  4.05146041 -0.59573783\nH  -3.09729516  4.74750525  0.98040325\n",
+                "fallback_method": "MMFF",
+                "minimum_interfragment_distance": 1.3445,
+                "preoptimization": "available",
+                "preoptimization_source": "xTB CLI via WSL",
+                "energy_hartree": -41.190873417989
+              },
+              {
+                "candidate_id": "candidate-1",
+                "label": "候选构象 1",
+                "xyz": "24\nOrgSynFlow candidate 1\nC   0.78541755 -0.71376290 -0.01188123\nC   0.80430039  0.68092049 -0.01828730\nC  -0.39400704  1.39468340 -0.00640613\nC  -1.61119732  0.71376290  0.01188128\nC  -1.63008018 -0.68092050  0.01828751\nC  -0.43177273 -1.39468338  0.00640619\nO   3.83375921 -2.40414465  0.02320625\nC   3.59830179 -1.20467490 -0.00290548\nC   2.23453650 -0.62409858  0.22891221\nC   2.42433082  0.87574955  0.10155046\nC   3.88414248  1.05418044 -0.19472030\nO   4.40945602  2.14529800 -0.36311789\nN   4.46970709 -0.17900107 -0.23506020\nBr  6.28780938 -0.43794277 -0.57509716\nH   1.71903702 -1.26986640 -0.02113828\nH   1.75263178  1.21143594 -0.03253527\nH  -0.37929513  2.48130235 -0.01139744\nH  -2.54481680  1.26986638  0.02113800\nH  -2.57841158 -1.21143594  0.03253548\nH  -0.44648461 -2.48130234  0.01139720\nH   1.87968339 -0.89733215  1.22693401\nH   1.53718997 -1.00268229 -0.52408644\nH   1.82663350  1.28464906 -0.71831788\nH   2.16912853  1.38999937  1.03270240\n",
+                "fallback_method": "MMFF",
+                "minimum_interfragment_distance": 1.4717,
+                "preoptimization": "available",
+                "preoptimization_source": "xTB CLI via WSL",
+                "energy_hartree": -40.216037513368
+              }
+            ],
+            "grid_points": [
+              {
+                "point_id": "scan-00",
+                "indices": [
+                  0
+                ],
+                "values": [
+                  3.16
+                ],
+                "status": "failed",
+                "refined": false,
+                "started_at": "2026-06-20T10:45:54.840168+00:00",
+                "attempts": [
+                  {
+                    "work_dir": "C:\\Users\\Meta\\Project\\Workspaces\\orgsynflow\\data\\ts-workflows\\ts-d8d8dcf70bc2\\scan\\scan-00\\attempt-1",
+                    "success": false,
+                    "message": "Gaussian 已返回，但未确认正常结束；请查看 stdout/stderr/log。"
+                  },
+                  {
+                    "work_dir": "C:\\Users\\Meta\\Project\\Workspaces\\orgsynflow\\data\\ts-workflows\\ts-d8d8dcf70bc2\\scan\\scan-00\\attempt-2",
+                    "success": false,
+                    "message": "Gaussian 已返回，但未确认正常结束；请查看 stdout/stderr/log。"
+                  },
+                  {
+                    "work_dir": "C:\\Users\\Meta\\Project\\Workspaces\\orgsynflow\\data\\ts-workflows\\ts-d8d8dcf70bc2\\scan\\scan-00\\attempt-3",
+                    "success": false,
+                    "message": "Gaussian 已返回，但未确认正常结束；请查看 stdout/stderr/log。"
+                  }
+                ],
+                "finished_at": "2026-06-20T10:46:28.045101+00:00",
+                "work_dir": "C:\\Users\\Meta\\Project\\Workspaces\\orgsynflow\\data\\ts-workflows\\ts-d8d8dcf70bc2\\scan\\scan-00",
+                "error": "Gaussian 已返回，但未确认正常结束；请查看 stdout/stderr/log。"
+              },
+              {
+                "point_id": "scan-01",
+                "indices": [
+                  1
+                ],
+                "values": [
+                  3.0100000000000002
+                ],
+                "status": "pending",
+                "refined": false
+              },
+              {
+                "point_id": "scan-02",
+                "indices": [
+                  2
+                ],
+                "values": [
+                  2.8600000000000003
+                ],
+                "status": "pending",
+                "refined": false
+              },
+              {
+                "point_id": "scan-03",
+                "indices": [
+                  3
+                ],
+                "values": [
+                  2.71
+                ],
+                "status": "pending",
+                "refined": false
+              },
+              {
+                "point_id": "scan-04",
+                "indices": [
+                  4
+                ],
+                "values": [
+                  2.56
+                ],
+                "status": "pending",
+                "refined": false
+              },
+              {
+                "point_id": "scan-05",
+                "indices": [
+                  5
+                ],
+                "values": [
+                  2.41
+                ],
+                "status": "pending",
+                "refined": false
+              },
+              {
+                "point_id": "scan-06",
+                "indices": [
+                  6
+                ],
+                "values": [
+                  2.26
+                ],
+                "status": "pending",
+                "refined": false
+              },
+              {
+                "point_id": "scan-07",
+                "indices": [
+                  7
+                ],
+                "values": [
+                  2.11
+                ],
+                "status": "pending",
+                "refined": false
+              },
+              {
+                "point_id": "scan-08",
+                "indices": [
+                  8
+                ],
+                "values": [
+                  1.96
+                ],
+                "status": "pending",
+                "refined": false
+              }
+            ],
+            "ts_candidates": [],
+            "validation": {
+              "level": "未验证",
+              "warnings": []
+            },
+            "thermochemistry": null,
+            "config": {
+              "method": "wB97XD",
+              "basis": "def2SVP",
+              "solvent": null,
+              "charge": 0,
+              "multiplicity": 1,
+              "nproc": 4,
+              "memory": "4GB",
+              "temperature_k": 298.15,
+              "imaginary_threshold_cm1": -50,
+              "mode_overlap_threshold": 0.15,
+              "max_grid_points": 40,
+              "max_retries": 2,
+              "gjf_preview_text": "%nprocshared=4\n%mem=4GB\n# opt=(ts,calcfc,noeigentest) freq wB97XD/def2SVP\n\nOrgSynFlow TS Search Job\n\n0 1\nC      1.568832     0.433297    -0.023557\nC      0.768894     1.574705    -0.076739\nC     -0.620412     1.452355    -0.096702\nC     -1.209780     0.188599    -0.063485\nC     -0.409842    -0.952809    -0.010305\nC      0.979464    -0.830459     0.009660\nO     -1.258140    -5.462018    -0.318544\nC     -1.467742    -4.320826     0.066938\nC     -2.838632    -3.719370     0.164794\nC     -2.608898    -2.311413     0.681193\nC     -1.121749    -2.200361     0.844657\nO     -0.561294    -1.191301     1.247816\nN     -0.557369    -3.387118     0.472725\nBr     1.282923    -3.702890     0.514971\nH      2.651261     0.528621    -0.008003\nH      1.228080     2.559317    -0.102620\nH     -1.243656     2.341643    -0.138136\nH     -2.292210     0.093275    -0.079039\nH     -0.869028    -1.937421     0.015575\nH      1.602707    -1.719747     0.051095\nH     -3.310840    -3.709612    -0.821892\nH     -3.451219    -4.302922     0.858212\nH     -3.100859    -2.155732     1.645746\nH     -2.960492    -1.562419    -0.034358\n\n",
+              "gjf_preview_manual": false,
+              "gjf_preview_note": "TS 自动闭环会按 workflow 参数、扫描点坐标和 ModRedundant 约束逐点生成 Gaussian 输入；此字段用于记录用户在 UI 中看到或编辑过的预览模板。"
+            },
+            "error": null,
+            "warnings": [
+              "RXNMapper 映射置信度不足，必须人工确认原子对。"
+            ],
+            "requires_manual_coordinates": true,
+            "selected_candidate_id": "candidate-3",
+            "gaussian_progress": {
+              "log_path": "C:\\Users\\Meta\\Project\\Workspaces\\orgsynflow\\data\\ts-workflows\\ts-d8d8dcf70bc2\\scan\\scan-00\\attempt-1\\job.out",
+              "log_tail": "5   D(24,10,11,19)        -32.7885         calculate D2E/DX2 analytically  !\n ! D66   D(5,11,13,8)         -126.081          calculate D2E/DX2 analytically  !\n ! D67   D(5,11,13,14)          53.919          calculate D2E/DX2 analytically  !\n ! D68   D(10,11,13,8)           0.0002         calculate D2E/DX2 analytically  !\n ! D69   D(10,11,13,14)       -179.9999         calculate D2E/DX2 analytically  !\n ! D70   D(12,11,13,8)        -179.9999         calculate D2E/DX2 analytically  !\n ! D71   D(12,11,13,14)          0.0001         calculate D2E/DX2 analytically  !\n ! D72   D(19,11,13,8)         -99.9479         calculate D2E/DX2 analytically  !\n ! D73   D(19,11,13,14)         80.0521         calculate D2E/DX2 analytically  !\n --------------------------------------------------------------------------------\n Trust Radius=3.00D-01 FncErr=1.00D-07 GrdErr=1.00D-06 EigMax=2.50D+02 EigMin=1.00D-04\n Number of steps in this run=    120 maximum allowed number of steps=    144.\n GradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGrad\n\n                          Input orientation:                          \n ---------------------------------------------------------------------\n Center     Atomic      Atomic             Coordinates (Angstroms)\n Number     Number       Type             X           Y           Z\n ---------------------------------------------------------------------\n      1          6           0        1.568832    0.433297   -0.023557\n      2          6           0        0.768894    1.574705   -0.076739\n      3          6           0       -0.620412    1.452355   -0.096702\n      4          6           0       -1.209780    0.188599   -0.063485\n      5          6           0       -0.409842   -0.952809   -0.010305\n      6          6           0        0.979464   -0.830459    0.009660\n      7          8           0       -1.258140   -5.462018   -0.318544\n      8          6           0       -1.467742   -4.320826    0.066938\n      9          6           0       -4.355324   -3.053946    0.273057\n     10          6           0       -2.608898   -2.311413    0.681193\n     11          6           0       -1.121749   -2.200361    0.844657\n     12          8           0       -0.561294   -1.191301    1.247816\n     13          7           0       -0.557369   -3.387118    0.472725\n     14         35           0        1.282923   -3.702890    0.514971\n     15          1           0        2.651261    0.528621   -0.008003\n     16          1           0        1.228080    2.559317   -0.102620\n     17          1           0       -1.243656    2.341643   -0.138136\n     18          1           0       -2.292210    0.093275   -0.079039\n     19          1           0       -0.869028   -1.937421    0.015575\n     20          1           0        1.602707   -1.719747    0.051095\n     21          1           0       -3.310840   -3.709612   -0.821892\n     22          1           0       -3.451219   -4.302922    0.858212\n     23          1           0       -3.100859   -2.155732    1.645746\n     24          1           0       -2.960492   -1.562419   -0.034358\n ---------------------------------------------------------------------\n                    Distance matrix (angstroms):\n                    1          2          3          4          5\n     1  C    0.000000\n     2  C    1.394826   0.000000\n     3  C    2.415909   1.394826   0.000000\n     4  C    2.789652   2.415909   1.394826   0.000000\n     5  C    2.415909   2.789652   2.415909   1.394826   0.000000\n     6  C    1.394826   2.415909   2.789652   2.415909   1.394826\n     7  O    6.544733   7.326855   6.947264   5.656577   4.598651\n     8  C    5.641866   6.307176   5.837325   4.518679   3.531098\n     9  C    6.880731   6.914070   5.864558   4.530099   4.479050\n    10  C    5.048122   5.204407   4.327257   2.960091   2.675784\n    11  C    3.863830   4.321415   3.805238   2.557265   1.671574\n    12  O    2.965324   3.342848   2.966503   2.011011   1.289451\n    13  N    4.400296   5.165324   4.873267   3.674087   2.486151\n    14  Br   4.180885   5.335480   5.529320   4.657452   3.271745\n    15  H    1.086730   2.154605   3.400735   3.876382   3.400735\n    16  H    2.154604   1.086730   2.154605   3.400735   3.876382\n    17  H    3.400735   2.154605   1.086730   2.154605   3.400735\n    18  H    3.876382   3.400735   2.154605   1.086730   2.154605\n    19  H    3.400735   3.876382   3.400735   2.154605   1.086730\n    20  H    2.154604   3.400735   3.876382   3.400735   2.154605\n    21  H    6.450755   6.717402   5.866022   4.492848   4.083433\n    22  H    6.957744   7.295888   6.484485   5.103659   4.607337\n    23  H    5.594252   5.644298   4.712435   3.463169   3.380991\n    24  H    4.949523   4.873568   3.816901   2.476269   2.622598\n                    6          7          8          9         10\n     6  C    0.000000\n     7  O    5.154215   0.000000\n     8  C    4.263186   1.222641   0.000000\n     9  C    5.785605   3.967537   3.160000   0.000000\n    10  C    3.939609   3.570761   2.391084   1.941116   0.000000\n    11  C    2.643662   3.465551   2.284935   3.392836   1.500221\n    12  O    2.009272   4.601967   3.465551   4.337541   2.401748\n    13  N    3.018740   2.328604   1.365742   3.817765   2.325805\n    14  Br   2.932283   3.200982   2.854599   5.680623   4.136436\n    15  H    2.154604   7.160141   6.363092   7.874390   6.017480\n    16  H    3.400735   8.400579   7.391385   7.926175   6.249862\n    17  H    3.876382   7.805760   6.669390   6.242110   4.917939\n    18  H    3.400735   5.655788   4.492810   3.779604   2.541804\n    19  H    2.154604   3.561717   2.457990   3.669766   1.900017\n    20  H    1.086730   4.725006   4.024117   6.109623   4.299385\n    21  H    5.233326   2.745517   2.135560   1.649169   2.169550\n    22  H    5.692889   2.745515   2.135560   1.649168   2.169550\n    23  H    4.591531   4.264455   3.138046   2.065126   1.093903\n    24  H    4.007612   4.264462   3.138052   2.065117   1.093903\n                   11         12         13         14         15\n    11  C    0.000000\n    12  O    1.222640   0.000000\n    13  N    1.365742   2.328604   0.000000\n    14  Br   2.854598   3.200981   1.867665   0.000000\n    15  H    4.733919   3.854313   5.085217   4.477895   0.000000\n    16  H    5.391991   4.369516   6.235298   6.292826   2.481556\n    17  H    4.648715   3.855927   5.801969   6.583808   4.298181\n    18  H    2.735682   2.531155   3.927754   5.248360   4.963112\n    19  H    0.905750   1.473029   1.551690   2.827927   4.298181\n    20  H    2.878089   2.528695   2.761129   2.061625   2.481556\n    21  H    3.138048   4.264456   3.059679   4.784340   7.360142\n    22  H    3.138053   4.264463   3.059683   4.784344   7.831629\n    23  H    2.135559   2.745517   3.059678   4.784338   6.559537\n    24  H    2.135559   2.745514   3.059683   4.784344   5.988733\n                   16         17         18         19         20\n    16  H    0.000000\n    17  H    2.481556   0.000000\n    18  H    4.298181   2.481556   0.000000\n    19  H    4.963112   4.298181   2.481556   0.000000\n    20  H    4.298181   4.963112   4.298181   2.481556   0.000000\n    21  H    7.772941   6.431055   4.006418   3.131207   5.372580\n    22  H    8.361182   7.072220   4.642013   3.601853   5.732923\n    23  H    6.635373   5.182453   2.947343   2.772398   4.985633\n    24  H    5.876862   4.266146   1.786035   2.125404   4.566711\n                   21         22         23         24\n    21  H    0.000000\n    22  H    1.787309   0.000000\n    23  H    2.923675   2.313739   0.000000\n    24  H    2.313739   2.923671   1.787308   0.000000\n Stoichiometry    C10H10BrNO2\n Framework group  C1[X(C10H10BrNO2)]\n Deg. of freedom    66\n Full point group                 C1      NOp   1\n Largest Abelian subgroup         C1      NOp   1\n Largest concise Abelian subgroup C1      NOp   1\n                         Standard orientation:                         \n ---------------------------------------------------------------------\n Center     Atomic      Atomic             Coordinates (Angstroms)\n Number     Number       Type             X           Y           Z\n ---------------------------------------------------------------------\n      1          6           0        2.897413   -1.348278   -0.231305\n      2          6           0        3.876934   -0.355302   -0.222627\n      3          6           0        3.506877    0.989491   -0.234010\n      4          6           0        2.157299    1.341307   -0.254073\n      5          6           0        1.177777    0.348331   -0.262751\n      6          6           0        1.547835   -0.996462   -0.251367\n      7          8           0       -3.392327    0.377617   -0.773517\n      8          6           0       -2.325916    0.781792   -0.332767\n      9          6           0       -1.611345    3.845765   -0.037715\n     10          6           0       -0.584657    2.254033    0.386823\n     11          6           0       -0.214401    0.808312    0.540003\n     12          8           0        0.860365    0.431029    0.984283\n     13          7           0       -1.262158    0.046758    0.106999\n     14         35           0       -1.242190   -1.820781    0.115438\n     15          1           0        3.185730   -2.396026   -0.222435\n     16          1           0        4.928411   -0.629408   -0.206996\n     17          1           0        4.270037    1.763134   -0.227248\n     18          1           0        1.868982    2.389056   -0.262942\n     19          1           0        0.126300    0.622436   -0.278383\n     20          1           0        0.784675   -1.770105   -0.258127\n     21          1           0       -2.018585    2.720943   -1.172919\n     22          1           0       -2.701333    2.721112    0.478846\n     23          1           0       -0.563205    2.747959    1.362631\n     24          1           0        0.119543    2.747803   -0.289134\n ---------------------------------------------------------------------\n Rotational constants (GHZ):           0.7486821           0.4672696           0.3018207\n Standard basis: def2SVP (5D, 7F)\n There are   280 symmetry adapted cartesian basis functions of A   symmetry.\n There are   264 symmetry adapted basis functions of A   symmetry.\n   264 basis functions,   475 primitive gaussians,   280 cartesian basis functions\n    64 alpha electrons       64 beta electrons\n       nuclear repulsion energy      1264.3243208779 Hartrees.\n NAtoms=   24 NActive=   24 NUniq=   24 SFac= 1.00D+00 NAtFMM=   60 NAOKFM=F Big=F\n Integral buffers will be    131072 words long.\n Raffenetti 2 integral format.\n Two-electron integral symmetry is turned on.\n Nuclear repulsion after empirical dispersion term =     1264.3069976909 Hartrees.\n One-electron integrals computed using PRISM.\n   1 Symmetry operations used in ECPInt.\n ECPInt:  NShTT=    7260 NPrTT=   28205 LenC2=    6960 LenP2D=   19870.\n LDataN:  DoStor=T MaxTD1= 4 Len=   56\n NBasis=   264 RedAO= T EigKep=  2.56D-04  NBF=   264\n NBsUse=   264 1.00D-06 EigRej= -1.00D+00 NBFU=   264\n ExpMin= 1.22D-01 ExpMax= 1.13D+05 ExpMxC= 1.70D+04 IAcc=3 IRadAn=         5 AccDes= 0.00D+00\n Harris functional with IExCor= 4639 and IRadAn=       5 diagonalized for initial guess.\n HarFok:  IExCor= 4639 AccDes= 0.00D+00 IRadAn=         5 IDoV= 1 UseB2=F ITyADJ=14\n ICtDFT=  3500011 ScaDFX=  1.000000  1.000000  1.000000  1.000000\n FoFCou: FMM=F IPFlag=           0 FMFlag=      100000 FMFlg1=           0\n         NFxFlg=           0 DoJE=T BraDBF=F KetDBF=T FulRan=T\n         wScrn=  0.000000 ICntrl=       500 IOpCl=  0 I1Cent=   200000004 NGrid=           0\n         NMat0=    1 NMatS0=      1 NMatT0=    0 NMatD0=    1 NMtDS0=    0 NMtDT0=    0\n Petite list used in FoFCou.\n Requested convergence on RMS density matrix=1.00D-08 within 128 cycles.\n Requested convergence on MAX density matrix=1.00D-06.\n Requested convergence on             energy=1.00D-06.\n No special actions if energy rises.\n Integral accuracy reduced to 1.0D-05 until final iterations.\n",
+              "progress": {
+                "scf_cycles": [],
+                "convergence_tables": [],
+                "optimization_steps": [],
+                "issues": {
+                  "warnings": [
+                    {
+                      "line": 46,
+                      "text": "Warning -- This program may not be used in any manner that"
+                    }
+                  ],
+                  "errors": []
+                },
+                "summary": "等待 Gaussian 写入 SCF/优化信息。"
+              }
+            }
+          },
+          "config": {
+            "workflow_id": "ts-d8d8dcf70bc2",
+            "method": "wB97XD",
+            "basis": "def2SVP",
+            "solvent": null,
+            "charge": 0,
+            "multiplicity": 1,
+            "nproc": 4,
+            "memory": "4GB",
+            "temperature_k": 298.15,
+            "imaginary_threshold_cm1": -50,
+            "mode_overlap_threshold": 0.15,
+            "max_grid_points": 40,
+            "max_retries": 2,
+            "gjf_preview_text": "%nprocshared=4\n%mem=4GB\n# opt=(ts,calcfc,noeigentest) freq wB97XD/def2SVP\n\nOrgSynFlow TS Search Job\n\n0 1\nC      1.568832     0.433297    -0.023557\nC      0.768894     1.574705    -0.076739\nC     -0.620412     1.452355    -0.096702\nC     -1.209780     0.188599    -0.063485\nC     -0.409842    -0.952809    -0.010305\nC      0.979464    -0.830459     0.009660\nO     -1.258140    -5.462018    -0.318544\nC     -1.467742    -4.320826     0.066938\nC     -2.838632    -3.719370     0.164794\nC     -2.608898    -2.311413     0.681193\nC     -1.121749    -2.200361     0.844657\nO     -0.561294    -1.191301     1.247816\nN     -0.557369    -3.387118     0.472725\nBr     1.282923    -3.702890     0.514971\nH      2.651261     0.528621    -0.008003\nH      1.228080     2.559317    -0.102620\nH     -1.243656     2.341643    -0.138136\nH     -2.292210     0.093275    -0.079039\nH     -0.869028    -1.937421     0.015575\nH      1.602707    -1.719747     0.051095\nH     -3.310840    -3.709612    -0.821892\nH     -3.451219    -4.302922     0.858212\nH     -3.100859    -2.155732     1.645746\nH     -2.960492    -1.562419    -0.034358\n\n",
+            "gjf_preview_manual": false,
+            "gjf_preview_note": "TS 自动闭环会按 workflow 参数、扫描点坐标和 ModRedundant 约束逐点生成 Gaussian 输入；此字段用于记录用户在 UI 中看到或编辑过的预览模板。"
+          },
+          "error": "计算失败。"
+        },
+        "molecule:route-1781939759467-aizynth-route-1-molecule-m2:molecule-descriptors": {
+          "task_id": "molecule-descriptors",
+          "task_label": "计算分子描述符（RDKit）",
+          "object_id": "route-1781939759467-aizynth-route-1-molecule-m2",
+          "object_kind": "molecule",
+          "object_label": "Mol 2",
+          "engine": "RDKit",
+          "status": "succeeded",
+          "updated_at": "2026-06-20T11:14:27.428Z",
+          "payload": {
+            "source": "rdkit+mordred_optional",
+            "descriptors": {
+              "canonical_smiles": "O=C1C=CC(=O)N1Br",
+              "formula": "C4H2BrNO2",
+              "molecular_weight": 175.969,
+              "logp": 0.22129999999999994,
+              "tpsa": 37.38,
+              "hbd": 0,
+              "hba": 2,
+              "rotatable_bonds": 0,
+              "ring_count": 1,
+              "aromatic_ring_count": 0
+            },
+            "unavailable": [
+              "mordred"
+            ]
+          }
+        },
+        "molecule:route-1781939759467-aizynth-route-1-molecule-m2:xtb-geometry-energy": {
+          "task_id": "xtb-geometry-energy",
+          "task_label": "计算几何优化与能量（xTB）",
+          "object_id": "route-1781939759467-aizynth-route-1-molecule-m2",
+          "object_kind": "molecule",
+          "object_label": "Mol 2",
+          "engine": "xTB",
+          "status": "succeeded",
+          "updated_at": "2026-06-20T11:14:36.712Z",
+          "payload": {
+            "available": true,
+            "status": "available",
+            "source": "xTB CLI via WSL",
+            "work_dir": "/tmp/codex/orgsynflow/xtb_jobs/20260620_191434",
+            "stdout": "      -----------------------------------------------------------      \n     |                   =====================                   |     \n     |                           x T B                           |     \n     |                   =====================                   |     \n     |                         S. Grimme                         |     \n     |          Mulliken Center for Theoretical Chemistry        |     \n     |                    University of Bonn                     |     \n      -----------------------------------------------------------      \n\n   * xtb version 6.7.1 (edcfbbe) compiled by 'conda@5dfe00f5fb80' on 2026-06-10\n\n   xtb is free software: you can redistribute it and/or modify it under\n   the terms of the GNU Lesser General Public License as published by\n   the Free Software Foundation, either version 3 of the License, or\n   (at your option) any later version.\n   \n   xtb is distributed in the hope that it will be useful,\n   but WITHOUT ANY WARRANTY; without even the implied warranty of\n   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n   GNU Lesser General Public License for more details.\n   \n   Cite this work as:\n   * C. Bannwarth, E. Caldeweyher, S. Ehlert, A. Hansen, P. Pracht,\n     J. Seibert, S. Spicher, S. Grimme, WIREs Comput. Mol. Sci., 2020, 11,\n     e01493. DOI: 10.1002/wcms.1493\n   \n   for GFN2-xTB:\n   * C. Bannwarth, S. Ehlert and S. Grimme., J. Chem. Theory Comput., 2019,\n     15, 1652-1671. DOI: 10.1021/acs.jctc.8b01176\n   for GFN1-xTB:\n   * S. Grimme, C. Bannwarth, P. Shushkov, J. Chem. Theory Comput., 2017,\n     13, 1989-2009. DOI: 10.1021/acs.jctc.7b00118\n   for GFN0-xTB:\n   * P. Pracht, E. Caldeweyher, S. Ehlert, S. Grimme, ChemRxiv, 2019, preprint.\n     DOI: 10.26434/chemrxiv.8326202.v1\n   for GFN-FF:\n   * S. Spicher and S. Grimme, Angew. Chem. Int. Ed., 2020, 59, 15665-15673.\n     DOI: 10.1002/anie.202004239\n   \n   for ALPB and GBSA implicit solvation:\n   * S. Ehlert, M. Stahn, S. Spicher, S. Grimme, J. Chem. Theory Comput.,\n     2021, 17, 4250-4261. DOI: 10.1021/acs.jctc.1c00471\n   \n   for ddCOSMO and CPCM-X implicit solvation:\n   * M. Stahn, S. Ehlert, S. Grimme, J. Phys. Chem. A,\n     2023, XX, XXXX-XXXX. DOI: 10.1021/acs.jpca.3c04382\n   \n   for DFT-D4:\n   * E. Caldeweyher, C. Bannwarth and S. Grimme, J. Chem. Phys., 2017,\n     147, 034112. DOI: 10.1063/1.4993215\n   * E. Caldeweyher, S. Ehlert, A. Hansen, H. Neugebauer, S. Spicher,\n     C. Bannwarth and S. Grimme, J. Chem. Phys., 2019, 150, 154122.\n     DOI: 10.1063/1.5090222\n   * E. Caldeweyher, J.-M. Mewes, S. Ehlert and S. Grimme, Phys. Chem. Chem. Phys.\n     2020, 22, 8499-8512. DOI: 10.1039/D0CP00502A\n   \n   for sTDA-xTB:\n   * S. Grimme and C. Bannwarth, J. Chem. Phys., 2016, 145, 054103.\n     DOI: 10.1063/1.4959605\n   \n   in the mass-spec context:\n   * V. Asgeirsson, C. Bauer and S. Grimme, Chem. Sci., 2017, 8, 4879.\n     DOI: 10.1039/c7sc00601b\n   * J. Koopman and S. Grimme, ACS Omega 2019, 4, 12, 15120-15133.\n     DOI: 10.1021/acsomega.9b02011\n   \n   for metadynamics refer to:\n   * S. Grimme, J. Chem. Theory Comput., 2019, 155, 2847-2862\n     DOI: 10.1021/acs.jctc.9b00143\n   \n   for SPH calculations refer to:\n   * S. Spicher and S. Grimme, J. Chem. Theory Comput., 2021, 17, 1701-1714\n     DOI: 10.1021/acs.jctc.0c01306\n   \n   for ONIOM refer to:\n   * C. Plett, A. Katbashev, S. Ehlert, S. Grimme, M. Bursch,\n     Phys. Chem. Chem. Phys., 2023, 25, 17860-17868. DOI: 10.1039/D3CP02178E\n   \n   for DIPRO refer to:\n   * J. Kohn, N. Gildemeister, S. Grimme, D. Fazzi, A. Hansen,\n     J. Chem. Phys., 2023, just accepted.\n   \n   for PTB refer to:\n   * S. Grimme, M. Mueller, A. Hansen, J. Chem. Phys., 2023, 158, 124111.\n     DOI: 10.1063/5.0137838\n   \n   with help from (in alphabetical order)\n   P. Atkinson, C. Bannwarth, F. Bohle, G. Brandenburg, E. Caldeweyher\n   M. Checinski, S. Dohm, S. Ehlert, S. Ehrlich, I. Gerasimov, C. Hölzer\n   A. Katbashev, J. Kohn, J. Koopman, C. Lavigne, S. Lehtola, F. März, M. Müller,\n   F. Musil, H. Neugebauer, J. Pisarek, C. Plett, P. Pracht, F. Pultar,\n   J. Seibert, P. Shushkov, S. Spicher, M. Stahn, M. Steiner, T. Strunk,\n   J. Stückrath, T. Rose, and J. Unsleber\n   \n * started run on 2026/06/20 at 19:14:53.948     \n   ID    Z sym.   atoms\n    1    8 O      1, 6\n    2    6 C      2-5\n    3    7 N      7\n    4   35 Br     8\n    5    1 H      9, 10\n\n           -------------------------------------------------\n          |                Calculation Setup                |\n           -------------------------------------------------\n\n          program call               : /home/meta/.local/opt/miniforge3/envs/orgsynflow-chem/bin/xtb input.xyz\n          coordinate file            : input.xyz\n          omp threads                :                    32\n\n\n           -------------------------------------------------\n          |                 G F N 2 - x T B                 |\n           -------------------------------------------------\n\n        Reference                      10.1021/acs.jctc.8b01176\n      * Hamiltonian:\n        H0-scaling (s, p, d)           1.850000    2.230000    2.230000\n        zeta-weighting                 0.500000\n      * Dispersion:\n        s8                             2.700000\n        a1                             0.520000\n        a2                             5.000000\n        s9                             5.000000\n      * Repulsion:\n        kExp                           1.500000    1.000000\n        rExp                           1.000000\n      * Coulomb:\n        alpha                          2.000000\n        third order                    shell-resolved\n        anisotropic                    true\n        a3                             3.000000\n        a5                             4.000000\n        cn-shift                       1.200000\n        cn-exp                         4.000000\n        max-rad                        5.000000\n\n\n          ...................................................\n          :                      SETUP                      :\n          :.................................................:\n          :  # basis functions                  40          :\n          :  # atomic orbitals                  39          :\n          :  # shells                           19          :\n          :  # electrons                        42          :\n          :  max. iterations                   250          :\n          :  Hamiltonian                  GFN2-xTB          :\n          :  restarted?                      false          :\n          :  GBSA solvation                  false          :\n          :  PC potential                    false          :\n          :  electronic temp.          300.0000000     K    :\n          :  accuracy                    1.0000000          :\n          :  -> integral cutoff          0.2500000E+02      :\n          :  -> integral neglect         0.1000000E-07      :\n          :  -> SCF convergence          0.1000000E-05 Eh   :\n          :  -> wf. convergence          0.1000000E-03 e    :\n          :  Broyden damping             0.4000000          :\n          :  net charge                          0          :\n          :  unpaired electrons                  0          :\n          ...................................................\n\n iter      E             dE          RMSdq      gap      omega  full diag\n   1    -24.7864235 -0.247864E+02  0.698E+00    2.10       0.0  T\n   2    -24.8464466 -0.600231E-01  0.511E+00    1.87       1.0  T\n   3    -24.8642678 -0.178212E-01  0.246E+00    2.07       1.0  T\n   4    -24.8710382 -0.677033E-02  0.617E-01    1.85       1.0  T\n   5    -24.8713785 -0.340326E-03  0.357E-01    1.89       1.0  T\n   6    -24.8715740 -0.195494E-03  0.522E-02    1.88       1.0  T\n   7    -24.8715788 -0.487012E-05  0.320E-02    1.88       1.0  T\n   8    -24.8715802 -0.133010E-05  0.218E-02    1.89       1.5  T\n   9    -24.8715811 -0.923116E-06  0.883E-03    1.88       3.6  T\n  10    -24.8715812 -0.895845E-07  0.282E-03    1.89      11.2  T\n  11    -24.8715812 -0.388956E-07  0.805E-04    1.89      39.3  T\n  12    -24.8715812  0.227750E-09  0.533E-04    1.89      59.4  T\n\n   *** convergence criteria satisfied after 12 iterations ***\n\n         #    Occupation            Energy/Eh            Energy/eV\n      -------------------------------------------------------------\n         1        2.0000           -0.8711926             -23.7064\n       ...           ...                  ...                  ...\n        15        2.0000           -0.5334231             -14.5152\n        16        2.0000           -0.5020704             -13.6620\n        17        2.0000           -0.4898122             -13.3285\n        18        2.0000           -0.4673374             -12.7169\n        19        2.0000           -0.4628756             -12.5955\n        20        2.0000           -0.4446947             -12.1008\n        21        2.0000           -0.4392845             -11.9535 (HOMO)\n        22                         -0.3700030             -10.0683 (LUMO)\n        23                         -0.3242613              -8.8236\n        24                         -0.2494910              -6.7890\n        25                         -0.2183416              -5.9414\n        26                         -0.0469648              -1.2780\n       ...                                ...                  ...\n        39                          0.6410887              17.4449\n      -------------------------------------------------------------\n                  HL-Gap            0.0692814 Eh            1.8852 eV\n             Fermi-level           -0.4046438 Eh          -11.0109 eV\n\n SCC (total)                   0 d,  0 h,  0 min,  2.337 sec\n SCC setup                      ...        0 min,  0.000 sec (  0.017%)\n Dispersion                     ...        0 min,  0.001 sec (  0.024%)\n classical contributions        ...        0 min,  0.000 sec (  0.004%)\n integral evaluation            ...        0 min,  0.002 sec (  0.096%)\n iterations                     ...        0 min,  2.242 sec ( 95.918%)\n molecular gradient             ...        0 min,  0.092 sec (  3.923%)\n printout                       ...        0 min,  0.000 sec (  0.015%)\n\n         :::::::::::::::::::::::::::::::::::::::::::::::::::::\n         ::                     SUMMARY                     ::\n         :::::::::::::::::::::::::::::::::::::::::::::::::::::\n         :: total energy             -24.664355467650 Eh    ::\n         :: gradient norm              0.181004416789 Eh/a0 ::\n         :: HOMO-LUMO gap              1.885244177853 eV    ::\n         ::.................................................::\n         :: SCC energy               -24.871573601591 Eh    ::\n         :: -> isotropic ES            0.053489943938 Eh    ::\n         :: -> anisotropic ES          0.000416031417 Eh    ::\n         :: -> anisotropic XC          0.006689376983 Eh    ::\n         :: -> dispersion             -0.008985751029 Eh    ::\n         :: repulsion energy           0.207218133941 Eh    ::\n         :: add. restraining           0.000000000000 Eh    ::\n         :: total charge               0.000000000000 e     ::\n         :::::::::::::::::::::::::::::::::::::::::::::::::::::\n\n           -------------------------------------------------\n          |                Property Printout                |\n           -------------------------------------------------\n\n    * Orbital Energies and Occupations\n\n         #    Occupation            Energy/Eh            Energy/eV\n      -------------------------------------------------------------\n         1        2.0000           -0.8711926             -23.7064\n       ...           ...                  ...                  ...\n         9        2.0000           -0.6084735             -16.5574\n        10        2.0000           -0.5934823             -16.1495\n        11        2.0000           -0.5695562             -15.4984\n        12        2.0000           -0.5676149             -15.4456\n        13        2.0000           -0.5602722             -15.2458\n        14        2.0000           -0.5433603             -14.7856\n        15        2.0000           -0.5334231             -14.5152\n        16        2.0000           -0.5020704             -13.6620\n        17        2.0000           -0.4898122             -13.3285\n        18        2.0000           -0.4673374             -12.7169\n        19        2.0000           -0.4628756             -12.5955\n        20        2.0000           -0.4446947             -12.1008\n        21        2.0000           -0.4392845             -11.9535 (HOMO)\n        22                         -0.3700030             -10.0683 (LUMO)\n        23                         -0.3242613              -8.8236\n        24                         -0.2494910              -6.7890\n        25                         -0.2183416              -5.9414\n        26                         -0.0469648              -1.2780\n        27                          0.0026449               0.0720\n        28                          0.0028042               0.0763\n        29                          0.0271289               0.7382\n        30                          0.0348397               0.9480\n        31                          0.0505062               1.3743\n        32                          0.1108761               3.0171\n       ...                                ...                  ...\n        39                          0.6410887              17.4449\n      -------------------------------------------------------------\n                  HL-Gap            0.0692814 Eh            1.8852 eV\n             Fermi-level           -0.4046438 Eh          -11.0109 eV\n\n     #   Z          covCN         q      C6AA      α(0)\n     1   8 O        0.856    -0.336    20.436     6.061\n     2   6 C        2.965     0.276    22.340     7.753\n     3   6 C        2.979    -0.034    28.852     8.811\n     4   6 C        2.979    -0.034    28.852     8.811\n     5   6 C        2.965     0.276    22.340     7.753\n     6   8 O        0.856    -0.336    20.436     6.061\n     7   7 N        2.801    -0.062    22.430     7.034\n     8  35 Br       1.008     0.036   183.998    21.871\n     9   1 H        0.925     0.107     1.725     2.054\n    10   1 H        0.925     0.107     1.725     2.054\n\n Mol. C6AA /au·bohr⁶  :       2502.413484\n Mol. C8AA /au·bohr⁸  :      82806.545198\n Mol. α(0) /au        :         78.262368\n\n\nWiberg/Mayer (AO) data.\nlargest (>0.10) Wiberg bond orders for each atom\n\n ---------------------------------------------------------------------------\n     #   Z sym  total        # sym  WBO       # sym  WBO       # sym  WBO\n ---------------------------------------------------------------------------\n     1   8 O    2.089 --     2 C    1.738     7 N    0.123\n     2   6 C    3.947 --     1 O    1.738     7 N    1.090     3 C    1.030\n     3   6 C    3.978 --     4 C    1.820     2 C    1.030     9 H    0.958\n     4   6 C    3.978 --     3 C    1.820     5 C    1.030    10 H    0.958\n     5   6 C    3.947 --     6 O    1.738     7 N    1.090     4 C    1.030\n     6   8 O    2.089 --     5 C    1.738     7 N    0.123\n     7   7 N    3.517 --     2 C    1.090     5 C    1.090     8 Br   1.008\n                             1 O    0.123     6 O    0.123\n     8  35 Br   1.161 --     7 N    1.008\n     9   1 H    0.989 --     3 C    0.958\n    10   1 H    0.989 --     4 C    0.958\n ---------------------------------------------------------------------------\n\nTopologies differ in total number of bonds\nWriting topology from bond orders to xtbtopo.mol\n\nmolecular dipole:\n                 x           y           z       tot (Debye)\n q only:       -1.041      -0.448      -0.009\n   full:       -1.302      -0.560      -0.011       3.602\nmolecular quadrupole (traceless):\n                xx          xy          yy          xz          yz          zz\n q only:        4.491       6.464      -7.752      -0.048       0.191       3.261\n  q+dip:        4.010       6.940      -9.137      -0.083       0.229       5.127\n   full:        3.520       7.409     -10.516      -0.117       0.267       6.995\n\n\n           -------------------------------------------------\n          | TOTAL ENERGY              -24.664355467650 Eh   |\n          | GRADIENT NORM               0.181004416789 Eh/α |\n          | HOMO-LUMO GAP               1.885244177853 eV   |\n           -------------------------------------------------\n\n------------------------------------------------------------------------\n * finished run on 2026/06/20 at 19:14:56.403     \n------------------------------------------------------------------------\n total:\n * wall-time:     0 d,  0 h,  0 min,  2.455 sec\n *  cpu-time:     0 d,  0 h,  1 min, 15.628 sec\n * ratio c/w:    30.811 speedup\n SCF:\n * wall-time:     0 d,  0 h,  0 min,  2.337 sec\n *  cpu-time:     0 d,  0 h,  1 min, 12.011 sec\n * ratio c/w:    30.808 speedup\n\n",
+            "stderr": "normal termination of xtb\nNote: The following floating-point exceptions are signalling: IEEE_DENORMAL\n",
+            "data": {
+              "returncode": 0,
+              "total_energy_hartree": -24.66435546765,
+              "input_xyz": "10\nO=C1C=CC(=O)N1Br\nO      1.531265    -1.857306     0.037738\nC      0.707155    -0.906050     0.017916\nC     -0.747727    -1.046721     0.000875\nC     -1.274039     0.176700    -0.017881\nC     -0.171558     1.136530    -0.013401\nO     -0.295521     2.389078    -0.027343\nN      1.075698     0.462901     0.009043\nBr     2.813742     1.210831     0.023676\nH     -1.307824    -1.972402     0.002924\nH     -2.331192     0.406439    -0.033547\n"
+            },
+            "reason": null
+          }
+        },
+        "molecule:route-1781939759467-aizynth-route-1-molecule-m2:crest-conformers": {
+          "task_id": "crest-conformers",
+          "task_label": "搜索低能构象（CREST）",
+          "object_id": "route-1781939759467-aizynth-route-1-molecule-m2",
+          "object_kind": "molecule",
+          "object_label": "Mol 2",
+          "engine": "CREST",
+          "status": "running",
+          "updated_at": "2026-06-20T11:14:41.979Z",
+          "payload": null
+        },
+        "molecule:route-1781939707005-aizynth-route-2-step-s1-reactants:component:1:molecule-descriptors": {
+          "task_id": "molecule-descriptors",
+          "task_label": "计算分子描述符（RDKit）",
+          "object_id": "route-1781939707005-aizynth-route-2-step-s1-reactants:component:1",
+          "object_kind": "molecule",
+          "object_label": "组分 2",
+          "engine": "RDKit",
+          "status": "succeeded",
+          "updated_at": "2026-06-20T11:14:50.257Z",
+          "payload": {
+            "source": "rdkit+mordred_optional",
+            "descriptors": {
+              "canonical_smiles": "O=C1CCC(=O)N1Br",
+              "formula": "C4H4BrNO2",
+              "molecular_weight": 177.985,
+              "logp": 0.44530000000000003,
+              "tpsa": 37.38,
+              "hbd": 0,
+              "hba": 2,
+              "rotatable_bonds": 0,
+              "ring_count": 1,
+              "aromatic_ring_count": 0
+            },
+            "unavailable": [
+              "mordred"
+            ]
+          }
+        },
+        "molecule:route-1781939707005-aizynth-route-2-step-s1-reactants:component:1:molecule-properties": {
+          "task_id": "molecule-properties",
+          "task_label": "计算分子性质（RDKit + OPERA）",
+          "object_id": "route-1781939707005-aizynth-route-2-step-s1-reactants:component:1",
+          "object_kind": "molecule",
+          "object_label": "组分 2",
+          "engine": "RDKit + OPERA",
+          "status": "succeeded",
+          "updated_at": "2026-06-20T11:15:44.165Z",
+          "payload": {
+            "source": "rdkit+optional-opera",
+            "rdkit": {
+              "SMILES": "O=C1CCC(=O)N1Br",
+              "Canonical SMILES": "O=C1CCC(=O)N1Br",
+              "Formula": "C4H4BrNO2",
+              "MW": 177.985,
+              "LogP": 0.445,
+              "TPSA": 37.38,
+              "HBD": 0,
+              "HBA": 2,
+              "Rotatable bonds": 0,
+              "Ring count": 1,
+              "Aromatic rings": 0
+            },
+            "opera": {
+              "available": true,
+              "status": "available",
+              "source": "OPERA CLI via WSL",
+              "properties": {
+                "melting_point": "174",
+                "boiling_point": "238",
+                "logp": "-0.43",
+                "water_solubility": "-1.08",
+                "vapor_pressure": "-4.68"
+              },
+              "applicability_domain": {
+                "melting_point_ad": "1",
+                "boiling_point_ad": "1",
+                "logp_ad": "1",
+                "water_solubility_ad": "1",
+                "vapor_pressure_ad": "1"
+              },
+              "reason": null
+            },
+            "note": "RDKit 字段是结构描述符；OPERA 字段是可选 QSAR 预测，需结合适用域判断。"
+          }
+        },
+        "reaction:rxn-route-1781939759467-aizynth-route-1-s2-1:reaction-mapping": {
+          "task_id": "reaction-mapping",
+          "task_label": "映射反应原子（RXNMapper）",
+          "object_id": "rxn-route-1781939759467-aizynth-route-1-s2-1",
+          "object_kind": "reaction",
+          "object_label": "AiZynth step",
+          "engine": "RXNMapper",
+          "status": "succeeded",
+          "updated_at": "2026-06-20T11:15:52.356Z",
+          "payload": {
+            "reaction_smiles": "O=C(O)C=CC(=O)NBr>>O=C1C=CC(=O)N1Br",
+            "mapped_reaction_smiles": "O[C:2](=[O:1])[CH:3]=[CH:4][C:5](=[O:6])[NH:7][Br:8]>>[O:1]=[C:2]1[CH:3]=[CH:4][C:5](=[O:6])[N:7]1[Br:8]",
+            "method": "rxnmapper_wsl",
+            "status": "mapped",
+            "confidence": "中",
+            "reaction_center": [
+              "反应物与产物结构差异区域"
+            ],
+            "formed_bonds": [
+              "待原子映射确认"
+            ],
+            "broken_bonds": [
+              "待原子映射确认"
+            ],
+            "note": "已通过 rxnmapper_wsl 运行 RXNMapper (confidence=0.787)；成键/断键已成功识别。"
           }
         }
       }
@@ -7412,6 +9915,450 @@
       },
       "used_fallback": false,
       "engine": "aizynthfinder"
+    },
+    {
+      "id": "rcs-1781951503536",
+      "target_smiles": "c1ccccc1",
+      "status": "Chemformer 已返回 5 个单步逆合成候选。",
+      "created_at": "2026-06-20T10:31:43.536Z",
+      "candidates": [
+        {
+          "id": "chemformer-route-1",
+          "title": "Chemformer 单步候选 #1",
+          "target_id": "chemformer-1-target",
+          "source": "chemformer",
+          "depth": 1,
+          "precursor_count": 1,
+          "stock_count": 0,
+          "molecules": [
+            {
+              "id": "chemformer-1-target",
+              "name": "目标产物",
+              "smiles": "c1ccccc1",
+              "in_stock": false
+            },
+            {
+              "id": "chemformer-1-precursor-1",
+              "name": "反应物 1",
+              "smiles": "OCc1ccccc1",
+              "in_stock": false
+            }
+          ],
+          "steps": [
+            {
+              "id": "chemformer-step-1",
+              "product_id": "chemformer-1-target",
+              "precursor_ids": [
+                "chemformer-1-precursor-1"
+              ],
+              "reaction_smiles": "OCc1ccccc1>>c1ccccc1",
+              "policy_score": null,
+              "template": "Chemformer 单步逆合成"
+            }
+          ],
+          "layout": {
+            "nodes": {
+              "chemformer-1-target": {
+                "id": "chemformer-1-target",
+                "label": "目标产物\nc1ccccc1",
+                "x": 300,
+                "y": 40,
+                "in_stock": false
+              },
+              "chemformer-1-precursor-1": {
+                "id": "chemformer-1-precursor-1",
+                "label": "反应物 1\nOCc1ccccc1",
+                "x": 40,
+                "y": 40,
+                "in_stock": false
+              }
+            },
+            "edges": [
+              {
+                "source_id": "chemformer-1-precursor-1",
+                "target_id": "chemformer-1-target",
+                "label": "Chemformer 单步逆合成"
+              }
+            ]
+          },
+          "metadata": {
+            "rank": 1,
+            "log_likelihood": -2.3404102325439453,
+            "prediction_type": "single_step"
+          }
+        },
+        {
+          "id": "chemformer-route-2",
+          "title": "Chemformer 单步候选 #2",
+          "target_id": "chemformer-2-target",
+          "source": "chemformer",
+          "depth": 1,
+          "precursor_count": 1,
+          "stock_count": 0,
+          "molecules": [
+            {
+              "id": "chemformer-2-target",
+              "name": "目标产物",
+              "smiles": "c1ccccc1",
+              "in_stock": false
+            },
+            {
+              "id": "chemformer-2-precursor-1",
+              "name": "反应物 1",
+              "smiles": "Oc1ccc2c(O)cccc2c1",
+              "in_stock": false
+            }
+          ],
+          "steps": [
+            {
+              "id": "chemformer-step-2",
+              "product_id": "chemformer-2-target",
+              "precursor_ids": [
+                "chemformer-2-precursor-1"
+              ],
+              "reaction_smiles": "Oc1ccc2c(O)cccc2c1>>c1ccccc1",
+              "policy_score": null,
+              "template": "Chemformer 单步逆合成"
+            }
+          ],
+          "layout": {
+            "nodes": {
+              "chemformer-2-target": {
+                "id": "chemformer-2-target",
+                "label": "目标产物\nc1ccccc1",
+                "x": 300,
+                "y": 40,
+                "in_stock": false
+              },
+              "chemformer-2-precursor-1": {
+                "id": "chemformer-2-precursor-1",
+                "label": "反应物 1\nOc1ccc2c(O)cccc2c1",
+                "x": 40,
+                "y": 40,
+                "in_stock": false
+              }
+            },
+            "edges": [
+              {
+                "source_id": "chemformer-2-precursor-1",
+                "target_id": "chemformer-2-target",
+                "label": "Chemformer 单步逆合成"
+              }
+            ]
+          },
+          "metadata": {
+            "rank": 2,
+            "log_likelihood": -2.4091782569885254,
+            "prediction_type": "single_step"
+          }
+        },
+        {
+          "id": "chemformer-route-3",
+          "title": "Chemformer 单步候选 #3",
+          "target_id": "chemformer-3-target",
+          "source": "chemformer",
+          "depth": 1,
+          "precursor_count": 1,
+          "stock_count": 0,
+          "molecules": [
+            {
+              "id": "chemformer-3-target",
+              "name": "目标产物",
+              "smiles": "c1ccccc1",
+              "in_stock": false
+            },
+            {
+              "id": "chemformer-3-precursor-1",
+              "name": "反应物 1",
+              "smiles": "Oc1ccccc1-c1ccccc1",
+              "in_stock": false
+            }
+          ],
+          "steps": [
+            {
+              "id": "chemformer-step-3",
+              "product_id": "chemformer-3-target",
+              "precursor_ids": [
+                "chemformer-3-precursor-1"
+              ],
+              "reaction_smiles": "Oc1ccccc1-c1ccccc1>>c1ccccc1",
+              "policy_score": null,
+              "template": "Chemformer 单步逆合成"
+            }
+          ],
+          "layout": {
+            "nodes": {
+              "chemformer-3-target": {
+                "id": "chemformer-3-target",
+                "label": "目标产物\nc1ccccc1",
+                "x": 300,
+                "y": 40,
+                "in_stock": false
+              },
+              "chemformer-3-precursor-1": {
+                "id": "chemformer-3-precursor-1",
+                "label": "反应物 1\nOc1ccccc1-c1ccccc1",
+                "x": 40,
+                "y": 40,
+                "in_stock": false
+              }
+            },
+            "edges": [
+              {
+                "source_id": "chemformer-3-precursor-1",
+                "target_id": "chemformer-3-target",
+                "label": "Chemformer 单步逆合成"
+              }
+            ]
+          },
+          "metadata": {
+            "rank": 3,
+            "log_likelihood": -2.4715700149536133,
+            "prediction_type": "single_step"
+          }
+        },
+        {
+          "id": "chemformer-route-4",
+          "title": "Chemformer 单步候选 #4",
+          "target_id": "chemformer-4-target",
+          "source": "chemformer",
+          "depth": 1,
+          "precursor_count": 1,
+          "stock_count": 0,
+          "molecules": [
+            {
+              "id": "chemformer-4-target",
+              "name": "目标产物",
+              "smiles": "c1ccccc1",
+              "in_stock": false
+            },
+            {
+              "id": "chemformer-4-precursor-1",
+              "name": "反应物 1",
+              "smiles": "Oc1cccc2occc12",
+              "in_stock": false
+            }
+          ],
+          "steps": [
+            {
+              "id": "chemformer-step-4",
+              "product_id": "chemformer-4-target",
+              "precursor_ids": [
+                "chemformer-4-precursor-1"
+              ],
+              "reaction_smiles": "Oc1cccc2occc12>>c1ccccc1",
+              "policy_score": null,
+              "template": "Chemformer 单步逆合成"
+            }
+          ],
+          "layout": {
+            "nodes": {
+              "chemformer-4-target": {
+                "id": "chemformer-4-target",
+                "label": "目标产物\nc1ccccc1",
+                "x": 300,
+                "y": 40,
+                "in_stock": false
+              },
+              "chemformer-4-precursor-1": {
+                "id": "chemformer-4-precursor-1",
+                "label": "反应物 1\nOc1cccc2occc12",
+                "x": 40,
+                "y": 40,
+                "in_stock": false
+              }
+            },
+            "edges": [
+              {
+                "source_id": "chemformer-4-precursor-1",
+                "target_id": "chemformer-4-target",
+                "label": "Chemformer 单步逆合成"
+              }
+            ]
+          },
+          "metadata": {
+            "rank": 4,
+            "log_likelihood": -2.5175490379333496,
+            "prediction_type": "single_step"
+          }
+        },
+        {
+          "id": "chemformer-route-5",
+          "title": "Chemformer 单步候选 #5",
+          "target_id": "chemformer-5-target",
+          "source": "chemformer",
+          "depth": 1,
+          "precursor_count": 1,
+          "stock_count": 0,
+          "molecules": [
+            {
+              "id": "chemformer-5-target",
+              "name": "目标产物",
+              "smiles": "c1ccccc1",
+              "in_stock": false
+            },
+            {
+              "id": "chemformer-5-precursor-1",
+              "name": "反应物 1",
+              "smiles": "Oc1ccccc1",
+              "in_stock": false
+            }
+          ],
+          "steps": [
+            {
+              "id": "chemformer-step-5",
+              "product_id": "chemformer-5-target",
+              "precursor_ids": [
+                "chemformer-5-precursor-1"
+              ],
+              "reaction_smiles": "Oc1ccccc1>>c1ccccc1",
+              "policy_score": null,
+              "template": "Chemformer 单步逆合成"
+            }
+          ],
+          "layout": {
+            "nodes": {
+              "chemformer-5-target": {
+                "id": "chemformer-5-target",
+                "label": "目标产物\nc1ccccc1",
+                "x": 300,
+                "y": 40,
+                "in_stock": false
+              },
+              "chemformer-5-precursor-1": {
+                "id": "chemformer-5-precursor-1",
+                "label": "反应物 1\nOc1ccccc1",
+                "x": 40,
+                "y": 40,
+                "in_stock": false
+              }
+            },
+            "edges": [
+              {
+                "source_id": "chemformer-5-precursor-1",
+                "target_id": "chemformer-5-target",
+                "label": "Chemformer 单步逆合成"
+              }
+            ]
+          },
+          "metadata": {
+            "rank": 5,
+            "log_likelihood": -2.900989532470703,
+            "prediction_type": "single_step"
+          }
+        }
+      ],
+      "route_scores": {
+        "chemformer-route-1": {
+          "route_id": "chemformer-route-1",
+          "route_score": 0.448,
+          "model_score": 0.55,
+          "stock_score": 0,
+          "step_score": 1,
+          "explanation": "model=0.55, stock=0.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
+        },
+        "chemformer-route-2": {
+          "route_id": "chemformer-route-2",
+          "route_score": 0.448,
+          "model_score": 0.55,
+          "stock_score": 0,
+          "step_score": 1,
+          "explanation": "model=0.55, stock=0.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
+        },
+        "chemformer-route-3": {
+          "route_id": "chemformer-route-3",
+          "route_score": 0.448,
+          "model_score": 0.55,
+          "stock_score": 0,
+          "step_score": 1,
+          "explanation": "model=0.55, stock=0.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
+        },
+        "chemformer-route-4": {
+          "route_id": "chemformer-route-4",
+          "route_score": 0.448,
+          "model_score": 0.55,
+          "stock_score": 0,
+          "step_score": 1,
+          "explanation": "model=0.55, stock=0.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
+        },
+        "chemformer-route-5": {
+          "route_id": "chemformer-route-5",
+          "route_score": 0.448,
+          "model_score": 0.55,
+          "stock_score": 0,
+          "step_score": 1,
+          "explanation": "model=0.55, stock=0.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
+        }
+      },
+      "feasibility": {
+        "chemformer-route-1": {
+          "route_id": "chemformer-route-1",
+          "heuristic_overall_yield_percent": 62,
+          "heuristic_feasibility_score": 0.491,
+          "estimated_overall_yield_percent": 62,
+          "route_feasibility_score": 0.491,
+          "method": "heuristic_route_feasibility",
+          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "risk_flags": [
+            "chemformer-step-1: 反应类型置信度低"
+          ],
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+        },
+        "chemformer-route-2": {
+          "route_id": "chemformer-route-2",
+          "heuristic_overall_yield_percent": 62,
+          "heuristic_feasibility_score": 0.491,
+          "estimated_overall_yield_percent": 62,
+          "route_feasibility_score": 0.491,
+          "method": "heuristic_route_feasibility",
+          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "risk_flags": [
+            "chemformer-step-2: 反应类型置信度低"
+          ],
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+        },
+        "chemformer-route-3": {
+          "route_id": "chemformer-route-3",
+          "heuristic_overall_yield_percent": 62,
+          "heuristic_feasibility_score": 0.491,
+          "estimated_overall_yield_percent": 62,
+          "route_feasibility_score": 0.491,
+          "method": "heuristic_route_feasibility",
+          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "risk_flags": [
+            "chemformer-step-3: 反应类型置信度低"
+          ],
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+        },
+        "chemformer-route-4": {
+          "route_id": "chemformer-route-4",
+          "heuristic_overall_yield_percent": 62,
+          "heuristic_feasibility_score": 0.491,
+          "estimated_overall_yield_percent": 62,
+          "route_feasibility_score": 0.491,
+          "method": "heuristic_route_feasibility",
+          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "risk_flags": [
+            "chemformer-step-4: 反应类型置信度低"
+          ],
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+        },
+        "chemformer-route-5": {
+          "route_id": "chemformer-route-5",
+          "heuristic_overall_yield_percent": 62,
+          "heuristic_feasibility_score": 0.491,
+          "estimated_overall_yield_percent": 62,
+          "route_feasibility_score": 0.491,
+          "method": "heuristic_route_feasibility",
+          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "risk_flags": [
+            "chemformer-step-5: 反应类型置信度低"
+          ],
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+        }
+      },
+      "used_fallback": false,
+      "engine": "chemformer"
     }
   ],
   "jobs": []

@@ -598,6 +598,71 @@ def reject_transition_metals(smiles: str) -> None:
 
     mol = Chem.MolFromSmiles(smiles)
     if mol is None:
+        return
+
+def suggest_ts_config_with_deepseek(reaction_smiles: str, coordinates: list[dict[str, Any]]) -> dict[str, Any]:
+    import httpx
+    import json
+    import os
+    from core.yield_predictor import _deepseek_api_key, _parse_llm_json
+
+    api_key = _deepseek_api_key()
+    model = os.getenv("DEEPSEEK_MODEL", "deepseek-v4-flash")
+    if not api_key:
+        return {
+            "available": False,
+            "reason": "未配置 DEEPSEEK_API_KEY。",
+        }
+
+    prompt = {
+        "reaction_smiles": reaction_smiles,
+        "coordinates": coordinates,
+    }
+    
+    try:
+        response = httpx.post(
+            "https://api.deepseek.com/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": model,
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": (
+                            "你是有机计算化学专家。请基于反应 SMILES 和指定的过渡态扫描反应坐标（断键和成键），"
+                            "推荐适合寻找该过渡态的 Gaussian 量子化学计算参数。"
+                            "只输出 JSON 格式，不要包含其他内容。"
+                            "JSON 结构应包含："
+                            "- method: 推荐的 DFT 方法 (例如: wB97XD, B3LYP 等)"
+                            "- basis: 推荐的基组 (例如: def2SVP, 6-31G(d) 等)"
+                            "- temperature_k: 推荐的温度 (通常 298.15)"
+                            "- explanation: 简短的推荐理由"
+                        ),
+                    },
+                    {
+                        "role": "user",
+                        "content": f"反应信息：\n```json\n{json.dumps(prompt, ensure_ascii=False, indent=2)}\n```\n请输出推荐参数 JSON。",
+                    },
+                ],
+                "response_format": {"type": "json_object"},
+                "timeout": 30.0,
+            },
+        )
+        response.raise_for_status()
+        content = response.json()["choices"][0]["message"]["content"]
+        parsed = _parse_llm_json(content)
+        return {
+            "available": True,
+            "suggestion": parsed,
+        }
+    except Exception as exc:
+        return {
+            "available": False,
+            "reason": f"调用 DeepSeek 失败: {exc}",
+        }
         raise ValueError("无法解析反应物 SMILES。")
     transition_metals = set(range(21, 31)) | set(range(39, 49)) | set(range(72, 81))
     if any(atom.GetAtomicNum() in transition_metals for atom in mol.GetAtoms()):

@@ -84,6 +84,8 @@ import type {
   TsWorkflow,
 } from "./types";
 
+const CANVAS_GRID_SIZE = 20;
+
 type SelectedObject =
   | { kind: "cell"; cell: WorkspaceCell }
   | { kind: "molecule"; cell: WorkspaceCell; molecule: MoleculeObject; component?: MoleculeComponent }
@@ -595,10 +597,159 @@ function ResultPanel({ result }: { result: unknown }) {
       {propertyResult && <PropertyResultView result={propertyResult} />}
       {computeResult && <ComputeResultView result={computeResult} />}
       {gaussianJob && <GaussianJobView job={gaussianJob} />}
-      {Boolean(result) && !routeResult && !propertyResult && !computeResult && !gaussianJob && (
+      {isMapping(result) && <ReactionMappingView result={result as any} />}
+      {isYield(result) && <ReactionYieldView result={result as any} />}
+      {isExplanation(result) && <ReactionExplanationView result={result as any} />}
+      {isValidation(result) && <ReactionValidationView result={result as any} />}
+      {Boolean(result) && !routeResult && !propertyResult && !computeResult && !gaussianJob && !isYield(result) && !isMapping(result) && !isExplanation(result) && !isValidation(result) && (
         <GenericResultView result={result} />
       )}
     </section>
+  );
+}
+
+function isMapping(result: any) {
+  return typeof result?.mapped_reaction_smiles === "string";
+}
+
+function isYield(result: any) {
+  return typeof result?.predicted_yield_percent === "number" || typeof result?.heuristic_yield_percent === "number";
+}
+
+function isExplanation(result: any) {
+  return typeof result?.reaction_type === "string" && Array.isArray(result?.broken_bonds);
+}
+
+function isValidation(result: any) {
+  return typeof result?.is_valid === "boolean" && Array.isArray(result?.errors);
+}
+
+function ReactionMappingView({ result }: { result: any }) {
+  const [svg, setSvg] = useState<string>("");
+  useEffect(() => {
+    if (result?.mapped_reaction_smiles) {
+      fetch("/api/chem/render/molecule-svg", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ smiles: result.mapped_reaction_smiles, width: 600, height: 200 })
+      })
+      .then(r => r.json())
+      .then(d => { if (d.svg) setSvg(d.svg) })
+      .catch(console.error);
+    }
+  }, [result?.mapped_reaction_smiles]);
+  
+  return (
+    <div className="reaction-mapping-view result-block">
+      <h4>反应原子映射 (RXNMapper)</h4>
+      <table className="osf-table" style={{ marginBottom: "12px" }}>
+        <tbody>
+          <tr>
+            <td style={{ width: "120px" }}>置信度</td>
+            <td><strong>{result.confidence ?? "未知"}</strong></td>
+          </tr>
+        </tbody>
+      </table>
+      {svg ? (
+        <div style={{ background: "white", padding: "12px", borderRadius: "8px", border: "1px solid #e2e8f0", overflowX: "auto" }} dangerouslySetInnerHTML={{ __html: svg }} />
+      ) : (
+        <code>{result.mapped_reaction_smiles}</code>
+      )}
+    </div>
+  );
+}
+
+function ReactionYieldView({ result }: { result: any }) {
+  const yieldVal = result.predicted_yield_percent ?? result.heuristic_yield_percent;
+  return (
+    <div className="reaction-yield-view result-block">
+      <h4>产率预估结果</h4>
+      <table className="osf-table">
+        <tbody>
+          <tr>
+            <td style={{ width: "120px" }}>预估产率</td>
+            <td><strong>{typeof yieldVal === "number" ? `${yieldVal}%` : "未知"}</strong></td>
+          </tr>
+          <tr>
+            <td>置信度</td>
+            <td>{result.confidence ?? "未知"}</td>
+          </tr>
+          {result.factors && result.factors.length > 0 && (
+            <tr>
+              <td>影响因素</td>
+              <td>
+                <ul style={{ margin: 0, paddingLeft: "16px" }}>
+                  {result.factors.map((f: string, i: number) => <li key={i}>{f}</li>)}
+                </ul>
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function ReactionExplanationView({ result }: { result: any }) {
+  return (
+    <div className="reaction-explanation-view result-block">
+      <h4>{result.reaction_type ?? "反应解释"}</h4>
+      <p>{result.summary}</p>
+      <div className="metric-grid" style={{ marginTop: "12px" }}>
+        <div>
+          <span>断裂键</span>
+          <strong>{result.broken_bonds?.join(", ") || "-"}</strong>
+        </div>
+        <div>
+          <span>形成键</span>
+          <strong>{result.formed_bonds?.join(", ") || "-"}</strong>
+        </div>
+        <div>
+          <span>反应中心</span>
+          <strong>{result.reaction_center?.join(", ") || "-"}</strong>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ReactionValidationView({ result }: { result: any }) {
+  return (
+    <div className="reaction-validation-view result-block">
+      <h4>反应可行性校验</h4>
+      <table className="osf-table">
+        <tbody>
+          <tr>
+            <td style={{ width: "120px" }}>结果</td>
+            <td>
+              <strong style={{ color: result.is_valid ? "#10b981" : "#ef4444" }}>
+                {result.is_valid ? "通过 (Valid)" : "不通过 (Invalid)"}
+              </strong>
+            </td>
+          </tr>
+          {result.errors && result.errors.length > 0 && (
+            <tr>
+              <td>错误</td>
+              <td style={{ color: "#ef4444" }}>
+                <ul style={{ margin: 0, paddingLeft: "16px" }}>
+                  {result.errors.map((e: string, i: number) => <li key={i}>{e}</li>)}
+                </ul>
+              </td>
+            </tr>
+          )}
+          {result.warnings && result.warnings.length > 0 && (
+            <tr>
+              <td>警告</td>
+              <td style={{ color: "#f59e0b" }}>
+                <ul style={{ margin: 0, paddingLeft: "16px" }}>
+                  {result.warnings.map((w: string, i: number) => <li key={i}>{w}</li>)}
+                </ul>
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
@@ -1446,6 +1597,8 @@ function CellDetail({
       <div className="canvas">
         <ReactFlow
           key={cell.id}
+          snapToGrid={true}
+          snapGrid={[CANVAS_GRID_SIZE, CANVAS_GRID_SIZE]}
           nodes={nodes.map((node) => ({
             ...node,
             data: {
@@ -1487,7 +1640,7 @@ function CellDetail({
             });
           }}
         >
-          <Background />
+          <Background gap={CANVAS_GRID_SIZE} />
           <Controls />
         </ReactFlow>
       </div>
@@ -1642,17 +1795,21 @@ function EditorStrip({ cell, onUpdate }: { cell: WorkspaceCell; onUpdate: (cell:
   }
 
   return (
-    <div className="editor-strip">
-      <label>输入结构/反应/路线</label>
-      <textarea
-        value={input}
-        onChange={(event) => setInput(event.target.value)}
-        placeholder={"CCO\nCCO>>CC=O\nA.B>>C"}
-      />
-      <button onClick={addInput}>添加到画布</button>
-      <button className="ghost-button compact" onClick={() => setDrawerOpen(true)}>
-        打开绘图器
-      </button>
+    <div className="smiles-input-container">
+      <label className="smiles-input-title">输入 SMILES</label>
+      <div className="smiles-input-body">
+        <textarea
+          value={input}
+          onChange={(event) => setInput(event.target.value)}
+          placeholder={"CCO\nCCO>>CC=O\nA.B>>C"}
+        />
+        <div className="smiles-input-actions">
+          <button className="primary-button" onClick={addInput}>添加到画布</button>
+          <button className="ghost-button compact" onClick={() => setDrawerOpen(true)}>
+            打开绘图器
+          </button>
+        </div>
+      </div>
       {drawerOpen && (
         <KetcherModal
           initialSmiles={input.includes(">>") ? "" : input.split(/\r?\n/)[0] ?? ""}
@@ -2623,6 +2780,14 @@ function TransitionStateConfigModal({
           setWorkflow(nextWorkflow);
           hydrateWorkflowDefaults(nextWorkflow);
           setLoading(false);
+          
+          if (nextWorkflow?.mapping?.mapped_reaction_smiles && workspaceId) {
+             fetch(`/api/workspaces/${workspaceId}/cells/${cellId}/results/reaction-mapping`, {
+                 method: "PUT",
+                 headers: {"Content-Type": "application/json"},
+                 body: JSON.stringify({ record: { task_label: "映射反应原子（RXNMapper）", ...nextWorkflow.mapping } })
+             }).catch(console.error);
+          }
         }
       })
       .catch((err) => {
@@ -2908,6 +3073,38 @@ function TransitionStateConfigModal({
     && hasTsRunContext;
   const missingTsCoordinates = canConfigureWorkflow && coordinates.length === 0;
 
+  const [aiSuggestionLoading, setAiSuggestionLoading] = useState(false);
+  const [aiSuggestionResult, setAiSuggestionResult] = useState<any>(null);
+
+  async function handleSuggestConfig() {
+    setAiSuggestionLoading(true);
+    setAiSuggestionResult(null);
+    try {
+      const response = await fetch("/api/ts/suggest-config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          reaction_smiles: reactionSmiles,
+          coordinates,
+        }),
+      });
+      if (!response.ok) throw new Error("Failed to fetch AI suggestion");
+      const data = await response.json();
+      if (data.available && data.suggestion) {
+        if (data.suggestion.method) setMethod(data.suggestion.method);
+        if (data.suggestion.basis) setBasis(data.suggestion.basis);
+        if (data.suggestion.temperature_k) setTemperatureK(Number(data.suggestion.temperature_k));
+        setAiSuggestionResult(data.suggestion);
+      } else {
+        setError(data.reason || "AI 辅助推荐暂不可用。");
+      }
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setAiSuggestionLoading(false);
+    }
+  }
+
   async function handleSubmit() {
     if (!workflow || !canConfigureWorkflow || !selectedCandidateId || coordinates.length === 0) {
       setError("工作流尚未准备完成，或缺少反应坐标。请稍后重试并确认原子对。");
@@ -3054,7 +3251,26 @@ function TransitionStateConfigModal({
                     )}
                   </>
                 )}
-                <h4>1. 量子化学参数</h4>
+                <h4>1. 过渡态搜索算法</h4>
+                <div className="form-row">
+                  <label>算法模式</label>
+                  <select disabled defaultValue="pes">
+                    <option value="pes">柔性势能面扫描 (Relaxed PES Scan) - 稳定推荐</option>
+                    <option value="qst2">QST2 / QST3 (敬请期待)</option>
+                  </select>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "16px" }}>
+                  <h4>2. 量子化学参数</h4>
+                  <button type="button" className="secondary-button" onClick={handleSuggestConfig} disabled={aiSuggestionLoading}>
+                    {aiSuggestionLoading ? "正在请求..." : "AI 自动生成"}
+                  </button>
+                </div>
+                {aiSuggestionResult && (
+                  <div className="result-block" style={{ marginBottom: "12px", borderLeftColor: "#3b82f6" }}>
+                    <strong>AI 分析说明</strong>
+                    <p style={{ margin: 0 }}>{aiSuggestionResult.explanation}</p>
+                  </div>
+                )}
                 <div className="form-row">
                   <label>方法 (Method)</label>
                   <select value={method} onChange={(e) => setMethod(e.target.value)}>
@@ -3209,6 +3425,7 @@ function TransitionStateConfigModal({
                 )}
                 {shouldShowTsOutputPreview ? (
                   <>
+                    <TsPotentialEnergyChart gridPoints={workflow.grid_points || []} />
                     <h4>Gaussian 输出预览</h4>
                     <TsGaussianOutputPreview workflow={workflow} />
                   </>
@@ -3263,6 +3480,46 @@ function TransitionStateConfigModal({
           )}
           <button className="primary-button" disabled={loading || !!error || !canConfigureWorkflow || !selectedCandidateId || coordinates.length === 0} onClick={handleSubmit}>确认参数并启动自动闭环</button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function TsPotentialEnergyChart({ gridPoints }: { gridPoints: any[] }) {
+  const pointsWithEnergy = gridPoints.filter((p: any) => typeof p.energy_hartree === "number");
+  if (pointsWithEnergy.length < 2) return null;
+  const is1D = gridPoints[0]?.indices?.length === 1;
+  if (!is1D) {
+    return <div className="result-block"><p className="muted">当前为二维扫描，正在显示能量点。不支持一维曲线绘制。</p></div>;
+  }
+  const minEnergy = Math.min(...pointsWithEnergy.map(p => p.energy_hartree));
+  const maxEnergy = Math.max(...pointsWithEnergy.map(p => p.energy_hartree));
+  const energyRange = maxEnergy - minEnergy || 1;
+  const chartHeight = 150;
+  const chartWidth = 400;
+  
+  const polylinePoints = pointsWithEnergy.map((p, i) => {
+    const x = (i / (pointsWithEnergy.length - 1)) * chartWidth;
+    const y = chartHeight - ((p.energy_hartree - minEnergy) / energyRange) * (chartHeight - 20) - 10;
+    return `${x},${y}`;
+  }).join(" ");
+
+  return (
+    <div className="ts-pes-chart" style={{ marginBottom: "16px", padding: "12px", background: "white", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
+      <strong>一维扫描势能曲线</strong>
+      <div style={{ position: "relative", width: "100%", overflowX: "auto", marginTop: "12px" }}>
+        <svg width={chartWidth + 20} height={chartHeight} style={{ overflow: "visible" }}>
+          <polyline points={polylinePoints} fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinejoin="round" />
+          {pointsWithEnergy.map((p, i) => {
+            const x = (i / (pointsWithEnergy.length - 1)) * chartWidth;
+            const y = chartHeight - ((p.energy_hartree - minEnergy) / energyRange) * (chartHeight - 20) - 10;
+            return (
+              <circle key={p.point_id} cx={x} cy={y} r="4" fill={p.status === "succeeded" ? "#10b981" : "#ef4444"}>
+                <title>{`${p.point_id}: ${p.energy_hartree.toFixed(6)} Ha`}</title>
+              </circle>
+            );
+          })}
+        </svg>
       </div>
     </div>
   );
@@ -3698,8 +3955,8 @@ function chooseBestOrthogonalRoute(
         forbiddenTargetHandles.has(targetHandle);
       const sourcePoint = sideCenter(sourceRect, sourceHandle);
       const targetPoint = sideCenter(targetRect, targetHandle);
-      const sourcePort = sidePort(sourceRect, sourceHandle, 15);
-      const targetPort = sidePort(targetRect, targetHandle, 15);
+      const sourcePort = sidePort(sourceRect, sourceHandle, CANVAS_GRID_SIZE);
+      const targetPort = sidePort(targetRect, targetHandle, CANVAS_GRID_SIZE);
       const middle = findOrthogonalPath(sourcePort, targetPort, obstacles);
       const points = simplifyPoints([sourcePoint, sourcePort, ...middle, targetPort, targetPoint]);
       const isBlocked = isPathBlocked(points, obstacles);

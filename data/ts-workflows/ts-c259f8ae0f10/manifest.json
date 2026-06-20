@@ -1,0 +1,203 @@
+{
+  "workflow_id": "ts-c259f8ae0f10",
+  "workspace_id": "example-workspace",
+  "cell_id": "cell-example-molecule",
+  "reaction_id": "rxn-route-1781939635373-aizynth-route-1-s1-0",
+  "reaction_smiles": "CC(=O)O.CCC(=O)OC(C)=O>>CC(=O)OC(C)=O",
+  "included_agents": [],
+  "status": "failed",
+  "stage": "failed",
+  "validation_level": "未验证",
+  "created_at": "2026-06-20T10:04:17.282670+00:00",
+  "updated_at": "2026-06-20T10:04:43.713616+00:00",
+  "mapping": {
+    "reaction_smiles": "CC(=O)O.CCC(=O)OC(C)=O>>CC(=O)OC(C)=O",
+    "mapped_reaction_smiles": "[OH:4][C:5]([CH3:6])=[O:7].CCC(=O)O[C:2]([CH3:1])=[O:3]>>[CH3:1][C:2](=[O:3])[O:4][C:5]([CH3:6])=[O:7]",
+    "method": "rxnmapper_wsl",
+    "status": "mapped",
+    "confidence": "中",
+    "reaction_center": [
+      "反应物与产物结构差异区域"
+    ],
+    "formed_bonds": [
+      "待原子映射确认"
+    ],
+    "broken_bonds": [
+      "待原子映射确认"
+    ],
+    "note": "已通过 rxnmapper_wsl 运行 RXNMapper (confidence=0.546)；成键/断键已成功识别。"
+  },
+  "coordinates": [
+    {
+      "map1": 2,
+      "map2": 4,
+      "atom1": 10,
+      "atom2": 1,
+      "label": "C2–O4",
+      "element1": "C",
+      "element2": "O",
+      "kind": "formed",
+      "reactant_order": 0,
+      "product_order": 1,
+      "start": 3,
+      "end": 1.42
+    }
+  ],
+  "candidates": [
+    {
+      "candidate_id": "candidate-3",
+      "label": "候选构象 3",
+      "xyz": "24\nOrgSynFlow candidate 3\nC  -0.94901420 -0.13212679 -0.10048085\nC   0.46992396  0.32066341  0.00030966\nO   0.88332348  1.45524307 -0.16460619\nO   1.30932018 -0.68558536  0.30678688\nC  -4.53414758 -2.79083359  0.72366267\nC  -3.08882362 -2.87668043  1.18277729\nC  -2.11334997 -2.80673298  0.02613720\nO  -2.44827496 -2.69422482 -1.14211349\nO  -0.85417476 -2.89105964  0.53533666\nC   0.18350205 -2.84767334 -0.33980689\nC   1.46609514 -2.95582155  0.43434235\nO   0.15338194 -2.74074910 -1.55557352\nH  -1.58431446  0.72231632 -0.35038778\nH  -1.27619279 -0.54175127  0.85830694\nH  -1.04380274 -0.88059175 -0.89100647\nH   2.19075657 -0.25816762  0.34107782\nH  -4.72400314 -1.85013225  0.19619740\nH  -5.21059925 -2.84426839  1.58221143\nH  -4.77985206 -3.61232914  0.04251630\nH  -2.87694667 -2.04669008  1.86529452\nH  -2.93327407 -3.82384121  1.71031546\nH   1.55237708 -2.11626732  1.12886917\nH   1.49562970 -3.90654529  0.97277918\nH   2.31246018 -2.92229217 -0.25790726\n",
+      "fallback_method": "MMFF",
+      "preoptimization": "available",
+      "preoptimization_source": "xTB CLI via WSL",
+      "energy_hartree": -41.417151570318
+    },
+    {
+      "candidate_id": "candidate-2",
+      "label": "候选构象 2",
+      "xyz": "24\nOrgSynFlow candidate 2\nC  -0.95117085 -0.09011818  0.12382769\nC   0.46431728  0.27854491 -0.17457269\nO   0.85050023  1.30497588 -0.70624485\nO   1.33499114 -0.67111204  0.21417689\nC  -4.41385800  2.47189605  0.14873352\nC  -3.03516323  3.06626446 -0.08156314\nC  -1.93582321  2.22069184  0.52729949\nO  -2.13305903  1.18026223  1.13413649\nO  -0.74726497  2.83131163  0.26963768\nC   0.38127320  2.23390999  0.73228919\nC   1.56253490  3.07294756  0.33646378\nO   0.49139092  1.19629356  1.36604693\nH  -1.61265100  0.71323264 -0.21262761\nH  -1.08075071 -0.22096708  1.20095269\nH  -1.21570188 -1.00643974 -0.40955681\nH   2.21046579 -0.30811639 -0.03595531\nH  -4.49050102  1.47320200 -0.29388321\nH  -5.18269658  3.10625948 -0.30294952\nH  -4.62949654  2.38163854  1.21856317\nH  -2.85278332  3.14850535 -1.15839988\nH  -2.99292881  4.06461035  0.36690462\nH   1.61944834  3.14344394 -0.75277690\nH   1.47839641  4.06679041  0.78351381\nH   2.48053094  2.60401231  0.70258702\n",
+      "fallback_method": "MMFF",
+      "preoptimization": "available",
+      "preoptimization_source": "xTB CLI via WSL",
+      "energy_hartree": -41.251318434461
+    },
+    {
+      "candidate_id": "candidate-1",
+      "label": "候选构象 1",
+      "xyz": "24\nOrgSynFlow candidate 1\nC  -0.93652674 -0.03862148  0.22272395\nC   0.48669053  0.27779961 -0.09803991\nO   0.99148686  1.38617581 -0.14336823\nO   1.21406275 -0.82630193 -0.34893450\nC   5.68633238 -0.15338195  0.21574746\nC   4.28165411  0.29843721  0.57610363\nC   3.23144312 -0.31441489 -0.32707100\nO   3.48295085 -1.08384171 -1.24051293\nO   2.01530167  0.14768086  0.07216295\nC   0.92292892 -0.28138914 -0.61132475\nC  -0.29810673  0.34850192 -0.00440223\nO   0.86826410 -1.04479631 -1.56245479\nH  -1.40389405 -0.54444597 -0.62570095\nH  -0.98441821 -0.66412169  1.11747413\nH  -1.47869868  0.89113361  0.41701534\nH   2.11129752 -0.48161796 -0.54116983\nH   5.78289358 -1.24105909  0.29830131\nH   5.93851440  0.12828314 -0.81199356\nH   6.41855099  0.30699188  0.88616405\nH   4.06269856  0.00749207  1.60906585\nH   4.21968897  1.38850569  0.48941811\nH  -0.23376152  1.43658851 -0.08558077\nH  -0.39175788  0.04452127  1.04129778\nH  -1.18759553  0.01188055 -0.54492113\n",
+      "fallback_method": "MMFF",
+      "preoptimization": "available",
+      "preoptimization_source": "xTB CLI via WSL",
+      "energy_hartree": -33.028554580947
+    }
+  ],
+  "grid_points": [
+    {
+      "point_id": "scan-00",
+      "indices": [
+        0
+      ],
+      "values": [
+        3.0
+      ],
+      "status": "running",
+      "refined": false,
+      "started_at": "2026-06-20T10:04:43.708954+00:00"
+    },
+    {
+      "point_id": "scan-01",
+      "indices": [
+        1
+      ],
+      "values": [
+        2.8025
+      ],
+      "status": "pending",
+      "refined": false
+    },
+    {
+      "point_id": "scan-02",
+      "indices": [
+        2
+      ],
+      "values": [
+        2.605
+      ],
+      "status": "pending",
+      "refined": false
+    },
+    {
+      "point_id": "scan-03",
+      "indices": [
+        3
+      ],
+      "values": [
+        2.4074999999999998
+      ],
+      "status": "pending",
+      "refined": false
+    },
+    {
+      "point_id": "scan-04",
+      "indices": [
+        4
+      ],
+      "values": [
+        2.21
+      ],
+      "status": "pending",
+      "refined": false
+    },
+    {
+      "point_id": "scan-05",
+      "indices": [
+        5
+      ],
+      "values": [
+        2.0125
+      ],
+      "status": "pending",
+      "refined": false
+    },
+    {
+      "point_id": "scan-06",
+      "indices": [
+        6
+      ],
+      "values": [
+        1.815
+      ],
+      "status": "pending",
+      "refined": false
+    },
+    {
+      "point_id": "scan-07",
+      "indices": [
+        7
+      ],
+      "values": [
+        1.6175
+      ],
+      "status": "pending",
+      "refined": false
+    },
+    {
+      "point_id": "scan-08",
+      "indices": [
+        8
+      ],
+      "values": [
+        1.42
+      ],
+      "status": "pending",
+      "refined": false
+    }
+  ],
+  "ts_candidates": [],
+  "validation": {
+    "level": "未验证",
+    "warnings": []
+  },
+  "thermochemistry": null,
+  "config": {
+    "method": "wB97XD",
+    "basis": "def2SVP",
+    "solvent": null,
+    "charge": 0,
+    "multiplicity": 1,
+    "nproc": 4,
+    "memory": "4GB",
+    "temperature_k": 298.15,
+    "imaginary_threshold_cm1": -50,
+    "mode_overlap_threshold": 0.15,
+    "max_grid_points": 40,
+    "max_retries": 2
+  },
+  "error": "run_gaussian_job() got an unexpected keyword argument 'cancel_event'",
+  "warnings": [
+    "RXNMapper 映射置信度不足，必须人工确认原子对。"
+  ],
+  "requires_manual_coordinates": true,
+  "selected_candidate_id": "candidate-3"
+}
