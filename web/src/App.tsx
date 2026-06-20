@@ -3096,9 +3096,7 @@ function endpointOverridesForNode(node: Node, componentIndex: number | undefined
   if (!componentRect) return {};
   
   const parts = splitSmilesComponents(String(node.data?.smiles ?? ""));
-  // Force lines to only come out horizontally from the outermost sides of a multi-component block.
-  // We forbid top and bottom handles so the lines don't cross the titles or look messy.
-  const forbiddenHandles: Side[] = ["top", "bottom"];
+  const forbiddenHandles: Side[] = [];
   
   if (componentIndex > 0) {
     forbiddenHandles.push("left");
