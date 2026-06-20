@@ -186,6 +186,11 @@ export async function listJobs(): Promise<GaussianJob[]> {
   return data.jobs;
 }
 
+export async function cancelGaussianJob(jobId: string): Promise<GaussianJob> {
+  const { data } = await http.post(`/jobs/${jobId}/cancel`);
+  return data;
+}
+
 export async function getMoleculeCoordinates(smiles: string): Promise<{
   components: Array<{
     smiles: string;

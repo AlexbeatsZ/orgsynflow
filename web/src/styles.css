@@ -1298,6 +1298,22 @@ button {
   gap: 12px;
 }
 
+.gaussian-input-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.preview-sync-status {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.preview-sync-status.active {
+  color: #166534;
+  font-weight: 700;
+}
+
 .gaussian-input-editor {
   width: 100%;
   min-height: 240px;

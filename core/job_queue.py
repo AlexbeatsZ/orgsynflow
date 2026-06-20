@@ -50,6 +50,7 @@ class GaussianJobQueue:
     def __init__(self) -> None:
         self._jobs: dict[str, GaussianJob] = {}
         self._queue: deque[str] = deque()
+        self._cancel_events: dict[str, threading.Event] = {}
         self._lock = threading.Lock()
         self._worker: threading.Thread | None = None
 
@@ -90,12 +91,16 @@ class GaussianJobQueue:
             if job.status == "queued":
                 job.status = "cancelled"
                 job.finished_at = _now()
+                job.error = "Gaussian 作业已取消，尚未启动进程。"
                 try:
                     self._queue.remove(job_id)
                 except ValueError:
                     pass
             elif job.status == "running":
-                job.error = "Running Gaussian jobs cannot be cancelled in this first queue implementation."
+                self._cancel_events.setdefault(job_id, threading.Event()).set()
+                job.status = "cancelled"
+                job.finished_at = _now()
+                job.error = "已请求强制结束 Gaussian 进程。"
             return job.as_dict()
 
     def _ensure_worker_locked(self) -> None:
@@ -116,16 +121,28 @@ class GaussianJobQueue:
                 job.status = "running"
                 job.started_at = _now()
                 job.work_dir = str(orgsynflow_temp_dir("gaussian_jobs", job.job_id))
+                cancel_event = self._cancel_events.setdefault(job.job_id, threading.Event())
 
             try:
-                result = run_gaussian_job(job.gjf_text, work_dir=job.work_dir)
+                result = run_gaussian_job(job.gjf_text, work_dir=job.work_dir, cancel_event=cancel_event)
                 with self._lock:
+                    if cancel_event.is_set():
+                        job.result = result.as_dict()
+                        job.status = "cancelled"
+                        job.finished_at = job.finished_at or _now()
+                        job.error = "Gaussian 进程已被强制结束。"
+                        continue
                     job.result = result.as_dict()
                     job.status = "succeeded" if result.success else "failed"
                     job.finished_at = _now()
                     job.error = None if result.success else result.message
             except Exception as exc:
                 with self._lock:
+                    if self._cancel_events.setdefault(job.job_id, threading.Event()).is_set():
+                        job.status = "cancelled"
+                        job.error = "Gaussian 进程已被强制结束。"
+                        job.finished_at = job.finished_at or _now()
+                        continue
                     job.status = "failed"
                     job.error = str(exc)
                     job.finished_at = _now()

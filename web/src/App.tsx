@@ -40,6 +40,7 @@ import {
   addCell,
   analyzeRoute,
   calculateDescriptors,
+  cancelGaussianJob,
   createWorkspace,
   estimateYield,
   explainReaction,
@@ -1866,6 +1867,7 @@ function TaskPanel({
           jobs={jobs}
           onSave={onSave}
           refreshJobs={refreshJobs}
+          persistTaskRecord={persistTaskRecord}
           computeStatus={computeStatus}
         />
       )}
@@ -2257,6 +2259,7 @@ function MoleculeTasks({
   jobs,
   onSave,
   refreshJobs,
+  persistTaskRecord,
   computeStatus,
 }: {
   selected: Extract<SelectedObject, { kind: "molecule" }>;
@@ -2266,6 +2269,7 @@ function MoleculeTasks({
   jobs: GaussianJob[];
   onSave: (workspace?: Workspace | null) => Promise<void>;
   refreshJobs: () => Promise<void>;
+  persistTaskRecord: (cellId: string, key: string, record: CachedResult) => Promise<CachedResult>;
   computeStatus: ComputeStatus | null;
 }) {
   const { molecule, component } = selected;
@@ -2362,6 +2366,30 @@ function MoleculeTasks({
     void submitGaussian(gjfText, record?.config ?? {});
   }
 
+  async function forceCancelGaussian() {
+    const record = recordFor(gaussianTask);
+    if (!record?.job_id) return;
+    try {
+      const job = await cancelGaussianJob(record.job_id);
+      await persistTaskRecord(selected.cell.id, taskResultKey(gaussianTask), taskRecordFromJob(record, job));
+      await refreshJobs();
+    } catch (error) {
+      openModal({
+        kind: "task-error",
+        title: "强制结束 Gaussian 失败",
+        record: {
+          ...record,
+          status: "failed",
+          updated_at: new Date().toISOString(),
+          error: errorMessage(error),
+        },
+      });
+    }
+  }
+
+  const gaussianRecord = recordFor(gaussianTask);
+  const canCancelGaussian = Boolean(gaussianRecord?.job_id && taskStatusForRecord(gaussianRecord) === "running");
+
   return (
     <div className="task-group">
       <h3>{targetLabel}</h3>
@@ -2396,6 +2424,11 @@ function MoleculeTasks({
         onConfigure={() => setGaussianConfigOpen(true)}
         openModal={openModal}
       />
+      {canCancelGaussian && (
+        <button className="secondary-task-button danger-action" onClick={() => void forceCancelGaussian()}>
+          强制结束 Gaussian 进程
+        </button>
+      )}
       {gaussianConfigOpen && (
         <GaussianConfigModal
           smiles={targetSmiles}
@@ -3140,8 +3173,8 @@ function TransitionStateConfigModal({
           {workflow && ["paused", "partial", "failed"].includes(workflow.status) && (
             <button className="secondary-button" onClick={() => void handleWorkflowAction(workflow.status === "failed" ? "retry" : "resume")}>续算</button>
           )}
-          {workflow && !["completed", "cancelled"].includes(workflow.status) && (
-            <button className="secondary-button danger" onClick={() => void handleWorkflowAction("cancel")}>取消工作流</button>
+          {workflow && ["scanning", "refining", "ts_optimizing", "irc", "thermochemistry", "queued", "paused"].includes(workflow.status) && (
+            <button className="secondary-button danger" onClick={() => void handleWorkflowAction("cancel")}>强制结束进程</button>
           )}
           <button className="primary-button" disabled={loading || !!error || !canConfigureWorkflow || !selectedCandidateId || coordinates.length === 0} onClick={handleSubmit}>确认参数并启动自动闭环</button>
         </div>
@@ -3207,10 +3240,15 @@ function GaussianConfigModal({
   const [gjfText, setGjfText] = useState("");
   const [generating, setGenerating] = useState(true);
   const [generationError, setGenerationError] = useState("");
+  const [autoPreview, setAutoPreview] = useState(true);
 
   useEffect(() => {
+    if (!autoPreview) return;
     let cancelled = false;
-    makeGaussianInput(smiles)
+    setGenerating(true);
+    setGenerationError("");
+    const timer = window.setTimeout(() => {
+      makeGaussianInput(smiles, jobType, method, basis, charge, multiplicity)
       .then((gjf) => {
         if (!cancelled) setGjfText(gjf);
       })
@@ -3218,14 +3256,17 @@ function GaussianConfigModal({
         if (!cancelled) setGenerationError(errorMessage(error));
       })
       .finally(() => {
-        if (!cancelled) setGenerating(false);
-      });
+          if (!cancelled) setGenerating(false);
+        });
+    }, 250);
     return () => {
       cancelled = true;
+      window.clearTimeout(timer);
     };
-  }, [smiles]);
+  }, [smiles, jobType, method, basis, charge, multiplicity, autoPreview]);
 
   async function regenerate() {
+    setAutoPreview(true);
     setGenerating(true);
     setGenerationError("");
     try {
@@ -3278,14 +3319,20 @@ function GaussianConfigModal({
           </label>
           <div className="gaussian-input-heading">
             <strong>Gaussian 输入</strong>
-            <button className="ghost-button compact" onClick={() => void regenerate()} disabled={generating}>
-              <RotateCcw size={14} /> {generating ? "正在生成" : "按当前参数重新生成"}
-            </button>
+            <div className="gaussian-input-actions">
+              <span className={`preview-sync-status ${autoPreview ? "active" : ""}`}>{autoPreview ? "自动预览已开启" : "已手动编辑"}</span>
+              <button className="ghost-button compact" onClick={() => void regenerate()} disabled={generating}>
+                <RotateCcw size={14} /> {generating ? "正在生成" : "恢复自动预览"}
+              </button>
+            </div>
           </div>
           <textarea
             className="gaussian-input-editor"
             value={gjfText}
-            onChange={(event) => setGjfText(event.target.value)}
+            onChange={(event) => {
+              setAutoPreview(false);
+              setGjfText(event.target.value);
+            }}
             aria-label="Gaussian 输入"
           />
           {generationError && <div className="error-box gaussian-error">{generationError}</div>}
