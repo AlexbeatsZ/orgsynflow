@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   Background,
   BaseEdge,
@@ -1717,7 +1718,7 @@ function KetcherModal({
     }
   }
 
-  return (
+  const modal = (
     <div className="osf-modal-backdrop">
       <div className="osf-ketcher-modal">
         <div className="osf-modal-header">
@@ -1729,6 +1730,7 @@ function KetcherModal({
             <EditorComponent
               staticResourcesUrl="/"
               structServiceProvider={structServiceProvider}
+              disableMacromoleculesEditor
               errorHandler={(message: unknown) => setError(String(message))}
               onInit={(ketcher: any) => {
                 ketcherRef.current = ketcher;
@@ -1749,6 +1751,8 @@ function KetcherModal({
       </div>
     </div>
   );
+
+  return createPortal(modal, document.body);
 }
 
 function TaskPanel({

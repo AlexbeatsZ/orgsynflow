@@ -50,7 +50,7 @@ button {
 .primary-button,
 .cell-card,
 .task-group button,
-.editor-strip button {
+.editor-strip > button {
   border: 0;
   border-radius: 8px;
 }
@@ -477,20 +477,14 @@ button {
   flex-wrap: wrap;
 }
 
-.editor-strip div {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.editor-strip input {
+.editor-strip > input {
   width: 220px;
   border: 1px solid #cbd5e1;
   border-radius: 6px;
   padding: 7px;
 }
 
-.editor-strip textarea {
+.editor-strip > textarea {
   width: min(560px, 100%);
   min-height: 74px;
   border: 1px solid #cbd5e1;
@@ -1185,9 +1179,10 @@ button {
   position: fixed;
   inset: 0;
   background: rgba(15, 23, 42, 0.62);
-  z-index: 20;
-  display: grid;
-  place-items: center;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 24px;
 }
 
@@ -1404,6 +1399,8 @@ button {
 .osf-ketcher-host > div {
   height: 100%;
   width: 100%;
+  min-height: 0;
+  position: relative;
 }
 
 .error-box {
@@ -1413,29 +1410,6 @@ button {
   color: #991b1b;
   border: 1px solid #fecaca;
   border-radius: 8px;
-}
-
-/* Ketcher modal centering and sizing */
-.osf-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.osf-ketcher-modal {
-  background: white;
-  max-width: 90vw;
-  max-height: 90vh;
-  width: 800px;
-  height: 600px;
-  display: flex;
-  flex-direction: column;
-  border-radius: 8px;
-  overflow: hidden;
 }
 
 /* Engine Selector Modal styling */

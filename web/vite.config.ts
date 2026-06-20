@@ -8,7 +8,8 @@ export default defineConfig({
     global: "globalThis",
   },
   optimizeDeps: {
-    exclude: ["ketcher-standalone", "ketcher-react", "ketcher-core"],
+    include: ["ketcher-react", "ketcher-core", "lodash", "@babel/runtime/regenerator"],
+    exclude: ["ketcher-standalone/dist/binaryWasm"],
     esbuildOptions: {
       define: {
         "process.env": "{}",

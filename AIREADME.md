@@ -162,6 +162,8 @@ WSL 临时文件必须放在：
 - 任务面板中常驻的“查看计算队列（Gaussian）”和“查看路线候选”按钮已被移除。计算队列状态与结果已统一收拢到底部任务日志抽屉；路线预测成功后，点击绿色状态的预测路线任务按钮或任务日志中对应的成功记录，均能直接调起带交互操作（“加入当前画布”/“新建路线单元”）的路线候选弹窗，而不是无操作的静态展示。
 - 绿色“已完成”任务按钮不应只能查看旧结果；从任务面板点击已完成任务打开结果/路线候选窗口时，应在窗口底部保留“重新计算”入口，复用该任务原来的运行/重试逻辑。Gaussian 等需要参数的任务仍应保留“修改配置”入口。
 - Ketcher 引入的 `ketcher-react/dist/index.css` 含有大量全局样式，与项目自带的通用弹窗样式（如 `.modal-backdrop`、`.modal-header` 等）易发生类名冲突，导致弹窗不居中且 Wasm 交互错位。已将项目中所有 Modal 相关基础类名加前缀升级（如 `.osf-modal-backdrop`）。同时，对嵌入了复杂第三方组件的 Modal 容器，应避免使用 CSS Grid 布局，因为 Grid 布局会将第三方组件在运行时动态生成的 style/div 辅助节点强行作为网格项目进行排位，从而摧毁行高比例。必须统一使用 Flexbox 布局，并通过 `flex: 1` 和 `position: relative` 规范子容器的高度撑满与 Containing Block 定位基准。
+- Ketcher 绘图器不能渲染在 `.editor-strip` 这类有宽泛后代选择器的容器内部；`.editor-strip div/button/textarea` 会递归污染 Ketcher 内部几百个 div/button，导致工具栏和画布不可用。应通过 React Portal 挂到 `document.body`，并把 `.editor-strip` 样式收窄为直接子元素选择器。
+- Ketcher 3.15 在 Vite dev 下需要预构建 `ketcher-react`、`ketcher-core`、`lodash`、`@babel/runtime/regenerator`，否则会出现 “does not provide an export named default”。但不能预构建 `ketcher-standalone/dist/binaryWasm`，否则 Indigo worker 路径会被 Vite optimizer 破坏，表现为 `getSmiles()` 挂起或 worker 文件缺失。
 - TS 参数窗口曾使用未定义的 `osf-modal-window` 类，导致计算样式背景为完全透明，同时缺少阴影、裁剪和相对定位。TS 窗口应复用 `osf-config-modal` 基类，再由 `ts-config-modal` 覆盖尺寸和网格布局；不要新增没有基础视觉契约的 modal 类名。
 - 路线预测结果的展示不应只显示纯文本，当前已实现通过 `RouteCandidatePreview` 结合 `MoleculeDrawing` 和 SVG 路径直接在弹窗渲染反应合成树的预览，增强体验直观度。
 - 路线候选预览应以反应步骤为中心展示：多个反应物分别渲染结构并用 `+` 分隔，经过一根明确箭头指向产物。路线候选内容较长，必须使用带 `max-height` 和内部滚动的结果弹窗，不能复用无高度限制的配置弹窗。
@@ -309,7 +311,7 @@ WSL 临时文件必须放在：
 - [todo] 路线候选预览窗口还需要做得更像“候选路线浏览器”：预览多条路径、选择满意路径后插入当前工作区画布。
 - [todo] 路线画布的多步反应布局还需要优化，尤其是多反应、多反应物、多产物时的分层布局。
 - [done] 反应箭头的可视化应更明确：箭头可选中、可显示 step label、可打开反应任务。
-- [todo] Ketcher 绘图输入需要进一步验证：绘制后回填 SMILES、加入画布、结构渲染三步应稳定。
+- [done] Ketcher 绘图输入已验证：弹窗居中且脱离 `.editor-strip`，Ketcher 内部控件正常加载；`CCO` 可通过 Ketcher API 回填输入框并关闭弹窗；随后点击“添加到画布”会新增 React Flow 节点并渲染结构 SVG。
 - [todo] 工作区保存/自动保存策略需要更清楚，避免测试或打开示例时污染 fixture。
 - [todo] AiZynthFinder 真实配置、stock/policy 路径和路线树解析仍可继续强化。
 - [todo] OPERA 输出字段在 UI 中还需要更好地结构化展示。
@@ -362,7 +364,7 @@ WSL 临时文件必须放在：
 
 - [done] 2026-06-20 修复三维构象编辑器：3Dmol 改为前端本地依赖并统一加载，viewer 高度不再被 flex 压缩；补齐每个子模型的标准 XYZ 头，球棍结构正常显示，原子编号默认关闭。普通左键拖拽视角；Shift/Ctrl 起点通过 3Dmol 射线拾取自动确定命中的分子，分别执行当前视图平面平移和刚体旋转，无需预先切换操作对象。预览坐标与 GJF 输入联动。浏览器回归：从分子 2 上直接 Shift 拖拽会自动选择分子 2 并只改变平移；随后从分子 1 上直接 Ctrl 拖拽会自动选择分子 1 并只改变旋转；`npm run build` 成功。
 - [done] 2026-06-20 修复 CREST 不可用结果被前端误记为成功的问题：通用任务会根据 payload 的 `available/status` 推断失败状态并保留 `reason`；历史上已缓存为 `succeeded + unavailable` 的记录也会显示为失败、允许重试。实时 API 已通过 WSL CREST 3.0.2 对水分子完成构象搜索（return code 0），确认当前工具链可用。
-- [todo] Ketcher 绘图窗口仍未居中且无法使用。已尝试在 `web/src/styles.css` 中移除 `.osf-ketcher-host > div` 的 flex 布局并提交（commit e1b4eb0），但窗口仍表现异常，需要进一步调试布局和可能的全局 CSS 冲突。
+- [done] 2026-06-20 修复 Ketcher 绘图窗口无法使用：`KetcherModal` 改为 React Portal 挂到 `document.body`，避开 `.editor-strip` 后代选择器污染；`.editor-strip` 样式收窄为直接子元素；移除重复 `.osf-modal-backdrop/.osf-ketcher-modal` 定义；Vite dev optimizer 改为预构建 `ketcher-react/ketcher-core/lodash/@babel/runtime/regenerator`，同时排除 `ketcher-standalone/dist/binaryWasm` 以保留 Indigo worker 路径。验证：`cd web; npm run build` 成功；临时 5174 dev server + headless Chrome/CDP 打开 Ketcher，modal 1180×754 居中、`portalEscapedEditorStrip=true`、内部控件 108 个，`CCO` 回填并关闭，添加画布后节点数 9→10 且 React Flow 节点内 SVG 存在。
 
 - [done] 2026-06-20 Fix canvas UI interactions: allow dragging blocks from sub-molecules, and add selected styling to single-molecule blocks.
 - [done] 2026-06-20 加入 Gaussian/TS 实时输出预览：参考 `temp/main.py` 的 SCF/收敛表/告警解析，增强 `core.gaussian` parser；普通 Gaussian 队列和 TS workflow 状态返回当前 log 摘要；前端在结果窗口和 TS modal 中显示实时 SCF、优化步骤、最新收敛表及日志告警。TS 自动闭环窗口提交后不再继续显示静态 GJF，而改为 Gaussian 输出预览。另修复 `run_gaussian_job(cancel_event=...)` 接口缺失，并为 TS 初始构象添加碎片重叠防护。
