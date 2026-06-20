@@ -2959,7 +2959,8 @@ function smilesComponentsContains(nodeSmiles: string, targetSmiles: string): boo
 function toEdges(cell: WorkspaceCell): Edge[] {
   if (cell.canvas?.edges?.length) {
     const nodeMap = new Map(toNodes(cell).map((node) => [node.id, node]));
-    return cell.canvas.edges.map((edge) => normalizeEdge(edge, nodeMap));
+    const usedHandles = new Map<string, { incoming: Set<Side>; outgoing: Set<Side> }>();
+    return cell.canvas.edges.map((edge) => normalizeEdge(edge, nodeMap, usedHandles));
   }
   const molecules = cell.objects.molecules ?? [];
   const reactions = cell.objects.reactions ?? [];
@@ -3013,19 +3014,35 @@ async function fetchTsPlan(reactionSmiles: string): Promise<TransitionStatePlanR
   return null;
 }
 
-function normalizeEdge(edge: Edge, nodeMap?: Map<string, Node>): Edge {
+function normalizeEdge(edge: Edge, nodeMap?: Map<string, Node>, usedHandles?: Map<string, { incoming: Set<Side>; outgoing: Set<Side> }>): Edge {
   const sourceNode = nodeMap?.get(edge.source);
   const targetNode = nodeMap?.get(edge.target);
   const endpointOverrides = sourceNode && targetNode
     ? endpointOverridesForEdge(edge, targetNode)
     : {};
+  
+  const forbiddenSourceHandles = usedHandles?.get(edge.source)?.incoming ?? new Set<Side>();
+  const forbiddenTargetHandles = usedHandles?.get(edge.target)?.outgoing ?? new Set<Side>();
+
   const route = nodeMap && sourceNode && targetNode
-    ? chooseBestOrthogonalRoute(sourceNode, targetNode, [...nodeMap.values()], endpointOverrides)
+    ? chooseBestOrthogonalRoute(sourceNode, targetNode, [...nodeMap.values()], endpointOverrides, forbiddenSourceHandles, forbiddenTargetHandles)
     : {
         sourceHandle: normalizeMoleculeHandleId(edge.sourceHandle, "right"),
         targetHandle: normalizeMoleculeHandleId(edge.targetHandle, "left"),
         points: [],
       };
+      
+  if (usedHandles && route.sourceHandle) {
+    let state = usedHandles.get(edge.source);
+    if (!state) { state = { incoming: new Set(), outgoing: new Set() }; usedHandles.set(edge.source, state); }
+    state.outgoing.add(route.sourceHandle as Side);
+  }
+  if (usedHandles && route.targetHandle) {
+    let state = usedHandles.get(edge.target);
+    if (!state) { state = { incoming: new Set(), outgoing: new Set() }; usedHandles.set(edge.target, state); }
+    state.incoming.add(route.targetHandle as Side);
+  }
+
   return {
     ...edge,
     type: "orthogonal",
@@ -3068,7 +3085,8 @@ function makeCanvasEdge(edge: Partial<Edge> & { source: string; target: string }
 
 function routeEdgesForNodes(edges: Edge[], nodes: Node[]): Edge[] {
   const nodeMap = new Map(nodes.map((node) => [node.id, node]));
-  return edges.map((edge) => normalizeEdge(edge, nodeMap));
+  const usedHandles = new Map<string, { incoming: Set<Side>; outgoing: Set<Side> }>();
+  return edges.map((edge) => normalizeEdge(edge, nodeMap, usedHandles));
 }
 
 function chooseBestOrthogonalRoute(
@@ -3076,6 +3094,8 @@ function chooseBestOrthogonalRoute(
   target: Node,
   nodes: Node[],
   endpointOverrides: RouteEndpointOverrides = {},
+  forbiddenSourceHandles: Set<Side> = new Set(),
+  forbiddenTargetHandles: Set<Side> = new Set(),
 ): { sourceHandle: string; targetHandle: string; points: Point[] } {
   const sourceNodeRect = nodeRect(source);
   const targetNodeRect = nodeRect(target);
@@ -3087,21 +3107,27 @@ function chooseBestOrthogonalRoute(
     .concat(endpointOverrides.obstacles ?? [])
     .concat([expandRect(nodeRect(source), 18)])
     .concat(endpointOverrides.targetRect ? [] : [expandRect(nodeRect(target), 18)]);
-  const candidates: Array<{ sourceHandle: Side; targetHandle: Side; points: Point[] }> = [];
+  const candidates: Array<{ sourceHandle: Side; targetHandle: Side; points: Point[]; isForbidden: boolean; isBlocked: boolean }> = [];
 
   for (const sourceHandle of sideOrder(sourceRect, targetRect)) {
     for (const targetHandle of sideOrder(targetRect, sourceRect)) {
+      const isForbidden = forbiddenSourceHandles.has(sourceHandle) || forbiddenTargetHandles.has(targetHandle);
       const sourcePoint = sideCenter(sourceRect, sourceHandle);
       const targetPoint = sideCenter(targetRect, targetHandle);
       const sourcePort = sidePort(sourceRect, sourceHandle, 28);
       const targetPort = sidePort(targetRect, targetHandle, 28);
       const middle = findOrthogonalPath(sourcePort, targetPort, obstacles);
       const points = simplifyPoints([sourcePoint, sourcePort, ...middle, targetPort, targetPoint]);
-      candidates.push({ sourceHandle, targetHandle, points });
+      const isBlocked = isPathBlocked(points, obstacles);
+      candidates.push({ sourceHandle, targetHandle, points, isForbidden, isBlocked });
     }
   }
 
-  candidates.sort((left, right) => compareRoutePoints(left.points, right.points));
+  candidates.sort((left, right) => {
+    if (left.isForbidden !== right.isForbidden) return left.isForbidden ? 1 : -1;
+    if (left.isBlocked !== right.isBlocked) return left.isBlocked ? 1 : -1;
+    return compareRoutePoints(left.points, right.points);
+  });
   const best = candidates[0] ?? {
     sourceHandle: "right" as Side,
     targetHandle: "left" as Side,
@@ -3112,6 +3138,13 @@ function chooseBestOrthogonalRoute(
     targetHandle: best.targetHandle,
     points: best.points,
   };
+}
+
+function isPathBlocked(points: Point[], obstacles: NodeRect[]): boolean {
+  for (let i = 0; i < points.length - 1; i++) {
+    if (segmentBlocked(points[i], points[i + 1], obstacles)) return true;
+  }
+  return false;
 }
 
 function findOrthogonalPath(start: Point, end: Point, obstacles: NodeRect[]): Point[] {
