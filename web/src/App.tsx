@@ -3089,12 +3089,60 @@ async function fetchTsPlan(reactionSmiles: string): Promise<TransitionStatePlanR
   return null;
 }
 
+function endpointOverridesForNode(node: Node, componentIndex: number | undefined | null, isTarget: boolean): RouteEndpointOverrides {
+  if (componentIndex === undefined || componentIndex === null || Number.isNaN(componentIndex)) return {};
+  
+  const componentRect = componentRectForNode(node, componentIndex);
+  if (!componentRect) return {};
+  
+  const parts = splitSmilesComponents(String(node.data?.smiles ?? ""));
+  // Force lines to only come out horizontally from the outermost sides of a multi-component block.
+  // We forbid top and bottom handles so the lines don't cross the titles or look messy.
+  const forbiddenHandles: Side[] = ["top", "bottom"];
+  
+  if (componentIndex > 0) {
+    forbiddenHandles.push("left");
+  }
+  if (componentIndex < parts.length - 1) {
+    forbiddenHandles.push("right");
+  }
+
+  const overrides: RouteEndpointOverrides = {
+    obstacles: componentObstacleRects(node, componentIndex),
+  };
+  
+  if (isTarget) {
+    overrides.targetRect = componentRect;
+    overrides.forbiddenTargetHandles = forbiddenHandles;
+  } else {
+    overrides.sourceRect = componentRect;
+    overrides.forbiddenSourceHandles = forbiddenHandles;
+  }
+  
+  return overrides;
+}
+
 function normalizeEdge(edge: Edge, nodeMap?: Map<string, Node>, usedHandles?: Map<string, { incoming: Set<Side>; outgoing: Set<Side> }>): Edge {
   const sourceNode = nodeMap?.get(edge.source);
   const targetNode = nodeMap?.get(edge.target);
-  const endpointOverrides = sourceNode && targetNode
-    ? endpointOverridesForEdge(edge, targetNode)
-    : {};
+  
+  let endpointOverrides: RouteEndpointOverrides = {};
+  
+  if (sourceNode) {
+    const sourceIndex = Number(edge.data?.sourceComponentIndex);
+    const sourceOverrides = endpointOverridesForNode(sourceNode, Number.isNaN(sourceIndex) ? null : sourceIndex, false);
+    endpointOverrides = { ...endpointOverrides, ...sourceOverrides };
+  }
+  
+  if (targetNode) {
+    const targetIndex = Number(edge.data?.targetComponentIndex);
+    const targetOverrides = endpointOverridesForNode(targetNode, Number.isNaN(targetIndex) ? null : targetIndex, true);
+    endpointOverrides = {
+      ...endpointOverrides,
+      ...targetOverrides,
+      obstacles: [...(endpointOverrides.obstacles || []), ...(targetOverrides.obstacles || [])]
+    };
+  }
   
   const forbiddenSourceHandles = usedHandles?.get(edge.source)?.incoming ?? new Set<Side>();
   const forbiddenTargetHandles = usedHandles?.get(edge.target)?.outgoing ?? new Set<Side>();
@@ -3182,20 +3230,16 @@ function chooseBestOrthogonalRoute(
     .concat(endpointOverrides.obstacles ?? [])
     .concat([expandRect(nodeRect(source), 18)])
     .concat(endpointOverrides.targetRect ? [] : [expandRect(nodeRect(target), 18)]);
-  const candidates: Array<{ sourceHandle: Side; targetHandle: Side; points: Point[]; isForbidden: boolean; isBlocked: boolean }> = [];
-
-  const combinedForbiddenSource = new Set([
-    ...forbiddenSourceHandles,
-    ...(endpointOverrides.forbiddenSourceHandles ?? []),
-  ]);
-  const combinedForbiddenTarget = new Set([
-    ...forbiddenTargetHandles,
-    ...(endpointOverrides.forbiddenTargetHandles ?? []),
-  ]);
+  const candidates: Array<{ sourceHandle: Side; targetHandle: Side; points: Point[]; isStructurallyForbidden: boolean; isOverlapForbidden: boolean; isBlocked: boolean }> = [];
 
   for (const sourceHandle of sideOrder(sourceRect, targetRect)) {
     for (const targetHandle of sideOrder(targetRect, sourceRect)) {
-      const isForbidden = combinedForbiddenSource.has(sourceHandle) || combinedForbiddenTarget.has(targetHandle);
+      const isStructurallyForbidden = 
+        (endpointOverrides.forbiddenSourceHandles?.includes(sourceHandle) ?? false) || 
+        (endpointOverrides.forbiddenTargetHandles?.includes(targetHandle) ?? false);
+      const isOverlapForbidden = 
+        forbiddenSourceHandles.has(sourceHandle) || 
+        forbiddenTargetHandles.has(targetHandle);
       const sourcePoint = sideCenter(sourceRect, sourceHandle);
       const targetPoint = sideCenter(targetRect, targetHandle);
       const sourcePort = sidePort(sourceRect, sourceHandle, 28);
@@ -3203,12 +3247,13 @@ function chooseBestOrthogonalRoute(
       const middle = findOrthogonalPath(sourcePort, targetPort, obstacles);
       const points = simplifyPoints([sourcePoint, sourcePort, ...middle, targetPort, targetPoint]);
       const isBlocked = isPathBlocked(points, obstacles);
-      candidates.push({ sourceHandle, targetHandle, points, isForbidden, isBlocked });
+      candidates.push({ sourceHandle, targetHandle, points, isStructurallyForbidden, isOverlapForbidden, isBlocked });
     }
   }
 
   candidates.sort((left, right) => {
-    if (left.isForbidden !== right.isForbidden) return left.isForbidden ? 1 : -1;
+    if (left.isStructurallyForbidden !== right.isStructurallyForbidden) return left.isStructurallyForbidden ? 1 : -1;
+    if (left.isOverlapForbidden !== right.isOverlapForbidden) return left.isOverlapForbidden ? 1 : -1;
     if (left.isBlocked !== right.isBlocked) return left.isBlocked ? 1 : -1;
     return compareRoutePoints(left.points, right.points);
   });
@@ -3411,29 +3456,6 @@ function nodeRect(node: Node): NodeRect {
     right: node.position.x + width,
     top: node.position.y,
     bottom: node.position.y + height,
-  };
-}
-
-function endpointOverridesForEdge(edge: Pick<Edge, "data">, targetNode: Node): RouteEndpointOverrides {
-  const targetComponentIndex = Number(edge.data?.targetComponentIndex);
-  const targetComponentRect = Number.isInteger(targetComponentIndex)
-    ? componentRectForNode(targetNode, targetComponentIndex)
-    : null;
-  if (!targetComponentRect) return {};
-  
-  const parts = splitSmilesComponents(String(targetNode.data?.smiles ?? ""));
-  const forbiddenTargetHandles: Side[] = [];
-  if (targetComponentIndex > 0) {
-    forbiddenTargetHandles.push("left");
-  }
-  if (targetComponentIndex < parts.length - 1) {
-    forbiddenTargetHandles.push("right");
-  }
-
-  return {
-    targetRect: targetComponentRect,
-    obstacles: componentObstacleRects(targetNode, targetComponentIndex),
-    forbiddenTargetHandles,
   };
 }
 
