@@ -391,6 +391,7 @@ button {
   pointer-events: none;
 }
 
+.react-flow__node.selected .molecule-node,
 .react-flow__node.connection-source-node .molecule-node {
   border-color: #2563eb;
   box-shadow:

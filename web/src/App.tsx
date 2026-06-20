@@ -1345,7 +1345,7 @@ function MoleculeNode({ id, data }: NodeProps) {
             return (
               <button
                 type="button"
-                className={`molecule-component nodrag nowheel ${selectedComponentId === componentId ? "selected" : ""}`}
+                className={`molecule-component nowheel ${selectedComponentId === componentId ? "selected" : ""}`}
                 key={`${component}-${index}`}
                 onClick={() => {
                   onActivateComponent?.(index);
