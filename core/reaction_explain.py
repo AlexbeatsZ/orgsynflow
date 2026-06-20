@@ -79,7 +79,7 @@ def explain_reaction(reaction_smiles: str | None, template: str | None = None) -
         formed_bonds=["待原子映射确认"],
         broken_bonds=["待原子映射确认"],
         reaction_center=["反应物与产物结构差异区域"],
-        summary="当前使用规则保底解释；后续可接入 RXNMapper 进行原子映射并精确定位成键和断键。",
+        summary="基于反应结构差异进行解释。",
     )
 
 

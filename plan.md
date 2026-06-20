@@ -135,7 +135,7 @@
 
 - Gaussian/cclib/GoodVibes 解析路径有确定 fallback。
 - TS 相关功能不宣称“自动保证正确”，只输出验证等级。
-- 产率结果不再伪装成真实模型，清楚区分 heuristic、ML feature、trained model。
+- 产率结果清楚区分 heuristic、ML feature、trained model。
 - 每条路线可聚合展示路线分数、估计总收率、最高能垒和主要风险。
 
 ## Public Interfaces

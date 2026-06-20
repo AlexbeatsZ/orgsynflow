@@ -3,14 +3,14 @@
   "id": "example-workspace",
   "title": "Example workspace",
   "created_at": "2026-06-14T00:00:00+00:00",
-  "updated_at": "2026-06-20T12:17:28.617127+00:00",
+  "updated_at": "2026-06-20T12:30:12.784424+00:00",
   "cells": [
     {
       "id": "cell-example-molecule",
       "type": "molecule",
       "title": "Ethanol",
       "created_at": "2026-06-14T00:00:00+00:00",
-      "updated_at": "2026-06-20T11:09:27.554215+00:00",
+      "updated_at": "2026-06-20T12:30:12.783984+00:00",
       "canvas": {
         "nodes": [
           {
@@ -1310,11 +1310,11 @@
                 "estimated_overall_yield_percent": 57,
                 "route_feasibility_score": 0.763,
                 "method": "heuristic_route_feasibility",
-                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "applicability_domain": "规则启发式。",
                 "risk_flags": [
                   "s1: 反应类型置信度低"
                 ],
-                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
               },
               "aizynth-route-2": {
                 "route_id": "aizynth-route-2",
@@ -1323,11 +1323,11 @@
                 "estimated_overall_yield_percent": 57,
                 "route_feasibility_score": 0.763,
                 "method": "heuristic_route_feasibility",
-                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "applicability_domain": "规则启发式。",
                 "risk_flags": [
                   "s1: 反应类型置信度低"
                 ],
-                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
               },
               "aizynth-route-3": {
                 "route_id": "aizynth-route-3",
@@ -1336,11 +1336,11 @@
                 "estimated_overall_yield_percent": 57,
                 "route_feasibility_score": 0.763,
                 "method": "heuristic_route_feasibility",
-                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "applicability_domain": "规则启发式。",
                 "risk_flags": [
                   "s1: 反应类型置信度低"
                 ],
-                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
               }
             },
             "engine": "aizynthfinder"
@@ -1584,11 +1584,11 @@
                 "estimated_overall_yield_percent": 60,
                 "route_feasibility_score": 0.78,
                 "method": "heuristic_route_feasibility",
-                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "applicability_domain": "规则启发式。",
                 "risk_flags": [
                   "s1: 反应类型置信度低"
                 ],
-                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
               },
               "aizynth-route-2": {
                 "route_id": "aizynth-route-2",
@@ -1597,11 +1597,11 @@
                 "estimated_overall_yield_percent": 60,
                 "route_feasibility_score": 0.78,
                 "method": "heuristic_route_feasibility",
-                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "applicability_domain": "规则启发式。",
                 "risk_flags": [
                   "s1: 反应类型置信度低"
                 ],
-                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
               },
               "aizynth-route-3": {
                 "route_id": "aizynth-route-3",
@@ -1610,7 +1610,7 @@
                 "estimated_overall_yield_percent": 0,
                 "route_feasibility_score": 0,
                 "method": "heuristic_route_feasibility",
-                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "applicability_domain": "规则启发式。",
                 "risk_flags": [
                   "路线没有反应步骤"
                 ],
@@ -1667,19 +1667,19 @@
             "reaction_center": [
               "反应物与产物结构差异区域"
             ],
-            "summary": "当前使用规则保底解释；后续可接入 RXNMapper 进行原子映射并精确定位成键和断键。",
+            "summary": "基于反应结构差异进行解释。",
             "yield_estimate": {
               "heuristic_yield_percent": 60,
               "predicted_yield_percent": 60,
               "method": "heuristic_rules",
               "confidence": "低",
-              "applicability_domain": "规则启发式；仅适合演示和相对排序。",
+              "applicability_domain": "规则启发式。",
               "factors": [
                 "当前反应类型未匹配到专门规则。",
                 "存在卤素或潜在离去基，需关注副反应。",
                 "多组分前体明确，适合做单步路线验证。"
               ],
-              "note": "规则演示估计：用于相对排序和课堂展示，不是 DRFP/HTE 真实产率模型，不能替代实验测定。"
+              "note": "规则估计。"
             }
           }
         },
@@ -1815,7 +1815,7 @@
                 "estimated_overall_yield_percent": 0,
                 "route_feasibility_score": 0,
                 "method": "heuristic_route_feasibility",
-                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "applicability_domain": "规则启发式。",
                 "risk_flags": [
                   "路线没有反应步骤"
                 ],
@@ -1828,11 +1828,11 @@
                 "estimated_overall_yield_percent": 57,
                 "route_feasibility_score": 0.464,
                 "method": "heuristic_route_feasibility",
-                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "applicability_domain": "规则启发式。",
                 "risk_flags": [
                   "s1: 反应类型置信度低"
                 ],
-                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
               }
             },
             "engine": "aizynthfinder"
@@ -2108,9 +2108,9 @@
               "drfp_254": 0,
               "drfp_255": 0
             },
-            "applicability_domain": "取决于后续训练数据；DRFP 只提供反应指纹，不单独构成产率模型。",
+            "applicability_domain": "DRFP 反应指纹。",
             "unavailable": [],
-            "note": "已通过 WSL chem 环境生成 DRFP 特征；需要配套训练模型才能输出 ML 产率。"
+            "note": "已通过 WSL chem 环境生成 DRFP 特征。"
           }
         },
         "reaction:rxn-route-1781939599832-aizynth-route-3-s1-0:reaction-yield": {
@@ -2129,12 +2129,12 @@
               "predicted_yield_percent": 57,
               "method": "heuristic_rules",
               "confidence": "低",
-              "applicability_domain": "规则启发式；仅适合演示和相对排序。",
+              "applicability_domain": "规则启发式。",
               "factors": [
                 "当前反应类型未匹配到专门规则。",
                 "存在卤素或潜在离去基，需关注副反应。"
               ],
-              "note": "规则演示估计：用于相对排序和课堂展示，不是 DRFP/HTE 真实产率模型，不能替代实验测定。"
+              "note": "规则估计。"
             },
             "ml_features": {
               "reaction_smiles": "O=C(O)c1ccccc1OCc1ccccc1>>O=C(O)c1ccccc1O",
@@ -2398,9 +2398,9 @@
                 "drfp_254": 0,
                 "drfp_255": 0
               },
-              "applicability_domain": "取决于后续训练数据；DRFP 只提供反应指纹，不单独构成产率模型。",
+              "applicability_domain": "DRFP 反应指纹。",
               "unavailable": [],
-              "note": "已通过 WSL chem 环境生成 DRFP 特征；需要配套训练模型才能输出 ML 产率。"
+              "note": "已通过 WSL chem 环境生成 DRFP 特征。"
             },
             "trained_model": {
               "available": false,
@@ -2409,8 +2409,8 @@
               "predicted_yield": null
             },
             "confidence": "低",
-            "applicability_domain": "规则启发式；仅适合演示和相对排序。",
-            "note": "产率采用分层输出：启发式估计可用，DRFP/RXNFP/Chemprop 仅在安装和配置后作为特征或训练模型层使用。"
+            "applicability_domain": "规则启发式。",
+            "note": "产率采用分层输出。"
           }
         },
         "molecule:route-1781945982590-aizynth-route-2-molecule-m2:retrosynthesis": {
@@ -2642,11 +2642,11 @@
                 "estimated_overall_yield_percent": 65,
                 "route_feasibility_score": 0.508,
                 "method": "heuristic_route_feasibility",
-                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "applicability_domain": "规则启发式。",
                 "risk_flags": [
                   "chemformer-step-1: 反应类型置信度低"
                 ],
-                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
               },
               "chemformer-route-2": {
                 "route_id": "chemformer-route-2",
@@ -2655,11 +2655,11 @@
                 "estimated_overall_yield_percent": 65,
                 "route_feasibility_score": 0.508,
                 "method": "heuristic_route_feasibility",
-                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "applicability_domain": "规则启发式。",
                 "risk_flags": [
                   "chemformer-step-2: 反应类型置信度低"
                 ],
-                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
               }
             },
             "engine": "chemformer"
@@ -2962,7 +2962,7 @@
               "reaction_center": [
                 "反应物与产物结构差异区域"
               ],
-              "summary": "当前使用规则保底解释；后续可接入 RXNMapper 进行原子映射并精确定位成键和断键。"
+              "summary": "基于反应结构差异进行解释。"
             },
             "feasibility": {
               "method": "layered_heuristic_plus_optional_features",
@@ -2972,13 +2972,13 @@
                 "predicted_yield_percent": 60,
                 "method": "heuristic_rules",
                 "confidence": "低",
-                "applicability_domain": "规则启发式；仅适合演示和相对排序。",
+                "applicability_domain": "规则启发式。",
                 "factors": [
                   "当前反应类型未匹配到专门规则。",
                   "存在卤素或潜在离去基，需关注副反应。",
                   "多组分前体明确，适合做单步路线验证。"
                 ],
-                "note": "规则演示估计：用于相对排序和课堂展示，不是 DRFP/HTE 真实产率模型，不能替代实验测定。"
+                "note": "规则估计。"
               },
               "ml_features": {
                 "reaction_smiles": "CC(=O)O.CCC(=O)OC(C)=O>>CC(=O)OC(C)=O",
@@ -3242,9 +3242,9 @@
                   "drfp_254": 0,
                   "drfp_255": 1
                 },
-                "applicability_domain": "取决于后续训练数据；DRFP 只提供反应指纹，不单独构成产率模型。",
+                "applicability_domain": "DRFP 反应指纹。",
                 "unavailable": [],
-                "note": "已通过 WSL chem 环境生成 DRFP 特征；需要配套训练模型才能输出 ML 产率。"
+                "note": "已通过 WSL chem 环境生成 DRFP 特征。"
               },
               "trained_model": {
                 "available": false,
@@ -3253,8 +3253,8 @@
                 "predicted_yield": null
               },
               "confidence": "低",
-              "applicability_domain": "规则启发式；仅适合演示和相对排序。",
-              "note": "产率采用分层输出：启发式估计可用，DRFP/RXNFP/Chemprop 仅在安装和配置后作为特征或训练模型层使用。"
+              "applicability_domain": "规则启发式。",
+              "note": "产率采用分层输出。"
             }
           }
         },
@@ -3274,13 +3274,13 @@
               "predicted_yield_percent": 60,
               "method": "heuristic_rules",
               "confidence": "低",
-              "applicability_domain": "规则启发式；仅适合演示和相对排序。",
+              "applicability_domain": "规则启发式。",
               "factors": [
                 "当前反应类型未匹配到专门规则。",
                 "存在卤素或潜在离去基，需关注副反应。",
                 "多组分前体明确，适合做单步路线验证。"
               ],
-              "note": "规则演示估计：用于相对排序和课堂展示，不是 DRFP/HTE 真实产率模型，不能替代实验测定。"
+              "note": "规则估计。"
             },
             "ml_features": {
               "reaction_smiles": "CC(=O)O.CCC(=O)OC(C)=O>>CC(=O)OC(C)=O",
@@ -3544,9 +3544,9 @@
                 "drfp_254": 0,
                 "drfp_255": 1
               },
-              "applicability_domain": "取决于后续训练数据；DRFP 只提供反应指纹，不单独构成产率模型。",
+              "applicability_domain": "DRFP 反应指纹。",
               "unavailable": [],
-              "note": "已通过 WSL chem 环境生成 DRFP 特征；需要配套训练模型才能输出 ML 产率。"
+              "note": "已通过 WSL chem 环境生成 DRFP 特征。"
             },
             "trained_model": {
               "available": false,
@@ -3555,8 +3555,8 @@
               "predicted_yield": null
             },
             "confidence": "低",
-            "applicability_domain": "规则启发式；仅适合演示和相对排序。",
-            "note": "产率采用分层输出：启发式估计可用，DRFP/RXNFP/Chemprop 仅在安装和配置后作为特征或训练模型层使用。"
+            "applicability_domain": "规则启发式。",
+            "note": "产率采用分层输出。"
           }
         },
         "reaction:rxn-route-1781939635373-aizynth-route-1-s1-0:reaction-features": {
@@ -3829,9 +3829,9 @@
               "drfp_254": 0,
               "drfp_255": 1
             },
-            "applicability_domain": "取决于后续训练数据；DRFP 只提供反应指纹，不单独构成产率模型。",
+            "applicability_domain": "DRFP 反应指纹。",
             "unavailable": [],
-            "note": "已通过 WSL chem 环境生成 DRFP 特征；需要配套训练模型才能输出 ML 产率。"
+            "note": "已通过 WSL chem 环境生成 DRFP 特征。"
           }
         },
         "reaction:rxn-route-example-aspirin-phenol-acetylation:reaction-mapping": {
@@ -3877,13 +3877,13 @@
               "predicted_yield_percent": 76,
               "method": "heuristic_rules",
               "confidence": "中",
-              "applicability_domain": "规则启发式；仅适合演示和相对排序。",
+              "applicability_domain": "规则启发式。",
               "factors": [
                 "乙酰化通常是教学演示中较稳健的官能团转化。",
                 "存在卤素或潜在离去基，需关注副反应。",
                 "多组分前体明确，适合做单步路线验证。"
               ],
-              "note": "规则演示估计：用于相对排序和课堂展示，不是 DRFP/HTE 真实产率模型，不能替代实验测定。"
+              "note": "规则估计。"
             },
             "ml_features": {
               "reaction_smiles": "O=C(O)c1ccccc1O.CC(=O)OC(C)=O>>CC(=O)Oc1ccccc1C(=O)O",
@@ -4147,9 +4147,9 @@
                 "drfp_254": 0,
                 "drfp_255": 0
               },
-              "applicability_domain": "取决于后续训练数据；DRFP 只提供反应指纹，不单独构成产率模型。",
+              "applicability_domain": "DRFP 反应指纹。",
               "unavailable": [],
-              "note": "已通过 WSL chem 环境生成 DRFP 特征；需要配套训练模型才能输出 ML 产率。"
+              "note": "已通过 WSL chem 环境生成 DRFP 特征。"
             },
             "trained_model": {
               "available": false,
@@ -4158,8 +4158,8 @@
               "predicted_yield": null
             },
             "confidence": "中",
-            "applicability_domain": "规则启发式；仅适合演示和相对排序。",
-            "note": "产率采用分层输出：启发式估计可用，DRFP/RXNFP/Chemprop 仅在安装和配置后作为特征或训练模型层使用。",
+            "applicability_domain": "规则启发式。",
+            "note": "产率采用分层输出。",
             "llm_estimate": {
               "available": true,
               "method": "deepseek_chat_completion:deepseek-v4-flash",
@@ -4181,7 +4181,7 @@
                 "反应后加水淬灭，用有机溶剂萃取",
                 "可通过重结晶或蒸馏纯化"
               ],
-              "applicability_domain": "规则启发式；仅适合演示和相对排序。该估算基于已知化学知识，适用于酚羟基的乙酰化反应，不适用于其他类型反应。",
+              "applicability_domain": "规则启发式。该估算基于已知化学知识，适用于酚羟基的乙酰化反应。",
               "note": "LLM 临时代估：用于补充说明和初筛，不计入 trained_model 层。"
             }
           }
@@ -4241,13 +4241,13 @@
                 "predicted_yield_percent": 76,
                 "method": "heuristic_rules",
                 "confidence": "中",
-                "applicability_domain": "规则启发式；仅适合演示和相对排序。",
+                "applicability_domain": "规则启发式。",
                 "factors": [
                   "乙酰化通常是教学演示中较稳健的官能团转化。",
                   "存在卤素或潜在离去基，需关注副反应。",
                   "多组分前体明确，适合做单步路线验证。"
                 ],
-                "note": "规则演示估计：用于相对排序和课堂展示，不是 DRFP/HTE 真实产率模型，不能替代实验测定。"
+                "note": "规则估计。"
               },
               "ml_features": {
                 "reaction_smiles": "O=C(O)c1ccccc1O.CC(=O)OC(C)=O>>CC(=O)Oc1ccccc1C(=O)O",
@@ -4511,9 +4511,9 @@
                   "drfp_254": 0,
                   "drfp_255": 0
                 },
-                "applicability_domain": "取决于后续训练数据；DRFP 只提供反应指纹，不单独构成产率模型。",
+                "applicability_domain": "DRFP 反应指纹。",
                 "unavailable": [],
-                "note": "已通过 WSL chem 环境生成 DRFP 特征；需要配套训练模型才能输出 ML 产率。"
+                "note": "已通过 WSL chem 环境生成 DRFP 特征。"
               },
               "trained_model": {
                 "available": false,
@@ -4522,9 +4522,446 @@
                 "predicted_yield": null
               },
               "confidence": "中",
-              "applicability_domain": "规则启发式；仅适合演示和相对排序。",
-              "note": "产率采用分层输出：启发式估计可用，DRFP/RXNFP/Chemprop 仅在安装和配置后作为特征或训练模型层使用。"
+              "applicability_domain": "规则启发式。",
+              "note": "产率采用分层输出。"
             }
+          }
+        },
+        "reaction:rxn-route-example-aspirin-phenol-acetylation:reaction-explanation": {
+          "task_id": "reaction-explanation",
+          "task_label": "解释反应",
+          "object_id": "rxn-route-example-aspirin-phenol-acetylation",
+          "object_kind": "reaction",
+          "object_label": "Phenol acetylation",
+          "status": "succeeded",
+          "updated_at": "2026-06-20T12:28:03.411Z",
+          "payload": {
+            "reaction_smiles": "O=C(O)c1ccccc1O.CC(=O)OC(C)=O>>CC(=O)Oc1ccccc1C(=O)O",
+            "reaction_type": "酰化/乙酰化",
+            "formed_bonds": [
+              "C-O"
+            ],
+            "broken_bonds": [
+              "酸酐 C-O"
+            ],
+            "reaction_center": [
+              "酰基碳",
+              "酚羟基氧"
+            ],
+            "summary": "酚羟基氧作为亲核中心进攻酸酐酰基碳，形成酯键；该步骤可视为亲核取代型乙酰化。",
+            "yield_estimate": {
+              "heuristic_yield_percent": 76,
+              "predicted_yield_percent": 76,
+              "method": "heuristic_rules",
+              "confidence": "中",
+              "applicability_domain": "规则启发式。",
+              "factors": [
+                "乙酰化通常是教学演示中较稳健的官能团转化。",
+                "存在卤素或潜在离去基，需关注副反应。",
+                "多组分前体明确，适合做单步路线验证。"
+              ],
+              "note": "规则估计。"
+            }
+          }
+        },
+        "reaction:rxn-route-1781939592082-aizynth-route-2-s1-0:reaction-validation": {
+          "task_id": "reaction-validation",
+          "task_label": "校验反应可行性",
+          "object_id": "rxn-route-1781939592082-aizynth-route-2-s1-0",
+          "object_kind": "reaction",
+          "object_label": "AiZynth step",
+          "status": "succeeded",
+          "updated_at": "2026-06-20T12:28:20.431Z",
+          "payload": {
+            "reaction_smiles": "COC(=O)c1ccccc1O>>O=C(O)c1ccccc1O",
+            "valid": true,
+            "status": "valid",
+            "errors": [],
+            "warnings": [
+              "Element counts are not balanced; check missing reagents, salts, or byproducts."
+            ],
+            "element_balance": {
+              "available": true,
+              "reactants": {
+                "C": 8,
+                "O": 3
+              },
+              "products": {
+                "O": 3,
+                "C": 7
+              },
+              "delta": {
+                "C": -1
+              },
+              "balanced": false
+            },
+            "explanation": {
+              "reaction_smiles": "COC(=O)c1ccccc1O>>O=C(O)c1ccccc1O",
+              "reaction_type": "通用转化",
+              "formed_bonds": [
+                "待原子映射确认"
+              ],
+              "broken_bonds": [
+                "待原子映射确认"
+              ],
+              "reaction_center": [
+                "反应物与产物结构差异区域"
+              ],
+              "summary": "基于反应结构差异进行解释。"
+            },
+            "feasibility": {
+              "method": "layered_heuristic_plus_optional_features",
+              "status": "features_available",
+              "heuristic": {
+                "heuristic_yield_percent": 57,
+                "predicted_yield_percent": 57,
+                "method": "heuristic_rules",
+                "confidence": "低",
+                "applicability_domain": "规则启发式。",
+                "factors": [
+                  "当前反应类型未匹配到专门规则。",
+                  "存在卤素或潜在离去基，需关注副反应。"
+                ],
+                "note": "规则估计。"
+              },
+              "ml_features": {
+                "reaction_smiles": "COC(=O)c1ccccc1O>>O=C(O)c1ccccc1O",
+                "method": "drfp",
+                "status": "available",
+                "features": {
+                  "drfp_0": 0,
+                  "drfp_1": 0,
+                  "drfp_2": 0,
+                  "drfp_3": 0,
+                  "drfp_4": 0,
+                  "drfp_5": 0,
+                  "drfp_6": 0,
+                  "drfp_7": 0,
+                  "drfp_8": 0,
+                  "drfp_9": 0,
+                  "drfp_10": 0,
+                  "drfp_11": 0,
+                  "drfp_12": 0,
+                  "drfp_13": 0,
+                  "drfp_14": 0,
+                  "drfp_15": 0,
+                  "drfp_16": 0,
+                  "drfp_17": 0,
+                  "drfp_18": 0,
+                  "drfp_19": 0,
+                  "drfp_20": 0,
+                  "drfp_21": 0,
+                  "drfp_22": 0,
+                  "drfp_23": 0,
+                  "drfp_24": 0,
+                  "drfp_25": 0,
+                  "drfp_26": 0,
+                  "drfp_27": 0,
+                  "drfp_28": 0,
+                  "drfp_29": 0,
+                  "drfp_30": 0,
+                  "drfp_31": 0,
+                  "drfp_32": 0,
+                  "drfp_33": 0,
+                  "drfp_34": 0,
+                  "drfp_35": 0,
+                  "drfp_36": 0,
+                  "drfp_37": 1,
+                  "drfp_38": 0,
+                  "drfp_39": 0,
+                  "drfp_40": 0,
+                  "drfp_41": 0,
+                  "drfp_42": 0,
+                  "drfp_43": 0,
+                  "drfp_44": 0,
+                  "drfp_45": 0,
+                  "drfp_46": 0,
+                  "drfp_47": 0,
+                  "drfp_48": 0,
+                  "drfp_49": 0,
+                  "drfp_50": 0,
+                  "drfp_51": 0,
+                  "drfp_52": 0,
+                  "drfp_53": 0,
+                  "drfp_54": 0,
+                  "drfp_55": 0,
+                  "drfp_56": 0,
+                  "drfp_57": 0,
+                  "drfp_58": 0,
+                  "drfp_59": 0,
+                  "drfp_60": 0,
+                  "drfp_61": 0,
+                  "drfp_62": 0,
+                  "drfp_63": 0,
+                  "drfp_64": 0,
+                  "drfp_65": 0,
+                  "drfp_66": 0,
+                  "drfp_67": 0,
+                  "drfp_68": 0,
+                  "drfp_69": 0,
+                  "drfp_70": 0,
+                  "drfp_71": 0,
+                  "drfp_72": 0,
+                  "drfp_73": 0,
+                  "drfp_74": 0,
+                  "drfp_75": 0,
+                  "drfp_76": 0,
+                  "drfp_77": 0,
+                  "drfp_78": 0,
+                  "drfp_79": 0,
+                  "drfp_80": 0,
+                  "drfp_81": 0,
+                  "drfp_82": 0,
+                  "drfp_83": 0,
+                  "drfp_84": 0,
+                  "drfp_85": 0,
+                  "drfp_86": 0,
+                  "drfp_87": 0,
+                  "drfp_88": 0,
+                  "drfp_89": 0,
+                  "drfp_90": 1,
+                  "drfp_91": 1,
+                  "drfp_92": 0,
+                  "drfp_93": 0,
+                  "drfp_94": 0,
+                  "drfp_95": 0,
+                  "drfp_96": 0,
+                  "drfp_97": 0,
+                  "drfp_98": 0,
+                  "drfp_99": 0,
+                  "drfp_100": 0,
+                  "drfp_101": 0,
+                  "drfp_102": 0,
+                  "drfp_103": 0,
+                  "drfp_104": 0,
+                  "drfp_105": 0,
+                  "drfp_106": 0,
+                  "drfp_107": 0,
+                  "drfp_108": 1,
+                  "drfp_109": 0,
+                  "drfp_110": 0,
+                  "drfp_111": 0,
+                  "drfp_112": 0,
+                  "drfp_113": 0,
+                  "drfp_114": 0,
+                  "drfp_115": 0,
+                  "drfp_116": 0,
+                  "drfp_117": 0,
+                  "drfp_118": 0,
+                  "drfp_119": 0,
+                  "drfp_120": 0,
+                  "drfp_121": 0,
+                  "drfp_122": 1,
+                  "drfp_123": 1,
+                  "drfp_124": 0,
+                  "drfp_125": 0,
+                  "drfp_126": 0,
+                  "drfp_127": 0,
+                  "drfp_128": 0,
+                  "drfp_129": 0,
+                  "drfp_130": 0,
+                  "drfp_131": 1,
+                  "drfp_132": 0,
+                  "drfp_133": 0,
+                  "drfp_134": 1,
+                  "drfp_135": 0,
+                  "drfp_136": 0,
+                  "drfp_137": 0,
+                  "drfp_138": 0,
+                  "drfp_139": 0,
+                  "drfp_140": 0,
+                  "drfp_141": 0,
+                  "drfp_142": 0,
+                  "drfp_143": 0,
+                  "drfp_144": 0,
+                  "drfp_145": 0,
+                  "drfp_146": 0,
+                  "drfp_147": 0,
+                  "drfp_148": 0,
+                  "drfp_149": 0,
+                  "drfp_150": 0,
+                  "drfp_151": 0,
+                  "drfp_152": 0,
+                  "drfp_153": 0,
+                  "drfp_154": 0,
+                  "drfp_155": 0,
+                  "drfp_156": 0,
+                  "drfp_157": 0,
+                  "drfp_158": 0,
+                  "drfp_159": 0,
+                  "drfp_160": 0,
+                  "drfp_161": 0,
+                  "drfp_162": 0,
+                  "drfp_163": 0,
+                  "drfp_164": 0,
+                  "drfp_165": 0,
+                  "drfp_166": 0,
+                  "drfp_167": 0,
+                  "drfp_168": 0,
+                  "drfp_169": 0,
+                  "drfp_170": 0,
+                  "drfp_171": 0,
+                  "drfp_172": 0,
+                  "drfp_173": 0,
+                  "drfp_174": 0,
+                  "drfp_175": 0,
+                  "drfp_176": 0,
+                  "drfp_177": 0,
+                  "drfp_178": 0,
+                  "drfp_179": 0,
+                  "drfp_180": 1,
+                  "drfp_181": 0,
+                  "drfp_182": 0,
+                  "drfp_183": 0,
+                  "drfp_184": 0,
+                  "drfp_185": 0,
+                  "drfp_186": 0,
+                  "drfp_187": 0,
+                  "drfp_188": 0,
+                  "drfp_189": 1,
+                  "drfp_190": 0,
+                  "drfp_191": 0,
+                  "drfp_192": 0,
+                  "drfp_193": 0,
+                  "drfp_194": 0,
+                  "drfp_195": 0,
+                  "drfp_196": 0,
+                  "drfp_197": 0,
+                  "drfp_198": 0,
+                  "drfp_199": 0,
+                  "drfp_200": 0,
+                  "drfp_201": 0,
+                  "drfp_202": 0,
+                  "drfp_203": 0,
+                  "drfp_204": 0,
+                  "drfp_205": 0,
+                  "drfp_206": 0,
+                  "drfp_207": 0,
+                  "drfp_208": 0,
+                  "drfp_209": 0,
+                  "drfp_210": 0,
+                  "drfp_211": 0,
+                  "drfp_212": 0,
+                  "drfp_213": 0,
+                  "drfp_214": 0,
+                  "drfp_215": 0,
+                  "drfp_216": 1,
+                  "drfp_217": 0,
+                  "drfp_218": 0,
+                  "drfp_219": 0,
+                  "drfp_220": 0,
+                  "drfp_221": 1,
+                  "drfp_222": 0,
+                  "drfp_223": 0,
+                  "drfp_224": 0,
+                  "drfp_225": 0,
+                  "drfp_226": 0,
+                  "drfp_227": 0,
+                  "drfp_228": 0,
+                  "drfp_229": 0,
+                  "drfp_230": 0,
+                  "drfp_231": 0,
+                  "drfp_232": 0,
+                  "drfp_233": 0,
+                  "drfp_234": 0,
+                  "drfp_235": 0,
+                  "drfp_236": 0,
+                  "drfp_237": 0,
+                  "drfp_238": 1,
+                  "drfp_239": 0,
+                  "drfp_240": 0,
+                  "drfp_241": 0,
+                  "drfp_242": 0,
+                  "drfp_243": 0,
+                  "drfp_244": 0,
+                  "drfp_245": 0,
+                  "drfp_246": 0,
+                  "drfp_247": 0,
+                  "drfp_248": 0,
+                  "drfp_249": 1,
+                  "drfp_250": 0,
+                  "drfp_251": 0,
+                  "drfp_252": 0,
+                  "drfp_253": 0,
+                  "drfp_254": 0,
+                  "drfp_255": 1
+                },
+                "applicability_domain": "DRFP 反应指纹。",
+                "unavailable": [],
+                "note": "已通过 WSL chem 环境生成 DRFP 特征。"
+              },
+              "trained_model": {
+                "available": false,
+                "method": "chemprop_or_rxn_yields_placeholder",
+                "reason": "当前未配置训练好的产率模型权重；不会输出伪 ML 产率。",
+                "predicted_yield": null
+              },
+              "confidence": "低",
+              "applicability_domain": "规则启发式。",
+              "note": "产率采用分层输出。"
+            }
+          }
+        },
+        "reaction:rxn-route-1781939592082-aizynth-route-2-s1-0:reaction-explanation": {
+          "task_id": "reaction-explanation",
+          "task_label": "解释反应",
+          "object_id": "rxn-route-1781939592082-aizynth-route-2-s1-0",
+          "object_kind": "reaction",
+          "object_label": "AiZynth step",
+          "status": "succeeded",
+          "updated_at": "2026-06-20T12:29:41.885Z",
+          "payload": {
+            "reaction_smiles": "COC(=O)c1ccccc1O>>O=C(O)c1ccccc1O",
+            "reaction_type": "通用转化",
+            "formed_bonds": [
+              "待原子映射确认"
+            ],
+            "broken_bonds": [
+              "待原子映射确认"
+            ],
+            "reaction_center": [
+              "反应物与产物结构差异区域"
+            ],
+            "summary": "基于反应结构差异进行解释。",
+            "yield_estimate": {
+              "heuristic_yield_percent": 57,
+              "predicted_yield_percent": 57,
+              "method": "heuristic_rules",
+              "confidence": "低",
+              "applicability_domain": "规则启发式。",
+              "factors": [
+                "当前反应类型未匹配到专门规则。",
+                "存在卤素或潜在离去基，需关注副反应。"
+              ],
+              "note": "规则估计。"
+            }
+          }
+        },
+        "reaction:rxn-route-1781939592082-aizynth-route-2-s1-0:reaction-mapping": {
+          "task_id": "reaction-mapping",
+          "task_label": "映射反应原子（RXNMapper）",
+          "object_id": "rxn-route-1781939592082-aizynth-route-2-s1-0",
+          "object_kind": "reaction",
+          "object_label": "AiZynth step",
+          "engine": "RXNMapper",
+          "status": "succeeded",
+          "updated_at": "2026-06-20T12:30:12.764Z",
+          "payload": {
+            "reaction_smiles": "COC(=O)c1ccccc1O>>O=C(O)c1ccccc1O",
+            "mapped_reaction_smiles": "C[O:3][C:2](=[O:1])[c:4]1[cH:5][cH:6][cH:7][cH:8][c:9]1[OH:10]>>[O:1]=[C:2]([OH:3])[c:4]1[cH:5][cH:6][cH:7][cH:8][c:9]1[OH:10]",
+            "method": "rxnmapper_wsl",
+            "status": "mapped",
+            "confidence": "高",
+            "reaction_center": [
+              "反应物与产物结构差异区域"
+            ],
+            "formed_bonds": [
+              "待原子映射确认"
+            ],
+            "broken_bonds": [
+              "待原子映射确认"
+            ],
+            "note": "已通过 rxnmapper_wsl 运行 RXNMapper (confidence=0.898)；成键/断键已成功识别。"
           }
         }
       }
@@ -5584,11 +6021,11 @@
                 "estimated_overall_yield_percent": 57,
                 "route_feasibility_score": 0.763,
                 "method": "heuristic_route_feasibility",
-                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "applicability_domain": "规则启发式。",
                 "risk_flags": [
                   "s1: 反应类型置信度低"
                 ],
-                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
               },
               "aizynth-route-2": {
                 "route_id": "aizynth-route-2",
@@ -5597,11 +6034,11 @@
                 "estimated_overall_yield_percent": 60,
                 "route_feasibility_score": 0.78,
                 "method": "heuristic_route_feasibility",
-                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "applicability_domain": "规则启发式。",
                 "risk_flags": [
                   "s1: 反应类型置信度低"
                 ],
-                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
               },
               "aizynth-route-3": {
                 "route_id": "aizynth-route-3",
@@ -5610,11 +6047,11 @@
                 "estimated_overall_yield_percent": 57,
                 "route_feasibility_score": 0.763,
                 "method": "heuristic_route_feasibility",
-                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "applicability_domain": "规则启发式。",
                 "risk_flags": [
                   "s1: 反应类型置信度低"
                 ],
-                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
               }
             },
             "engine": "aizynthfinder"
@@ -6253,13 +6690,13 @@
                 "estimated_overall_yield_percent": 19.5,
                 "route_feasibility_score": 0.457,
                 "method": "heuristic_route_feasibility",
-                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "applicability_domain": "规则启发式。",
                 "risk_flags": [
                   "s1: 反应类型置信度低",
                   "s2: 反应类型置信度低",
                   "s3: 反应类型置信度低"
                 ],
-                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
               },
               "aizynth-route-2": {
                 "route_id": "aizynth-route-2",
@@ -6268,7 +6705,7 @@
                 "estimated_overall_yield_percent": 6.7,
                 "route_feasibility_score": 0.267,
                 "method": "heuristic_route_feasibility",
-                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "applicability_domain": "规则启发式。",
                 "risk_flags": [
                   "s1: 反应类型置信度低",
                   "s2: 反应类型置信度低",
@@ -6276,7 +6713,7 @@
                   "s4: 反应类型置信度低",
                   "s5: 反应类型置信度低"
                 ],
-                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
               },
               "aizynth-route-3": {
                 "route_id": "aizynth-route-3",
@@ -6285,7 +6722,7 @@
                 "estimated_overall_yield_percent": 3.8,
                 "route_feasibility_score": 0.246,
                 "method": "heuristic_route_feasibility",
-                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "applicability_domain": "规则启发式。",
                 "risk_flags": [
                   "s1: 反应类型置信度低",
                   "s2: 反应类型置信度低",
@@ -6294,7 +6731,7 @@
                   "s5: 反应类型置信度低",
                   "s6: 反应类型置信度低"
                 ],
-                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
               }
             },
             "engine": "aizynthfinder"
@@ -6718,11 +7155,11 @@
                 "estimated_overall_yield_percent": 62,
                 "route_feasibility_score": 0.491,
                 "method": "heuristic_route_feasibility",
-                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "applicability_domain": "规则启发式。",
                 "risk_flags": [
                   "chemformer-step-1: 反应类型置信度低"
                 ],
-                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
               },
               "chemformer-route-2": {
                 "route_id": "chemformer-route-2",
@@ -6731,11 +7168,11 @@
                 "estimated_overall_yield_percent": 62,
                 "route_feasibility_score": 0.491,
                 "method": "heuristic_route_feasibility",
-                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "applicability_domain": "规则启发式。",
                 "risk_flags": [
                   "chemformer-step-2: 反应类型置信度低"
                 ],
-                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
               },
               "chemformer-route-3": {
                 "route_id": "chemformer-route-3",
@@ -6744,11 +7181,11 @@
                 "estimated_overall_yield_percent": 62,
                 "route_feasibility_score": 0.491,
                 "method": "heuristic_route_feasibility",
-                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "applicability_domain": "规则启发式。",
                 "risk_flags": [
                   "chemformer-step-3: 反应类型置信度低"
                 ],
-                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
               },
               "chemformer-route-4": {
                 "route_id": "chemformer-route-4",
@@ -6757,11 +7194,11 @@
                 "estimated_overall_yield_percent": 62,
                 "route_feasibility_score": 0.491,
                 "method": "heuristic_route_feasibility",
-                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "applicability_domain": "规则启发式。",
                 "risk_flags": [
                   "chemformer-step-4: 反应类型置信度低"
                 ],
-                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
               },
               "chemformer-route-5": {
                 "route_id": "chemformer-route-5",
@@ -6770,11 +7207,11 @@
                 "estimated_overall_yield_percent": 62,
                 "route_feasibility_score": 0.491,
                 "method": "heuristic_route_feasibility",
-                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "applicability_domain": "规则启发式。",
                 "risk_flags": [
                   "chemformer-step-5: 反应类型置信度低"
                 ],
-                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
               }
             },
             "engine": "chemformer"
@@ -7068,11 +7505,11 @@
                 "estimated_overall_yield_percent": 57,
                 "route_feasibility_score": 0.763,
                 "method": "heuristic_route_feasibility",
-                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "applicability_domain": "规则启发式。",
                 "risk_flags": [
                   "s1: 反应类型置信度低"
                 ],
-                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
               },
               "aizynth-route-2": {
                 "route_id": "aizynth-route-2",
@@ -7081,11 +7518,11 @@
                 "estimated_overall_yield_percent": 57,
                 "route_feasibility_score": 0.763,
                 "method": "heuristic_route_feasibility",
-                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "applicability_domain": "规则启发式。",
                 "risk_flags": [
                   "s1: 反应类型置信度低"
                 ],
-                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
               },
               "aizynth-route-3": {
                 "route_id": "aizynth-route-3",
@@ -7094,11 +7531,11 @@
                 "estimated_overall_yield_percent": 57,
                 "route_feasibility_score": 0.763,
                 "method": "heuristic_route_feasibility",
-                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "applicability_domain": "规则启发式。",
                 "risk_flags": [
                   "s1: 反应类型置信度低"
                 ],
-                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
               }
             },
             "engine": "aizynthfinder"
@@ -7552,7 +7989,7 @@
               },
               "reason": null
             },
-            "note": "RDKit 字段是结构描述符；OPERA 字段是可选 QSAR 预测，需结合适用域判断。"
+            "note": "RDKit 结构描述符；OPERA 可选 QSAR 预测。"
           }
         },
         "reaction:rxn-route-1781939759467-aizynth-route-1-s2-1:reaction-mapping": {
@@ -7589,7 +8026,7 @@
       "type": "chem",
       "title": "Chem cell",
       "created_at": "2026-06-20T12:07:25.857833+00:00",
-      "updated_at": "2026-06-20T12:17:28.616652+00:00",
+      "updated_at": "2026-06-20T12:30:10.628326+00:00",
       "canvas": {
         "nodes": [
           {
@@ -8042,11 +8479,11 @@
                 "estimated_overall_yield_percent": 60,
                 "route_feasibility_score": 0.78,
                 "method": "heuristic_route_feasibility",
-                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "applicability_domain": "规则启发式。",
                 "risk_flags": [
                   "s1: 反应类型置信度低"
                 ],
-                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
               },
               "aizynth-route-2": {
                 "route_id": "aizynth-route-2",
@@ -8055,11 +8492,11 @@
                 "estimated_overall_yield_percent": 57,
                 "route_feasibility_score": 0.763,
                 "method": "heuristic_route_feasibility",
-                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "applicability_domain": "规则启发式。",
                 "risk_flags": [
                   "s1: 反应类型置信度低"
                 ],
-                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
               },
               "aizynth-route-3": {
                 "route_id": "aizynth-route-3",
@@ -8068,11 +8505,11 @@
                 "estimated_overall_yield_percent": 57,
                 "route_feasibility_score": 0.763,
                 "method": "heuristic_route_feasibility",
-                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "applicability_domain": "规则启发式。",
                 "risk_flags": [
                   "s1: 反应类型置信度低"
                 ],
-                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
               }
             },
             "engine": "aizynthfinder"
@@ -8122,7 +8559,7 @@
               },
               "reason": null
             },
-            "note": "RDKit 字段是结构描述符；OPERA 字段是可选 QSAR 预测，需结合适用域判断。"
+            "note": "RDKit 结构描述符；OPERA 可选 QSAR 预测。"
           }
         },
         "molecule:mol-29ff5925-9f7e-489a-8686-d7587d296433:molecule-descriptors": {
@@ -8160,7 +8597,7 @@
           "object_kind": "reaction",
           "object_label": "AiZynth step",
           "status": "succeeded",
-          "updated_at": "2026-06-20T12:09:04.147Z",
+          "updated_at": "2026-06-20T12:26:07.622Z",
           "payload": {
             "reaction_smiles": "c1ccccc1.O=C1CCC(=O)N1Br>>Brc1ccccc1",
             "valid": true,
@@ -8200,7 +8637,7 @@
               "reaction_center": [
                 "反应物与产物结构差异区域"
               ],
-              "summary": "当前使用规则保底解释；后续可接入 RXNMapper 进行原子映射并精确定位成键和断键。"
+              "summary": "基于反应结构差异进行解释。"
             },
             "feasibility": {
               "method": "layered_heuristic_plus_optional_features",
@@ -8210,13 +8647,13 @@
                 "predicted_yield_percent": 60,
                 "method": "heuristic_rules",
                 "confidence": "低",
-                "applicability_domain": "规则启发式；仅适合演示和相对排序。",
+                "applicability_domain": "规则启发式。",
                 "factors": [
                   "当前反应类型未匹配到专门规则。",
                   "存在卤素或潜在离去基，需关注副反应。",
                   "多组分前体明确，适合做单步路线验证。"
                 ],
-                "note": "规则演示估计：用于相对排序和课堂展示，不是 DRFP/HTE 真实产率模型，不能替代实验测定。"
+                "note": "规则估计。"
               },
               "ml_features": {
                 "reaction_smiles": "c1ccccc1.O=C1CCC(=O)N1Br>>Brc1ccccc1",
@@ -8480,9 +8917,9 @@
                   "drfp_254": 0,
                   "drfp_255": 0
                 },
-                "applicability_domain": "取决于后续训练数据；DRFP 只提供反应指纹，不单独构成产率模型。",
+                "applicability_domain": "DRFP 反应指纹。",
                 "unavailable": [],
-                "note": "已通过 WSL chem 环境生成 DRFP 特征；需要配套训练模型才能输出 ML 产率。"
+                "note": "已通过 WSL chem 环境生成 DRFP 特征。"
               },
               "trained_model": {
                 "available": false,
@@ -8491,8 +8928,8 @@
                 "predicted_yield": null
               },
               "confidence": "低",
-              "applicability_domain": "规则启发式；仅适合演示和相对排序。",
-              "note": "产率采用分层输出：启发式估计可用，DRFP/RXNFP/Chemprop 仅在安装和配置后作为特征或训练模型层使用。"
+              "applicability_domain": "规则启发式。",
+              "note": "产率采用分层输出。"
             }
           }
         },
@@ -8503,7 +8940,7 @@
           "object_kind": "reaction",
           "object_label": "AiZynth step",
           "status": "succeeded",
-          "updated_at": "2026-06-20T12:10:51.712Z",
+          "updated_at": "2026-06-20T12:25:59.998Z",
           "payload": {
             "reaction_smiles": "c1ccccc1.O=C1CCC(=O)N1Br>>Brc1ccccc1",
             "reaction_type": "通用转化",
@@ -8516,19 +8953,19 @@
             "reaction_center": [
               "反应物与产物结构差异区域"
             ],
-            "summary": "当前使用规则保底解释；后续可接入 RXNMapper 进行原子映射并精确定位成键和断键。",
+            "summary": "基于反应结构差异进行解释。",
             "yield_estimate": {
               "heuristic_yield_percent": 60,
               "predicted_yield_percent": 60,
               "method": "heuristic_rules",
               "confidence": "低",
-              "applicability_domain": "规则启发式；仅适合演示和相对排序。",
+              "applicability_domain": "规则启发式。",
               "factors": [
                 "当前反应类型未匹配到专门规则。",
                 "存在卤素或潜在离去基，需关注副反应。",
                 "多组分前体明确，适合做单步路线验证。"
               ],
-              "note": "规则演示估计：用于相对排序和课堂展示，不是 DRFP/HTE 真实产率模型，不能替代实验测定。"
+              "note": "规则估计。"
             }
           }
         },
@@ -9201,13 +9638,13 @@
                 "estimated_overall_yield_percent": 19.5,
                 "route_feasibility_score": 0.457,
                 "method": "heuristic_route_feasibility",
-                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "applicability_domain": "规则启发式。",
                 "risk_flags": [
                   "s1: 反应类型置信度低",
                   "s2: 反应类型置信度低",
                   "s3: 反应类型置信度低"
                 ],
-                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
               },
               "aizynth-route-2": {
                 "route_id": "aizynth-route-2",
@@ -9216,7 +9653,7 @@
                 "estimated_overall_yield_percent": 6.7,
                 "route_feasibility_score": 0.267,
                 "method": "heuristic_route_feasibility",
-                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "applicability_domain": "规则启发式。",
                 "risk_flags": [
                   "s1: 反应类型置信度低",
                   "s2: 反应类型置信度低",
@@ -9224,7 +9661,7 @@
                   "s4: 反应类型置信度低",
                   "s5: 反应类型置信度低"
                 ],
-                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
               },
               "aizynth-route-3": {
                 "route_id": "aizynth-route-3",
@@ -9233,7 +9670,7 @@
                 "estimated_overall_yield_percent": 3.8,
                 "route_feasibility_score": 0.246,
                 "method": "heuristic_route_feasibility",
-                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "applicability_domain": "规则启发式。",
                 "risk_flags": [
                   "s1: 反应类型置信度低",
                   "s2: 反应类型置信度低",
@@ -9242,7 +9679,7 @@
                   "s5: 反应类型置信度低",
                   "s6: 反应类型置信度低"
                 ],
-                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
               }
             },
             "engine": "aizynthfinder"
@@ -9280,8 +9717,52 @@
           "object_label": "Brc1ccccc1",
           "engine": "CREST",
           "status": "running",
-          "updated_at": "2026-06-20T12:15:55.684Z",
+          "updated_at": "2026-06-20T12:30:10.607Z",
           "payload": null
+        },
+        "molecule:mol-29ff5925-9f7e-489a-8686-d7587d296433:gaussian-opt-freq": {
+          "task_id": "gaussian-opt-freq",
+          "task_label": "计算结构优化与频率（Gaussian）",
+          "object_id": "mol-29ff5925-9f7e-489a-8686-d7587d296433",
+          "object_kind": "molecule",
+          "object_label": "Brc1ccccc1",
+          "engine": "Gaussian",
+          "status": "running",
+          "updated_at": "2026-06-20T12:30:01.826080+00:00",
+          "payload": {
+            "job_id": "gj-9a409838cc",
+            "workspace_id": "example-workspace",
+            "cell_id": "cell-6abd01dc",
+            "object_id": "mol-29ff5925-9f7e-489a-8686-d7587d296433",
+            "status": "running",
+            "created_at": "2026-06-20T12:30:01.825373+00:00",
+            "started_at": "2026-06-20T12:30:01.826080+00:00",
+            "finished_at": null,
+            "work_dir": "C:\\Users\\Meta\\AppData\\Local\\Temp\\codex\\orgsynflow\\gaussian_jobs\\gj-9a409838cc",
+            "result": null,
+            "error": null,
+            "log_path": "C:\\Users\\Meta\\AppData\\Local\\Temp\\codex\\orgsynflow\\gaussian_jobs\\gj-9a409838cc\\job.out",
+            "log_tail": " Entering Gaussian System, Link 0=C:\\Users\\Meta\\AppData\\Local\\Programs\\g16w\\g16.exe\n Input=job.gjf\n Output=C:\\Users\\Meta\\AppData\\Local\\Temp\\codex\\orgsynflow\\gaussian_jobs\\gj-9a409838cc\\job.out\n Initial command:\n C:\\Users\\Meta\\AppData\\Local\\Programs\\g16w\\l1.exe \".\\Gau-30756.inp\" \"C:\\Users\\Meta\\AppData\\Local\\Temp\\codex\\orgsynflow\\gaussian_jobs\\gj-9a409838cc\\job.out\" /scrdir=\".\\\"\n",
+            "log_progress": {
+              "scf_cycles": [],
+              "convergence_tables": [],
+              "optimization_steps": [],
+              "issues": {
+                "warnings": [],
+                "errors": []
+              },
+              "summary": "等待 Gaussian 写入 SCF/优化信息。"
+            }
+          },
+          "config": {
+            "job_type": "opt freq",
+            "method": "B3LYP",
+            "basis": "6-31G(d)",
+            "charge": 0,
+            "multiplicity": 1,
+            "gjf_text": "%nprocshared=4\n%mem=4GB\n# opt freq B3LYP/6-31G(d)\n\nOrgSynFlow Gaussian job\n\n0 1\nBr     3.232944    -0.223775    -0.082000\nC      1.328276    -0.091939    -0.033688\nC      0.548768    -1.247527     0.096882\nC     -0.846319    -1.150371     0.132210\nC     -1.463350     0.101289     0.037115\nC     -0.685451     1.256395    -0.093359\nC      0.709715     1.160419    -0.128798\nH      1.022037    -2.218186     0.170797\nH     -1.448487    -2.044049     0.233163\nH     -2.542757     0.176003     0.064485\nH     -1.163157     2.224818    -0.166930\nH      1.307783     2.056925    -0.229879\n\n"
+          },
+          "job_id": "gj-9a409838cc"
         }
       }
     }
@@ -9508,11 +9989,11 @@
           "estimated_overall_yield_percent": 57,
           "route_feasibility_score": 0.763,
           "method": "heuristic_route_feasibility",
-          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "applicability_domain": "规则启发式。",
           "risk_flags": [
             "s1: 反应类型置信度低"
           ],
-          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
         },
         "aizynth-route-2": {
           "route_id": "aizynth-route-2",
@@ -9521,11 +10002,11 @@
           "estimated_overall_yield_percent": 57,
           "route_feasibility_score": 0.763,
           "method": "heuristic_route_feasibility",
-          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "applicability_domain": "规则启发式。",
           "risk_flags": [
             "s1: 反应类型置信度低"
           ],
-          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
         },
         "aizynth-route-3": {
           "route_id": "aizynth-route-3",
@@ -9534,11 +10015,11 @@
           "estimated_overall_yield_percent": 57,
           "route_feasibility_score": 0.763,
           "method": "heuristic_route_feasibility",
-          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "applicability_domain": "规则启发式。",
           "risk_flags": [
             "s1: 反应类型置信度低"
           ],
-          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
         }
       },
       "used_fallback": false
@@ -9772,11 +10253,11 @@
           "estimated_overall_yield_percent": 60,
           "route_feasibility_score": 0.78,
           "method": "heuristic_route_feasibility",
-          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "applicability_domain": "规则启发式。",
           "risk_flags": [
             "s1: 反应类型置信度低"
           ],
-          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
         },
         "aizynth-route-2": {
           "route_id": "aizynth-route-2",
@@ -9785,11 +10266,11 @@
           "estimated_overall_yield_percent": 60,
           "route_feasibility_score": 0.78,
           "method": "heuristic_route_feasibility",
-          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "applicability_domain": "规则启发式。",
           "risk_flags": [
             "s1: 反应类型置信度低"
           ],
-          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
         },
         "aizynth-route-3": {
           "route_id": "aizynth-route-3",
@@ -9798,7 +10279,7 @@
           "estimated_overall_yield_percent": 0,
           "route_feasibility_score": 0,
           "method": "heuristic_route_feasibility",
-          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "applicability_domain": "规则启发式。",
           "risk_flags": [
             "路线没有反应步骤"
           ],
@@ -10047,11 +10528,11 @@
           "estimated_overall_yield_percent": 57,
           "route_feasibility_score": 0.763,
           "method": "heuristic_route_feasibility",
-          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "applicability_domain": "规则启发式。",
           "risk_flags": [
             "s1: 反应类型置信度低"
           ],
-          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
         },
         "aizynth-route-2": {
           "route_id": "aizynth-route-2",
@@ -10060,11 +10541,11 @@
           "estimated_overall_yield_percent": 60,
           "route_feasibility_score": 0.78,
           "method": "heuristic_route_feasibility",
-          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "applicability_domain": "规则启发式。",
           "risk_flags": [
             "s1: 反应类型置信度低"
           ],
-          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
         },
         "aizynth-route-3": {
           "route_id": "aizynth-route-3",
@@ -10073,11 +10554,11 @@
           "estimated_overall_yield_percent": 57,
           "route_feasibility_score": 0.763,
           "method": "heuristic_route_feasibility",
-          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "applicability_domain": "规则启发式。",
           "risk_flags": [
             "s1: 反应类型置信度低"
           ],
-          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
         }
       },
       "used_fallback": false
@@ -10706,13 +11187,13 @@
           "estimated_overall_yield_percent": 19.5,
           "route_feasibility_score": 0.457,
           "method": "heuristic_route_feasibility",
-          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "applicability_domain": "规则启发式。",
           "risk_flags": [
             "s1: 反应类型置信度低",
             "s2: 反应类型置信度低",
             "s3: 反应类型置信度低"
           ],
-          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
         },
         "aizynth-route-2": {
           "route_id": "aizynth-route-2",
@@ -10721,7 +11202,7 @@
           "estimated_overall_yield_percent": 6.7,
           "route_feasibility_score": 0.267,
           "method": "heuristic_route_feasibility",
-          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "applicability_domain": "规则启发式。",
           "risk_flags": [
             "s1: 反应类型置信度低",
             "s2: 反应类型置信度低",
@@ -10729,7 +11210,7 @@
             "s4: 反应类型置信度低",
             "s5: 反应类型置信度低"
           ],
-          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
         },
         "aizynth-route-3": {
           "route_id": "aizynth-route-3",
@@ -10738,7 +11219,7 @@
           "estimated_overall_yield_percent": 3.8,
           "route_feasibility_score": 0.246,
           "method": "heuristic_route_feasibility",
-          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "applicability_domain": "规则启发式。",
           "risk_flags": [
             "s1: 反应类型置信度低",
             "s2: 反应类型置信度低",
@@ -10747,7 +11228,7 @@
             "s5: 反应类型置信度低",
             "s6: 反应类型置信度低"
           ],
-          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
         }
       },
       "used_fallback": false
@@ -10973,11 +11454,11 @@
           "estimated_overall_yield_percent": 57,
           "route_feasibility_score": 0.763,
           "method": "heuristic_route_feasibility",
-          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "applicability_domain": "规则启发式。",
           "risk_flags": [
             "s1: 反应类型置信度低"
           ],
-          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
         },
         "aizynth-route-2": {
           "route_id": "aizynth-route-2",
@@ -10986,11 +11467,11 @@
           "estimated_overall_yield_percent": 57,
           "route_feasibility_score": 0.763,
           "method": "heuristic_route_feasibility",
-          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "applicability_domain": "规则启发式。",
           "risk_flags": [
             "s1: 反应类型置信度低"
           ],
-          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
         },
         "aizynth-route-3": {
           "route_id": "aizynth-route-3",
@@ -10999,11 +11480,11 @@
           "estimated_overall_yield_percent": 57,
           "route_feasibility_score": 0.763,
           "method": "heuristic_route_feasibility",
-          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "applicability_domain": "规则启发式。",
           "risk_flags": [
             "s1: 反应类型置信度低"
           ],
-          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
         }
       },
       "used_fallback": false
@@ -11131,7 +11612,7 @@
           "estimated_overall_yield_percent": 0,
           "route_feasibility_score": 0,
           "method": "heuristic_route_feasibility",
-          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "applicability_domain": "规则启发式。",
           "risk_flags": [
             "路线没有反应步骤"
           ],
@@ -11144,11 +11625,11 @@
           "estimated_overall_yield_percent": 57,
           "route_feasibility_score": 0.464,
           "method": "heuristic_route_feasibility",
-          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "applicability_domain": "规则启发式。",
           "risk_flags": [
             "s1: 反应类型置信度低"
           ],
-          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
         }
       },
       "used_fallback": false
@@ -11373,11 +11854,11 @@
           "estimated_overall_yield_percent": 65,
           "route_feasibility_score": 0.508,
           "method": "heuristic_route_feasibility",
-          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "applicability_domain": "规则启发式。",
           "risk_flags": [
             "chemformer-step-1: 反应类型置信度低"
           ],
-          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
         },
         "chemformer-route-2": {
           "route_id": "chemformer-route-2",
@@ -11386,11 +11867,11 @@
           "estimated_overall_yield_percent": 65,
           "route_feasibility_score": 0.508,
           "method": "heuristic_route_feasibility",
-          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "applicability_domain": "规则启发式。",
           "risk_flags": [
             "chemformer-step-2: 反应类型置信度低"
           ],
-          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
         }
       },
       "used_fallback": false,
@@ -11626,11 +12107,11 @@
           "estimated_overall_yield_percent": 57,
           "route_feasibility_score": 0.763,
           "method": "heuristic_route_feasibility",
-          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "applicability_domain": "规则启发式。",
           "risk_flags": [
             "s1: 反应类型置信度低"
           ],
-          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
         },
         "aizynth-route-2": {
           "route_id": "aizynth-route-2",
@@ -11639,11 +12120,11 @@
           "estimated_overall_yield_percent": 57,
           "route_feasibility_score": 0.763,
           "method": "heuristic_route_feasibility",
-          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "applicability_domain": "规则启发式。",
           "risk_flags": [
             "s1: 反应类型置信度低"
           ],
-          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
         },
         "aizynth-route-3": {
           "route_id": "aizynth-route-3",
@@ -11652,11 +12133,11 @@
           "estimated_overall_yield_percent": 57,
           "route_feasibility_score": 0.763,
           "method": "heuristic_route_feasibility",
-          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "applicability_domain": "规则启发式。",
           "risk_flags": [
             "s1: 反应类型置信度低"
           ],
-          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
         }
       },
       "used_fallback": false,
@@ -12044,11 +12525,11 @@
           "estimated_overall_yield_percent": 62,
           "route_feasibility_score": 0.491,
           "method": "heuristic_route_feasibility",
-          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "applicability_domain": "规则启发式。",
           "risk_flags": [
             "chemformer-step-1: 反应类型置信度低"
           ],
-          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
         },
         "chemformer-route-2": {
           "route_id": "chemformer-route-2",
@@ -12057,11 +12538,11 @@
           "estimated_overall_yield_percent": 62,
           "route_feasibility_score": 0.491,
           "method": "heuristic_route_feasibility",
-          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "applicability_domain": "规则启发式。",
           "risk_flags": [
             "chemformer-step-2: 反应类型置信度低"
           ],
-          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
         },
         "chemformer-route-3": {
           "route_id": "chemformer-route-3",
@@ -12070,11 +12551,11 @@
           "estimated_overall_yield_percent": 62,
           "route_feasibility_score": 0.491,
           "method": "heuristic_route_feasibility",
-          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "applicability_domain": "规则启发式。",
           "risk_flags": [
             "chemformer-step-3: 反应类型置信度低"
           ],
-          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
         },
         "chemformer-route-4": {
           "route_id": "chemformer-route-4",
@@ -12083,11 +12564,11 @@
           "estimated_overall_yield_percent": 62,
           "route_feasibility_score": 0.491,
           "method": "heuristic_route_feasibility",
-          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "applicability_domain": "规则启发式。",
           "risk_flags": [
             "chemformer-step-4: 反应类型置信度低"
           ],
-          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
         },
         "chemformer-route-5": {
           "route_id": "chemformer-route-5",
@@ -12096,11 +12577,11 @@
           "estimated_overall_yield_percent": 62,
           "route_feasibility_score": 0.491,
           "method": "heuristic_route_feasibility",
-          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "applicability_domain": "规则启发式。",
           "risk_flags": [
             "chemformer-step-5: 反应类型置信度低"
           ],
-          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
         }
       },
       "used_fallback": false,
@@ -12355,11 +12836,11 @@
           "estimated_overall_yield_percent": 60,
           "route_feasibility_score": 0.78,
           "method": "heuristic_route_feasibility",
-          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "applicability_domain": "规则启发式。",
           "risk_flags": [
             "s1: 反应类型置信度低"
           ],
-          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
         },
         "aizynth-route-2": {
           "route_id": "aizynth-route-2",
@@ -12368,11 +12849,11 @@
           "estimated_overall_yield_percent": 57,
           "route_feasibility_score": 0.763,
           "method": "heuristic_route_feasibility",
-          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "applicability_domain": "规则启发式。",
           "risk_flags": [
             "s1: 反应类型置信度低"
           ],
-          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
         },
         "aizynth-route-3": {
           "route_id": "aizynth-route-3",
@@ -12381,11 +12862,11 @@
           "estimated_overall_yield_percent": 57,
           "route_feasibility_score": 0.763,
           "method": "heuristic_route_feasibility",
-          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "applicability_domain": "规则启发式。",
           "risk_flags": [
             "s1: 反应类型置信度低"
           ],
-          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
         }
       },
       "used_fallback": false,
@@ -12592,11 +13073,11 @@
           "estimated_overall_yield_percent": 60,
           "route_feasibility_score": 0.48,
           "method": "heuristic_route_feasibility",
-          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "applicability_domain": "规则启发式。",
           "risk_flags": [
             "chemformer-step-1: 反应类型置信度低"
           ],
-          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
         },
         "chemformer-route-2": {
           "route_id": "chemformer-route-2",
@@ -12605,11 +13086,11 @@
           "estimated_overall_yield_percent": 60,
           "route_feasibility_score": 0.48,
           "method": "heuristic_route_feasibility",
-          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "applicability_domain": "规则启发式。",
           "risk_flags": [
             "chemformer-step-2: 反应类型置信度低"
           ],
-          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
         }
       },
       "used_fallback": false,
@@ -13248,13 +13729,13 @@
           "estimated_overall_yield_percent": 19.5,
           "route_feasibility_score": 0.457,
           "method": "heuristic_route_feasibility",
-          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "applicability_domain": "规则启发式。",
           "risk_flags": [
             "s1: 反应类型置信度低",
             "s2: 反应类型置信度低",
             "s3: 反应类型置信度低"
           ],
-          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
         },
         "aizynth-route-2": {
           "route_id": "aizynth-route-2",
@@ -13263,7 +13744,7 @@
           "estimated_overall_yield_percent": 6.7,
           "route_feasibility_score": 0.267,
           "method": "heuristic_route_feasibility",
-          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "applicability_domain": "规则启发式。",
           "risk_flags": [
             "s1: 反应类型置信度低",
             "s2: 反应类型置信度低",
@@ -13271,7 +13752,7 @@
             "s4: 反应类型置信度低",
             "s5: 反应类型置信度低"
           ],
-          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
         },
         "aizynth-route-3": {
           "route_id": "aizynth-route-3",
@@ -13280,7 +13761,7 @@
           "estimated_overall_yield_percent": 3.8,
           "route_feasibility_score": 0.246,
           "method": "heuristic_route_feasibility",
-          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "applicability_domain": "规则启发式。",
           "risk_flags": [
             "s1: 反应类型置信度低",
             "s2: 反应类型置信度低",
@@ -13289,7 +13770,7 @@
             "s5: 反应类型置信度低",
             "s6: 反应类型置信度低"
           ],
-          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数。"
         }
       },
       "used_fallback": false,
