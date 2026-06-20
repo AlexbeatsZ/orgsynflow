@@ -249,6 +249,7 @@ Data & Testing Lessons:
 
 Current Status:
 
+- [done] 2026-06-21 Reviewed and summarized all AI/computational chemistry integrations in the project (including retrosynthesis route prediction, reaction mapping, DeepSeek LLM reaction explanation, yield prediction, and feasibility checks).
 - [done] 2026-06-20 Optimized large-canvas routing and stabilized CREST/Gaussian tasks: drag-time and 24+ node canvases use bounded fast orthogonal routing; selection no longer reroutes edges; unchanged Gaussian logs are cached; CREST WSL execution now uses unique working directories, waits for the real process, supports process-group cancellation, returns `crest_best.xyz`, is serialized, and persists through the unified `/jobs` queue across page refreshes.
 - [done] 2026-06-20 Fixed UI layout wipeout ("completely falls apart") when adding new molecules, by preserving the canvas state instead of resetting it to empty arrays during `onUpdate`.
 - [done] 2026-06-20 Fixed inexplicable UI lag during edge layout updates by replacing O(N log N) `Array.sort` inside the `runOrthogonalSearch` queue loop with O(log N) binary insertion sort.
