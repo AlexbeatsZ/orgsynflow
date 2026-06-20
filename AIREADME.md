@@ -192,11 +192,16 @@ WSL 临时文件必须放在：
 - Windows 与 WSL 项目副本不会自动同步。Windows 提交推送后，如需 WSL 可用，要在 `/home/meta/Project/Workspaces/orgsynflow` 执行 `git pull --ff-only`。
 - 默认工作区文件 `data/workspaces/example-workspace.json` 中如果有之前的 fallback/未配置警告缓存记录（例如 `molecule:mol-ethanol:retrosynthesis` 里的 status / used_fallback 记录），页面初次加载时会由于缓存导致直接在页面展示出“已检测到 AiZynthFinder，但尚未配置...”的失效提示。必须手动清理此类任务结果缓存，恢复为初始的“未计算”状态，以便用户重新发起真实的逆合成计算。
 
+- AiZynthFinder JSON 树的 `children` 会交替出现 molecule 与 reaction 节点；reaction 节点的 `smiles` 是逆合成 reaction SMILES，绝不能作为普通分子加入路线。解析时应跳过 reaction 节点，读取其 molecule children 作为前体，并生成正向 `前体>>产物` 反应式。
+- 对组合节点内单个组分预测路线时，插入器必须保留所选 `MoleculeComponent`：复用其外层画布节点作为路线 target，不再创建重复 target 或 `target -> anchor` 伪反应边。
+- 路线每个 `precursor_id` 必须生成独立分子节点和独立的 `precursor -> product` 边，不能把同一步全部前体合并为点式伪分子；多组分节点的布局宽度按组件卡实际宽度估算，否则相邻节点会重叠并让正向箭头视觉上折返。
+- WSL 的 `/tmp` 在服务重启后可能被清空。AiZynthFinder 每次运行前必须自行 `mkdir -p /tmp/codex/orgsynflow`，不能依赖历史目录残留。
 
 ## 3. Task Board
 
 当前状态：
 
+- [done] 2026-06-20 修复组合节点组分级逆合成插入：AiZynthFinder reaction 节点不再误作分子；多个前体拆为独立结构；复用所选目标节点；路线和原反应箭头均保持前体到产物的正向顺序；多组分宽度与下游间距已校正。
 - [done] 三阶段计划已写入 `plan.md`。
 - [done] 基础 CLI、适配器、API、测试面已建立。
 - [done] OPERA 已由用户下载并安装到 WSL 本地 opt 路径，且可被全局引用。
@@ -272,6 +277,7 @@ WSL 临时文件必须放在：
 
 最近一次验证基线：
 
+- 2026-06-20 组分级路线回归：`uv run pytest -q tests/test_aizynth_adapter.py tests/test_route_layout.py` 为 3 passed；`cd web; npm run build` 成功。隔离工作区真实运行 AiZynthFinder 后返回 1 步、2 个前体；加入画布得到两个独立前体节点，位置为 `x=40`，复用的组合 target 为 `x=300`，原下游产物调整为 `x=738`；两条新边均为前体 → 组合 target，原边为组合 target → 产物，全部 marker 位于终点。隔离工作区验证后已删除。
 - `uv run pytest -q`：36 passed。
 - 前端构建命令：`cd web; npm run build`。
 - 任务面板状态回归：浏览器确认蓝色 `rgb(37,99,235)`、黄色 `rgb(244,180,0)`、绿色 `rgb(22,128,60)`、红色 `rgb(201,52,52)`；成功/失败状态刷新后仍存在，失败按钮先打开错误窗口。

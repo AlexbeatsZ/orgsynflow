@@ -13,6 +13,7 @@ from pathlib import Path
 from core.route import Route, route_from_dict
 
 WSL_AIZYNTHCLI = "/home/meta/.local/opt/miniforge3/envs/orgsynflow-chem/bin/aizynthcli"
+WSL_TEMP_ROOT = "/tmp/codex/orgsynflow"
 
 
 @dataclass(frozen=True)
@@ -163,39 +164,84 @@ def _looks_like_internal_route(payload: dict) -> bool:
 def _route_from_tree(tree: dict, index: int, raw: dict) -> Route:
     molecules: dict[str, dict] = {}
     steps: list[dict] = []
+    molecule_ids_by_smiles: dict[str, str] = {}
+    expanded_molecule_ids: set[str] = set()
 
-    def visit(node: dict, parent_id: str | None = None) -> str:
+    def add_molecule(node: dict, is_target: bool = False) -> str:
         smiles = node.get("smiles") or node.get("mol") or node.get("smiles_str") or f"unknown-{len(molecules)}"
-        molecule_id = f"m{len(molecules) + 1}"
-        if smiles in {item["smiles"] for item in molecules.values()}:
-            for existing_id, existing in molecules.items():
-                if existing["smiles"] == smiles:
-                    molecule_id = existing_id
-                    break
-        else:
-            molecules[molecule_id] = {
-                "id": molecule_id,
-                "name": node.get("name") or ("Target" if parent_id is None else f"Mol {len(molecules) + 1}"),
-                "smiles": smiles,
-                "in_stock": bool(node.get("in_stock") or node.get("is_solved")),
-            }
+        existing_id = molecule_ids_by_smiles.get(smiles)
+        if existing_id:
+            if node.get("in_stock") or node.get("is_solved"):
+                molecules[existing_id]["in_stock"] = True
+            return existing_id
 
-        children = node.get("children") or node.get("precursors") or []
-        precursor_ids = [visit(child, molecule_id) for child in children if isinstance(child, dict)]
-        if precursor_ids:
-            steps.append(
-                {
-                    "id": f"s{len(steps) + 1}",
-                    "product_id": molecule_id,
-                    "precursor_ids": precursor_ids,
-                    "reaction_smiles": None,
-                    "policy_score": node.get("policy_score") or raw.get("score"),
-                    "template": node.get("template") or "AiZynth step",
-                }
-            )
+        molecule_id = f"m{len(molecules) + 1}"
+        molecule_ids_by_smiles[smiles] = molecule_id
+        molecules[molecule_id] = {
+            "id": molecule_id,
+            "name": node.get("name") or ("Target" if is_target else f"Mol {len(molecules) + 1}"),
+            "smiles": smiles,
+            "in_stock": bool(node.get("in_stock") or node.get("is_solved")),
+        }
         return molecule_id
 
-    target_id = visit(tree)
+    def add_step(product_id: str, precursor_ids: list[str], reaction_node: dict) -> None:
+        if not precursor_ids:
+            return
+        product_smiles = molecules[product_id]["smiles"]
+        precursor_smiles = ".".join(molecules[item]["smiles"] for item in precursor_ids)
+        metadata = reaction_node.get("metadata") if isinstance(reaction_node.get("metadata"), dict) else {}
+        classification = metadata.get("classification")
+        template = reaction_node.get("template") or classification
+        if not template or str(template).startswith("0.0 "):
+            template = "AiZynth step"
+        policy_score = reaction_node.get("policy_score")
+        if policy_score is None:
+            policy_score = metadata.get("policy_probability")
+        if policy_score is None:
+            policy_score = raw.get("score")
+        steps.append(
+            {
+                "id": f"s{len(steps) + 1}",
+                "product_id": product_id,
+                "precursor_ids": precursor_ids,
+                # AiZynth reaction nodes are stored in retrosynthetic direction.
+                # Build the forward reaction from their molecule children instead.
+                "reaction_smiles": f"{precursor_smiles}>>{product_smiles}",
+                "policy_score": policy_score,
+                "template": template,
+            }
+        )
+
+    def visit_molecule(node: dict, is_target: bool = False) -> str:
+        molecule_id = add_molecule(node, is_target=is_target)
+        if molecule_id in expanded_molecule_ids:
+            return molecule_id
+        expanded_molecule_ids.add(molecule_id)
+
+        children = [child for child in (node.get("children") or node.get("precursors") or []) if isinstance(child, dict)]
+        reaction_children = [child for child in children if child.get("is_reaction") or child.get("type") == "reaction"]
+        if reaction_children:
+            for reaction_node in reaction_children:
+                precursor_nodes = [
+                    child
+                    for child in (reaction_node.get("children") or reaction_node.get("precursors") or [])
+                    if isinstance(child, dict) and not (child.get("is_reaction") or child.get("type") == "reaction")
+                ]
+                precursor_ids = [visit_molecule(child) for child in precursor_nodes]
+                add_step(molecule_id, precursor_ids, reaction_node)
+        else:
+            # Retain support for simplified trees that attach precursor molecules
+            # directly to their product without an explicit reaction node.
+            precursor_nodes = [
+                child for child in children if not (child.get("is_reaction") or child.get("type") == "reaction")
+            ]
+            precursor_ids = [visit_molecule(child) for child in precursor_nodes]
+            if precursor_ids:
+                add_step(molecule_id, precursor_ids, node)
+        return molecule_id
+
+    target_id = visit_molecule(tree, is_target=True)
     return route_from_dict(
         {
             "id": f"aizynth-route-{index}",
@@ -218,7 +264,7 @@ def _predict_with_wsl_aizynth(
     stock_path: str | None,
     policy_path: str | None,
 ) -> AiZynthResult:
-    wsl_output_path = f"/tmp/codex/orgsynflow/aizynth_routes_{uuid.uuid4().hex}.json"
+    wsl_output_path = f"{WSL_TEMP_ROOT}/aizynth_routes_{uuid.uuid4().hex}.json"
     command = [
         shlex.quote(executable),
         "--smiles",
@@ -232,7 +278,7 @@ def _predict_with_wsl_aizynth(
         command.extend(["--stocks", shlex.quote(stock_path)])
     if policy_path:
         command.extend(["--policy", shlex.quote(policy_path)])
-    script = " ".join(command)
+    script = f"mkdir -p {shlex.quote(WSL_TEMP_ROOT)} && " + " ".join(command)
     try:
         completed = subprocess.run(
             ["wsl", "-e", "bash", "-lc", script],

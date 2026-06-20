@@ -1499,10 +1499,11 @@ function RouteCandidateSets({
 }) {
   const activeCell = selected?.kind ? selected.cell : workspace.cells[0];
   const anchorMolecule = selected?.kind === "molecule" ? selected.molecule : null;
+  const anchorComponent = selected?.kind === "molecule" ? selected.component ?? null : null;
 
   async function addRouteToCurrentCell(route: RouteCandidate) {
     if (!activeCell) return;
-    const updatedCell = addRouteCandidateToCell(activeCell, route, anchorMolecule);
+    const updatedCell = addRouteCandidateToCell(activeCell, route, anchorMolecule, anchorComponent);
     await onSave({
       ...workspace,
       cells: workspace.cells.map((cell) => (cell.id === updatedCell.id ? updatedCell : cell)),
@@ -2789,7 +2790,7 @@ function sideOrder(source: NodeRect, target: NodeRect): Side[] {
 }
 
 function nodeRect(node: Node): NodeRect {
-  const width = typeof node.measured?.width === "number" ? node.measured.width : 190;
+  const width = typeof node.measured?.width === "number" ? node.measured.width : estimatedNodeWidth(node);
   const height = typeof node.measured?.height === "number" ? node.measured.height : 142;
   return {
     id: node.id,
@@ -2798,6 +2799,13 @@ function nodeRect(node: Node): NodeRect {
     top: node.position.y,
     bottom: node.position.y + height,
   };
+}
+
+function estimatedNodeWidth(node: Node): number {
+  const componentCount = splitSmilesComponents(String(node.data?.smiles ?? "")).length;
+  return componentCount > 1
+    ? Math.min(590, componentCount * 172 + (componentCount - 1) * 6 + 18)
+    : 190;
 }
 
 function rectCenter(rect: NodeRect): Point {
@@ -2972,107 +2980,104 @@ function splitReactionSide(side: string): string[] {
   return parts;
 }
 
-function addRouteCandidateToCell(cell: WorkspaceCell, route: RouteCandidate, anchorMolecule: MoleculeObject | null): WorkspaceCell {
+function addRouteCandidateToCell(
+  cell: WorkspaceCell,
+  route: RouteCandidate,
+  anchorMolecule: MoleculeObject | null,
+  anchorComponent: MoleculeComponent | null = null,
+): WorkspaceCell {
   const stamp = Date.now();
-  const existingNodes = toNodes(cell);
+  let existingNodes = toNodes(cell);
   const existingEdges = toEdges(cell);
-  const baseX = 80 + existingNodes.length * 36;
-  const baseY = 80 + existingNodes.length * 20;
-
-  // 1. Find overall target
   const targetMol = route.molecules.find((m) => m.id === route.target_id);
   if (!targetMol) return cell;
 
-  const targetNodeId = `route-${stamp}-${route.id}-target`;
+  const anchorTargetSmiles = anchorComponent?.smiles ?? anchorMolecule?.smiles;
+  const anchorNode = anchorMolecule && anchorTargetSmiles === targetMol.smiles
+    ? existingNodes.find((node) => node.id === anchorMolecule.id)
+    : undefined;
+  const targetLayout = route.layout?.nodes?.[targetMol.id];
+  const routeLayouts = Object.values(route.layout?.nodes ?? {});
+  const minimumLayoutX = routeLayouts.length ? Math.min(...routeLayouts.map((layout) => layout.x)) : 0;
 
+  // Keep the synthesis route left-to-right. If the selected target is already
+  // near the left edge, move the existing canvas right to make room for its
+  // precursors instead of placing them on the product side and reversing arrows.
+  let canvasShiftX = 0;
+  if (anchorNode && targetLayout) {
+    const prospectiveMinimumX = anchorNode.position.x + minimumLayoutX - targetLayout.x;
+    canvasShiftX = Math.max(0, 40 - prospectiveMinimumX);
+    if (canvasShiftX > 0) {
+      existingNodes = existingNodes.map((node) => ({
+        ...node,
+        position: { ...node.position, x: node.position.x + canvasShiftX },
+      }));
+    }
+  }
+
+  let shiftedAnchorNode = anchorNode
+    ? existingNodes.find((node) => node.id === anchorNode.id)
+    : undefined;
+  if (shiftedAnchorNode) {
+    const anchorX = shiftedAnchorNode.position.x;
+    const downstreamNodes = existingNodes.filter((node) => node.position.x > anchorX);
+    const nearestDownstreamX = downstreamNodes.length
+      ? Math.min(...downstreamNodes.map((node) => node.position.x))
+      : null;
+    const requiredDownstreamX = anchorX + estimatedNodeWidth(shiftedAnchorNode) + 70;
+    const downstreamShiftX = nearestDownstreamX === null ? 0 : Math.max(0, requiredDownstreamX - nearestDownstreamX);
+    if (downstreamShiftX > 0) {
+      existingNodes = existingNodes.map((node) => (
+        node.position.x > anchorX
+          ? { ...node, position: { ...node.position, x: node.position.x + downstreamShiftX } }
+          : node
+      ));
+      shiftedAnchorNode = existingNodes.find((node) => node.id === shiftedAnchorNode!.id);
+    }
+  }
+  const baseX = shiftedAnchorNode && targetLayout
+    ? shiftedAnchorNode.position.x - targetLayout.x
+    : 80 + existingNodes.length * 36;
+  const baseY = shiftedAnchorNode && targetLayout
+    ? shiftedAnchorNode.position.y - targetLayout.y
+    : 80 + existingNodes.length * 20;
   const routeNodes: Node[] = [];
   const routeMolecules: MoleculeObject[] = [];
   const routeReactions: ReactionObject[] = [];
   const routeEdges: Edge[] = [];
+  const routeNodeIdByMoleculeId = new Map<string, string>();
 
-  // Add target node
-  const targetLayout = route.layout?.nodes?.[targetMol.id];
-  routeMolecules.push({ id: targetNodeId, label: targetMol.name || targetMol.smiles, smiles: targetMol.smiles });
-  routeNodes.push({
-    id: targetNodeId,
-    type: "molecule",
-    position: {
-      x: baseX + (targetLayout?.x ?? 0),
-      y: baseY + (targetLayout?.y ?? 0),
-    },
-    data: { label: targetMol.name || targetMol.smiles, smiles: targetMol.smiles },
-  });
-
-  // Map step ID to reactants node ID
-  const stepReactantsNodeIdMap = new Map<string, string>();
-
-  // 2. Create reactants nodes for each step
-  route.steps.forEach((step, index) => {
-    const precursors = step.precursor_ids
-      .map((id) => route.molecules.find((m) => m.id === id))
-      .filter(Boolean);
-    if (!precursors.length) return;
-
-    const precursorSmiles = precursors.map((p) => p!.smiles).join(".");
-    const label = precursors.map((p) => p!.name || p!.smiles).join(" + ");
-
-    const reactantsNodeId = `route-${stamp}-${route.id}-step-${step.id}-reactants`;
-    stepReactantsNodeIdMap.set(step.id, reactantsNodeId);
-
-    // Average position
-    let sumX = 0;
-    let sumY = 0;
-    let count = 0;
-    precursors.forEach((p) => {
-      const lay = route.layout?.nodes?.[p!.id];
-      if (lay) {
-        sumX += lay.x;
-        sumY += lay.y;
-        count++;
-      }
-    });
-    const posX = count > 0 ? sumX / count : 260 * (index + 1);
-    const posY = count > 0 ? sumY / count : 120 * (index + 1);
-
-    routeMolecules.push({ id: reactantsNodeId, label, smiles: precursorSmiles });
+  // Preserve molecule identity from the route graph. In particular, do not
+  // collapse all precursors of a step into a dot-separated pseudo-molecule.
+  route.molecules.forEach((molecule, index) => {
+    if (molecule.id === route.target_id && shiftedAnchorNode) {
+      routeNodeIdByMoleculeId.set(molecule.id, shiftedAnchorNode.id);
+      return;
+    }
+    const nodeId = `route-${stamp}-${route.id}-molecule-${molecule.id}`;
+    const layout = route.layout?.nodes?.[molecule.id];
+    routeNodeIdByMoleculeId.set(molecule.id, nodeId);
+    routeMolecules.push({ id: nodeId, label: molecule.name || molecule.smiles, smiles: molecule.smiles });
     routeNodes.push({
-      id: reactantsNodeId,
+      id: nodeId,
       type: "molecule",
       position: {
-        x: baseX + posX,
-        y: baseY + posY,
+        x: baseX + (layout?.x ?? index * 260),
+        y: baseY + (layout?.y ?? index * 110),
       },
-      data: { label, smiles: precursorSmiles },
+      data: { label: molecule.name || molecule.smiles, smiles: molecule.smiles },
     });
   });
 
-  // 3. Create reactions and edges
+  const allRouteNodes = [...existingNodes, ...routeNodes];
   route.steps.forEach((step, stepIndex) => {
-    const reactantsNodeId = stepReactantsNodeIdMap.get(step.id);
-    if (!reactantsNodeId) return;
-
+    const productNodeId = routeNodeIdByMoleculeId.get(step.product_id);
     const productMol = route.molecules.find((m) => m.id === step.product_id);
-    if (!productMol) return;
-
-    // Determine the target node for this step
-    let targetNodeIdForStep = "";
-    if (step.product_id === route.target_id) {
-      targetNodeIdForStep = targetNodeId;
-    } else {
-      // Find the step where this product is a precursor
-      const parentStep = route.steps.find((s) => s.precursor_ids.includes(step.product_id));
-      if (parentStep) {
-        targetNodeIdForStep = stepReactantsNodeIdMap.get(parentStep.id) || targetNodeId;
-      } else {
-        targetNodeIdForStep = targetNodeId;
-      }
-    }
-
+    if (!productNodeId || !productMol) return;
     const precursors = step.precursor_ids
       .map((id) => route.molecules.find((m) => m.id === id))
       .filter(Boolean);
     const precursorSmiles = precursors.map((p) => p!.smiles).join(".");
-
     const rxnId = `rxn-route-${stamp}-${route.id}-${step.id}-${stepIndex}`;
     routeReactions.push({
       id: rxnId,
@@ -3081,37 +3086,24 @@ function addRouteCandidateToCell(cell: WorkspaceCell, route: RouteCandidate, anc
       template: step.template ?? undefined,
     });
 
-    const sourceNode = routeNodes.find((n) => n.id === reactantsNodeId);
-    const targetNode = routeNodes.find((n) => n.id === targetNodeIdForStep);
-    const routeNodesForPath = [...existingNodes, ...routeNodes];
-    const routePath = sourceNode && targetNode ? chooseBestOrthogonalRoute(sourceNode, targetNode, routeNodesForPath) : null;
-
-    routeEdges.push(makeCanvasEdge({
-      id: `${rxnId}-edge`,
-      source: reactantsNodeId,
-      target: targetNodeIdForStep,
-      sourceHandle: routePath?.sourceHandle ?? "right",
-      targetHandle: routePath?.targetHandle ?? "left",
-      label: step.template || `Step ${stepIndex + 1}`,
-    }));
-  });
-
-  // 4. Anchor connection
-  if (anchorMolecule) {
-    const anchorNode = existingNodes.find((n) => n.id === anchorMolecule.id);
-    const targetNodeObj = routeNodes.find((n) => n.id === targetNodeId);
-    if (targetNodeObj && anchorNode) {
-      const routePath = chooseBestOrthogonalRoute(targetNodeObj, anchorNode, [...existingNodes, ...routeNodes]);
+    step.precursor_ids.forEach((precursorId) => {
+      const sourceNodeId = routeNodeIdByMoleculeId.get(precursorId);
+      if (!sourceNodeId) return;
+      const sourceNode = allRouteNodes.find((node) => node.id === sourceNodeId);
+      const targetNode = allRouteNodes.find((node) => node.id === productNodeId);
+      const routePath = sourceNode && targetNode
+        ? chooseBestOrthogonalRoute(sourceNode, targetNode, allRouteNodes)
+        : null;
       routeEdges.push(makeCanvasEdge({
-        id: `route-anchor-${stamp}-${route.id}`,
-        source: targetNodeId,
-        target: anchorMolecule.id,
-        sourceHandle: routePath.sourceHandle,
-        targetHandle: routePath.targetHandle,
-        label: "route target",
+        id: `${rxnId}-edge-${precursorId}`,
+        source: sourceNodeId,
+        target: productNodeId,
+        sourceHandle: routePath?.sourceHandle ?? "right",
+        targetHandle: routePath?.targetHandle ?? "left",
+        label: step.template || `Step ${stepIndex + 1}`,
       }));
-    }
-  }
+    });
+  });
 
   return {
     ...cell,
