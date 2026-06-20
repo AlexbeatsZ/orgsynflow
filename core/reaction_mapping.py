@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import shutil
 import subprocess
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
+
+import httpx
 
 from core.reaction_explain import explain_reaction
 
@@ -172,3 +176,136 @@ def _parse_mapped_side(smiles: str) -> dict[str, object]:
 
     xyz = f"{len(atoms_out)}\n{smiles}\n" + "\n".join(xyz_lines) + "\n"
     return {"xyz": xyz, "atoms": atoms_out}
+
+
+def correct_mapping_with_deepseek(
+    reaction_smiles: str,
+    mapping: ReactionMapping | None = None,
+) -> dict[str, object]:
+    api_key = _get_ds_key()
+    model = os.getenv("DEEPSEEK_MODEL", "deepseek-v4-flash")
+    if not mapping:
+        mapping = map_reaction(reaction_smiles)
+
+    if not api_key:
+        return {
+            "available": False,
+            "method": "deepseek_chat_completion",
+            "reason": "DEEPSEEK_API_KEY 未配置。",
+            **mapping.as_dict(),
+        }
+
+    prompt = {
+        "reaction_smiles": reaction_smiles,
+        "rxn_mapped_smiles": mapping.mapped_reaction_smiles,
+        "rxn_confidence": mapping.confidence,
+    }
+    try:
+        response = httpx.post(
+            "https://api.deepseek.com/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": model,
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": (
+                            "你是有机化学反应专家。请校验 RXNMapper 生成的原子映射是否正确，"
+                            "特别注意检查反应中是否丢失了小分子（如 H2O, HCl, NH3, HBr, CO2, N2, "
+                            "NaCl, H2SO4, NaOH, MeOH, EtOH, AcOH 等副产物）。"
+                            "如果原 mapped_rxn 缺少小分子产物，请在产物侧补充并以原子映射编号标注。"
+                            "只输出 JSON，不输出 Markdown。"
+                        ),
+                    },
+                    {
+                        "role": "user",
+                        "content": (
+                            "请校验以下反应的原子映射并输出 JSON："
+                            "mapped_reaction_smiles(字符串, 修正后的完整映射 SMILES), "
+                            "has_corrections(布尔值), corrections(字符串数组, 描述做了哪些修正), "
+                            "missing_small_molecules(字符串数组, 被 RXNMapper 遗漏的小分子), "
+                            "confidence(低/中/高字符串)。输入如下：\n"
+                            f"{json.dumps(prompt, ensure_ascii=False)}"
+                        ),
+                    },
+                ],
+                "temperature": 0.1,
+                "max_tokens": 1000,
+                "response_format": {"type": "json_object"},
+            },
+            timeout=30,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        content = str(payload["choices"][0]["message"]["content"])
+        parsed = _parse_ds_json(content)
+
+        corrected_smiles = str(parsed.get("mapped_reaction_smiles") or mapping.mapped_reaction_smiles or "")
+        confidence = str(parsed.get("confidence") or mapping.confidence)
+        if confidence not in {"低", "中", "高"}:
+            confidence = mapping.confidence
+
+        corrections = _ds_str_list(parsed.get("corrections"))
+        missing = _ds_str_list(parsed.get("missing_small_molecules"))
+
+        return {
+            "available": True,
+            "method": f"deepseek_chat_completion:{model}",
+            "reaction_smiles": mapping.reaction_smiles,
+            "mapped_reaction_smiles": corrected_smiles if corrected_smiles else mapping.mapped_reaction_smiles,
+            "confidence": "高" if parsed.get("has_corrections") else confidence,
+            "status": "mapped_corrected" if parsed.get("has_corrections") else mapping.status,
+            "reaction_center": mapping.reaction_center,
+            "formed_bonds": mapping.formed_bonds,
+            "broken_bonds": mapping.broken_bonds,
+            "has_corrections": bool(parsed.get("has_corrections")),
+            "corrections": corrections,
+            "missing_small_molecules": missing,
+            "note": f"AI 已校验映射{'并修正' if parsed.get('has_corrections') else ''}。"
+                    + (f" 补充了遗漏小分子: {', '.join(missing)}。" if missing else ""),
+        }
+    except Exception as exc:
+        return {
+            "available": False,
+            "method": f"deepseek_chat_completion:{model}",
+            "reason": f"DeepSeek 调用失败。错误类型：{type(exc).__name__}",
+            **mapping.as_dict(),
+        }
+
+
+def _get_ds_key() -> str | None:
+    key = os.getenv("DEEPSEEK_API_KEY")
+    if key:
+        return key
+    root = Path(__file__).resolve().parents[1]
+    for filename in (".env.local", ".env"):
+        path = root / filename
+        if not path.exists():
+            continue
+        for raw_line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+            line = raw_line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            k, v = line.split("=", 1)
+            if k.strip() == "DEEPSEEK_API_KEY":
+                return v.strip().strip("\"'")
+    return None
+
+
+def _parse_ds_json(content: str) -> dict[str, Any]:
+    text = content.strip()
+    fenced = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, flags=re.DOTALL)
+    if fenced:
+        text = fenced.group(1)
+    return json.loads(text)
+
+
+def _ds_str_list(value: object) -> list[str]:
+    if isinstance(value, list):
+        return [str(item) for item in value if str(item).strip()]
+    if isinstance(value, str) and value.strip():
+        return [value.strip()]
+    return []

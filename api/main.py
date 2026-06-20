@@ -355,7 +355,7 @@ def molecule_descriptors(request: MoleculePropertiesRequest) -> dict[str, object
 
 @app.post("/reaction/map")
 def reaction_map(request: ReactionExplainRequest) -> dict[str, object]:
-    return map_single_reaction(request.reaction_smiles)
+    return map_single_reaction(request.reaction_smiles, use_llm=request.use_llm)
 
 
 @app.post("/reaction/ts-plan")

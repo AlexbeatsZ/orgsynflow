@@ -27,7 +27,7 @@ from core.properties import calculate_descriptors, predict_properties
 from core.quantum import parse_quantum_log
 from core.reaction_features import featurize_reaction
 from core.reaction_explain import explain_reaction, explain_reaction_with_deepseek
-from core.reaction_mapping import map_reaction
+from core.reaction_mapping import correct_mapping_with_deepseek, map_reaction
 from core.report import render_report
 from core.route import Route, load_demo_routes
 from core.route_layout import layout_route
@@ -176,7 +176,9 @@ def check_feasibility(reaction_smiles: str, template: str | None = None, use_llm
     }
 
 
-def map_single_reaction(reaction_smiles: str) -> dict[str, object]:
+def map_single_reaction(reaction_smiles: str, use_llm: bool = False) -> dict[str, object]:
+    if use_llm:
+        return correct_mapping_with_deepseek(reaction_smiles)
     return map_reaction(reaction_smiles).as_dict()
 
 

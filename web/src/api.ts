@@ -103,8 +103,8 @@ export async function explainReaction(reactionSmiles: string, template?: string)
   return data;
 }
 
-export async function mapReaction(reactionSmiles: string): Promise<unknown> {
-  const { data } = await http.post("/reaction/map", { reaction_smiles: reactionSmiles });
+export async function mapReaction(reactionSmiles: string, useLlm: boolean = true): Promise<unknown> {
+  const { data } = await http.post("/reaction/map", { reaction_smiles: reactionSmiles, use_llm: useLlm });
   return data;
 }
 

@@ -94,6 +94,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
     reaction_map = subparsers.add_parser("reaction-map", help="用 RXNMapper 或规则 fallback 生成反应映射摘要")
     reaction_map.add_argument("reaction_smiles")
+    reaction_map.add_argument("--use-llm", action="store_true", help="使用 DeepSeek AI 校验并纠正原子映射")
     reaction_map.add_argument("--format", choices=("text", "json"), default="text")
     reaction_map.set_defaults(handler=_reaction_map)
 
@@ -221,7 +222,7 @@ def _reaction_explain(args: argparse.Namespace) -> dict[str, object]:
 def _reaction_map(args: argparse.Namespace) -> dict[str, object]:
     return {
         "source": "reaction_mapping",
-        **map_single_reaction(args.reaction_smiles),
+        **map_single_reaction(args.reaction_smiles, use_llm=getattr(args, "use_llm", False)),
     }
 
 
@@ -342,6 +343,13 @@ def _emit(payload: dict[str, Any], output_format: str) -> None:
         print(f"方法：{payload['method']}")
         print(f"置信度：{payload['confidence']}")
         print(f"映射 reaction SMILES：{payload['mapped_reaction_smiles'] or '-'}")
+        if payload.get("has_corrections"):
+            print(f"AI 修正：是")
+            if payload.get("missing_small_molecules"):
+                print(f"补充遗漏小分子：{', '.join(payload['missing_small_molecules'])}")
+            if payload.get("corrections"):
+                for c in payload["corrections"]:
+                    print(f"  - {c}")
         print(f"说明：{payload['note']}")
         return
 

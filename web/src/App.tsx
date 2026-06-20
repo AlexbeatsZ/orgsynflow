@@ -662,13 +662,13 @@ function ReactionMappingView({ result }: { result: any }) {
   }, []);
 
   useEffect(() => {
-    if (!mol3dReady || !coords || !viewerRefR.current || !viewerRefP.current || !(window as any).$3Dmol) return;
+    if (!mol3dReady || !coords || !(window as any).$3Dmol) return;
     const $3Dmol = (window as any).$3Dmol;
 
-    const viewerR = $3Dmol.createViewer(viewerRefR.current, { backgroundColor: "#f8fafc" });
-    const viewerP = $3Dmol.createViewer(viewerRefP.current, { backgroundColor: "#f8fafc" });
+    const viewers: any[] = [];
 
-    if (coords.reactants?.xyz) {
+    if (coords.reactants?.xyz && viewerRefR.current) {
+      const viewerR = $3Dmol.createViewer(viewerRefR.current, { backgroundColor: "#f8fafc" });
       viewerR.addModel(coords.reactants.xyz, "xyz");
       viewerR.setStyle({}, { stick: { radius: 0.15 }, sphere: { scale: 0.25 } });
       if (Array.isArray(coords.reactants.atoms)) {
@@ -686,9 +686,11 @@ function ReactionMappingView({ result }: { result: any }) {
       }
       viewerR.zoomTo();
       viewerR.render();
+      viewers.push(viewerR);
     }
 
-    if (coords.products?.xyz) {
+    if (coords.products?.xyz && viewerRefP.current) {
+      const viewerP = $3Dmol.createViewer(viewerRefP.current, { backgroundColor: "#f8fafc" });
       viewerP.addModel(coords.products.xyz, "xyz");
       viewerP.setStyle({}, { stick: { radius: 0.15 }, sphere: { scale: 0.25 } });
       if (Array.isArray(coords.products.atoms)) {
@@ -706,16 +708,15 @@ function ReactionMappingView({ result }: { result: any }) {
       }
       viewerP.zoomTo();
       viewerP.render();
+      viewers.push(viewerP);
     }
 
     requestAnimationFrame(() => {
-      viewerR.resize();
-      viewerP.resize();
+      viewers.forEach((v) => v.resize());
     });
 
     return () => {
-      viewerR.clear();
-      viewerP.clear();
+      viewers.forEach((v) => v.clear());
     };
   }, [mol3dReady, coords]);
 
@@ -739,25 +740,50 @@ function ReactionMappingView({ result }: { result: any }) {
         </tbody>
       </table>
 
+      {(result?.has_corrections || result?.missing_small_molecules?.length > 0) && (
+        <div style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "8px", padding: "12px 14px", marginBottom: "12px" }}>
+          <div style={{ fontWeight: 600, color: "#1e40af", marginBottom: "6px" }}>
+            AI 映射校验 {result.has_corrections ? "(已修正)" : ""}
+          </div>
+          {result.missing_small_molecules?.length > 0 && (
+            <div style={{ marginBottom: "6px" }}>
+              <span style={{ color: "#64748b", fontSize: "13px" }}>补充遗漏小分子: </span>
+              {result.missing_small_molecules.map((m: string, i: number) => (
+                <code key={i} style={{ marginLeft: "6px", background: "#dbeafe", padding: "1px 6px", borderRadius: "4px", fontSize: "12px" }}>{m}</code>
+              ))}
+            </div>
+          )}
+          {result.corrections?.map((c: string, i: number) => (
+            <div key={i} style={{ color: "#334155", fontSize: "13px" }}>{c}</div>
+          ))}
+        </div>
+      )}
+
       {coords && !coords.error && (coords.reactants?.xyz || coords.products?.xyz) ? (
         <div style={{ display: "flex", gap: "16px", marginBottom: "12px", flexWrap: "wrap" }}>
-          <div style={{ flex: 1, minWidth: "280px" }}>
-            <h5 style={{ margin: "0 0 6px 0", color: "#334155" }}>反应物 (Atom Mapping)</h5>
-            <div className="result-3d-viewer-container">
-              <div ref={viewerRefR} className="result-3d-viewer" />
+          {coords.reactants?.xyz && (
+            <div style={{ flex: 1, minWidth: "280px" }}>
+              <h5 style={{ margin: "0 0 6px 0", color: "#334155" }}>反应物 (Atom Mapping)</h5>
+              <div className="result-3d-viewer-container">
+                <div ref={viewerRefR} className="result-3d-viewer" />
+              </div>
             </div>
-          </div>
-          <div style={{ flex: 1, minWidth: "280px" }}>
-            <h5 style={{ margin: "0 0 6px 0", color: "#334155" }}>产物 (Atom Mapping)</h5>
-            <div className="result-3d-viewer-container">
-              <div ref={viewerRefP} className="result-3d-viewer" />
+          )}
+          {coords.products?.xyz && (
+            <div style={{ flex: 1, minWidth: "280px" }}>
+              <h5 style={{ margin: "0 0 6px 0", color: "#334155" }}>产物 (Atom Mapping)</h5>
+              <div className="result-3d-viewer-container">
+                <div ref={viewerRefP} className="result-3d-viewer" />
+              </div>
             </div>
-          </div>
+          )}
         </div>
       ) : coords?.error ? (
         <div style={{ color: "#b91c1c", margin: "8px 0" }}>3D 映射坐标生成失败: {coords.error}</div>
-      ) : (
+      ) : result?.mapped_reaction_smiles ? (
         <div style={{ color: "#64748b", margin: "8px 0" }}>正在加载 3D 映射结构...</div>
+      ) : (
+        <div style={{ color: "#94a3b8", margin: "8px 0", fontSize: "13px" }}>无可用的原子映射数据</div>
       )}
 
       {svg ? (
@@ -2746,7 +2772,7 @@ function ReactionTasks({
       <code>{reaction.reaction_smiles}</code>
       <TaskButton definition={validationTask} record={recordFor(validationTask)} onRun={() => void runTask(validationTask, () => validateReaction(reaction.reaction_smiles, reaction.template), { title: validationTask.label })} openModal={openModal} />
       <TaskButton definition={explanationTask} record={recordFor(explanationTask)} onRun={() => void runTask(explanationTask, () => explainReaction(reaction.reaction_smiles, reaction.template), { title: explanationTask.label })} openModal={openModal} />
-      <TaskButton definition={mappingTask} record={recordFor(mappingTask)} onRun={() => void runTask(mappingTask, () => mapReaction(reaction.reaction_smiles), { title: mappingTask.label })} openModal={openModal} />
+      <TaskButton definition={mappingTask} record={recordFor(mappingTask)} onRun={() => void runTask(mappingTask, () => mapReaction(reaction.reaction_smiles, true), { title: mappingTask.label })} openModal={openModal} />
       <TaskButton definition={yieldTask} record={recordFor(yieldTask)} onRun={() => void runTask(yieldTask, () => estimateYield(reaction.reaction_smiles, reaction.template), { title: yieldTask.label })} openModal={openModal} />
       <TaskButton definition={featuresTask} record={recordFor(featuresTask)} onRun={() => void runTask(featuresTask, () => reactionFeatures(reaction.reaction_smiles), { title: featuresTask.label })} openModal={openModal} />
       <TaskButton
