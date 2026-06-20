@@ -3224,10 +3224,10 @@ function chooseBestOrthogonalRoute(
   const targetRect = endpointOverrides.targetRect ?? targetNodeRect;
   const obstacles = nodes
     .filter((node) => node.id !== source.id && node.id !== target.id)
-    .map((node) => expandRect(nodeRect(node), 18))
+    .map((node) => expandRect(nodeRect(node), 10))
     .concat(endpointOverrides.obstacles ?? [])
-    .concat([expandRect(nodeRect(source), 18)])
-    .concat(endpointOverrides.targetRect ? [] : [expandRect(nodeRect(target), 18)]);
+    .concat([expandRect(nodeRect(source), 10)])
+    .concat(endpointOverrides.targetRect ? [] : [expandRect(nodeRect(target), 10)]);
   const candidates: Array<{ sourceHandle: Side; targetHandle: Side; points: Point[]; isStructurallyForbidden: boolean; isOverlapForbidden: boolean; isBlocked: boolean }> = [];
 
   for (const sourceHandle of sideOrder(sourceRect, targetRect)) {
@@ -3240,8 +3240,8 @@ function chooseBestOrthogonalRoute(
         forbiddenTargetHandles.has(targetHandle);
       const sourcePoint = sideCenter(sourceRect, sourceHandle);
       const targetPoint = sideCenter(targetRect, targetHandle);
-      const sourcePort = sidePort(sourceRect, sourceHandle, 28);
-      const targetPort = sidePort(targetRect, targetHandle, 28);
+      const sourcePort = sidePort(sourceRect, sourceHandle, 15);
+      const targetPort = sidePort(targetRect, targetHandle, 15);
       const middle = findOrthogonalPath(sourcePort, targetPort, obstacles);
       const points = simplifyPoints([sourcePoint, sourcePort, ...middle, targetPort, targetPoint]);
       const isBlocked = isPathBlocked(points, obstacles);
@@ -3555,7 +3555,11 @@ function simplifyPoints(points: Point[]): Point[] {
   for (const point of deduped) {
     const previous = simplified[simplified.length - 1];
     const beforePrevious = simplified[simplified.length - 2];
-    if (beforePrevious && previous && ((beforePrevious.x === previous.x && previous.x === point.x) || (beforePrevious.y === previous.y && previous.y === point.y))) {
+    if (
+      beforePrevious && previous &&
+      ((beforePrevious.x === previous.x && previous.x === point.x && ((beforePrevious.y <= previous.y && previous.y <= point.y) || (beforePrevious.y >= previous.y && previous.y >= point.y))) ||
+       (beforePrevious.y === previous.y && previous.y === point.y && ((beforePrevious.x <= previous.x && previous.x <= point.x) || (beforePrevious.x >= previous.x && previous.x >= point.x))))
+    ) {
       simplified[simplified.length - 1] = point;
     } else {
       simplified.push(point);
