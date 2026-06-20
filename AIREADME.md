@@ -164,6 +164,11 @@ WSL 临时文件必须放在：
 - Ketcher 引入的 `ketcher-react/dist/index.css` 含有大量全局样式，与项目自带的通用弹窗样式（如 `.modal-backdrop`、`.modal-header` 等）易发生类名冲突，导致弹窗不居中且 Wasm 交互错位。已将项目中所有 Modal 相关基础类名加前缀升级（如 `.osf-modal-backdrop`）。同时，对嵌入了复杂第三方组件的 Modal 容器，应避免使用 CSS Grid 布局，因为 Grid 布局会将第三方组件在运行时动态生成的 style/div 辅助节点强行作为网格项目进行排位，从而摧毁行高比例。必须统一使用 Flexbox 布局，并通过 `flex: 1` 和 `position: relative` 规范子容器的高度撑满与 Containing Block 定位基准。
 - TS 参数窗口曾使用未定义的 `osf-modal-window` 类，导致计算样式背景为完全透明，同时缺少阴影、裁剪和相对定位。TS 窗口应复用 `osf-config-modal` 基类，再由 `ts-config-modal` 覆盖尺寸和网格布局；不要新增没有基础视觉契约的 modal 类名。
 - 路线预测结果的展示不应只显示纯文本，当前已实现通过 `RouteCandidatePreview` 结合 `MoleculeDrawing` 和 SVG 路径直接在弹窗渲染反应合成树的预览，增强体验直观度。
+- 路线候选预览应以反应步骤为中心展示：多个反应物分别渲染结构并用 `+` 分隔，经过一根明确箭头指向产物。路线候选内容较长，必须使用带 `max-height` 和内部滚动的结果弹窗，不能复用无高度限制的配置弹窗。
+- Chemformer checkpoint 依赖 Python 3.10、PyTorch 和 `aizynthmodels`，不应塞入主项目 Python 3.11 的 uv 环境。当前通过独立 Conda sidecar 暴露 HTTP API，OrgSynFlow 只负责健康检查和统一路线格式转换。
+- Chemformer beam 可能包含非法 SMILES、规范化后重复结果或把目标本身放回前体的循环候选。适配器应请求多于展示数的原始 beam，再筛出前 5 个合法、去重且不含目标分子的候选；`log_likelihood` 只能作为模型原始分数展示，不能称为概率。
+- Chemformer 会规范化目标 SMILES，路线插入器不能只用 SMILES 字符串完全相等来复用现有目标节点；应优先把 `route.target_id` 映射到用户发起预测时的锚点节点。
+- `/compute/status` 不应为每个后端重复调用完整适配器扫描；WSL 探测较慢，应一次构建状态映射后复用，否则前端引擎选择器会长时间显示未检测状态。
 - Gaussian 优化的收敛过程图表可通过解析 log 文件中所有 `SCF Done:` 与 `Maximum Force` 提取，并在 `GaussianJobView` 渲染出迭代详情（类似 `temp/main.py` 的实现）。
 - FastAPI 后端需要显式映射所有管理器，如果新增管理器（例如 `TsWorkflowManager`），必须在 `api/main.py` 添加对应的 `GET / POST` 路由才能防止前端报 404 错误。
 化学结果表达经验：
@@ -225,6 +230,7 @@ WSL 临时文件必须放在：
 
 当前状态：
 
+- [done] 2026-06-20 新增 Chemformer 单步逆合成选项：复用 `chem-ai/work-4` 的本地 Conda sidecar 和 checkpoint，返回 Top 5 合法候选且不使用演示回退；AiZynthFinder、ASKCOS、Chemformer 候选统一显示分子结构、`+` 和反应箭头；一键脚本可自动管理 8000/8765/5173 三个服务并将日志写入 `%LOCALAPPDATA%\Temp\.agents\orgsynflow`。
 - [done] 2026-06-20 在 AiZynthFinder 和 ASKCOS 适配器中增加基于 RDKit Canonical SMILES 的路线去重和循环路径拦截（如果前体与目标或祖先节点完全一致，则自动剪除该冗余节点），以解决相同分子重复出现并导致冗余的问题。
 - [done] 2026-06-20 修复删除选中项按钮在无选中时显示以及点击卡住/误删的问题：更新 `web/src/App.tsx` 中的渲染判定条件和删除逻辑为仅限当前实际选中的节点和边；引入了 `useEffect` 用于同步 React Flow 的 selection 状态，确保在 deselect 时 `selectedNodeId` 和 `selectedEdgeId` 能够同步清空，并同步更新任务面板。
 - [done] 2026-06-20 合并 temp/ 目录下的 3 个过渡态搜索/绘图文件到 WSL 和 Windows 仓库，并更新 Python 依赖关系：安装/配置了 gradio、py3Dmol、matplotlib；测试均能正常 import 且编译成功。

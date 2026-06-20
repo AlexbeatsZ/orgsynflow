@@ -88,13 +88,15 @@ type SelectedObject =
   | { kind: "reaction"; cell: WorkspaceCell; reaction: ReactionObject }
   | null;
 
+type RetrosynthesisEngine = "aizynthfinder" | "askcos" | "chemformer";
+
 type ModalState =
   | { kind: "result"; title: string; result: unknown; onRecompute?: () => void; onConfigure?: () => void }
   | { kind: "task-error"; title: string; record: CachedResult; onRetry?: () => void; onConfigure?: () => void }
   | { kind: "backend"; status: ComputeStatus | null }
   | { kind: "jobs"; jobs: GaussianJob[]; refresh: () => Promise<void> }
   | { kind: "routes"; sets: RouteCandidateSet[]; workspace: Workspace; selected: SelectedObject; onSave: (workspace?: Workspace | null) => Promise<void>; onRecompute?: () => void }
-  | { kind: "engine-select"; onSelect: (engine: string) => void; backendStatus: ComputeStatus | null }
+  | { kind: "engine-select"; onSelect: (engine: RetrosynthesisEngine) => void; backendStatus: ComputeStatus | null }
   | null;
 
 type ExtractedGeometry = {
@@ -669,59 +671,83 @@ function TaskLogDrawer({
   );
 }
 
-function RouteCandidatePreview({ route }: { route: any }) {
-  if (!route.layout?.nodes || Object.keys(route.layout.nodes).length === 0) return null;
-
-  const nodes = Object.values(route.layout.nodes) as Array<{ id: string; x: number; y: number; in_stock: boolean }>;
-  const minX = Math.min(...nodes.map(n => n.x));
-  const minY = Math.min(...nodes.map(n => n.y));
-  const maxX = Math.max(...nodes.map(n => n.x));
-  const maxY = Math.max(...nodes.map(n => n.y));
-
-  const width = Math.max(600, maxX - minX + 220);
-  const height = Math.max(300, maxY - minY + 160);
+function RouteCandidatePreview({ route }: { route: RouteCandidate }) {
+  const molecules = new Map(route.molecules.map((molecule) => [molecule.id, molecule]));
+  const steps = orderRouteSteps(route);
+  if (steps.length === 0) {
+    const target = molecules.get(route.target_id);
+    return target ? <div className="route-scheme"><RoutePreviewMolecule molecule={target} isTarget /></div> : null;
+  }
 
   return (
-    <div className="route-preview-container" style={{ position: 'relative', width: '100%', height: '280px', overflow: 'auto', background: '#f8fafc', borderRadius: '6px', marginTop: '12px', border: '1px solid var(--border-color)' }}>
-      <div style={{ position: 'absolute', width: width, height: height, top: 0, left: 0 }}>
-        <svg width="100%" height="100%" style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none' }}>
-          <defs>
-            <marker id={`arrow-${route.id}`} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b" />
-            </marker>
-          </defs>
-          {(route.layout.edges || []).map((edge: any, i: number) => {
-            const source = route.layout.nodes[edge.source_id];
-            const target = route.layout.nodes[edge.target_id];
-            if (!source || !target) return null;
-            const startX = source.x - minX + 180;
-            const startY = source.y - minY + 60;
-            const endX = target.x - minX - 10;
-            const endY = target.y - minY + 60;
-            const midX = (startX + endX) / 2;
-            return (
-              <path
-                key={i}
-                d={`M ${startX} ${startY} C ${midX} ${startY}, ${midX} ${endY}, ${endX} ${endY}`}
-                fill="none"
-                stroke="#cbd5e1"
-                strokeWidth="3"
-                markerEnd={`url(#arrow-${route.id})`}
-              />
-            );
-          })}
-        </svg>
-        {nodes.map(node => {
-          const mol = route.molecules.find((m: any) => m.id === node.id);
-          return (
-            <div key={node.id} style={{ position: 'absolute', left: node.x - minX + 10, top: node.y - minY + 10, width: '160px', background: 'white', border: `2px solid ${node.in_stock ? '#22c55e' : '#e2e8f0'}`, borderRadius: '6px', padding: '4px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
-              <MoleculeDrawing smiles={mol?.smiles ?? ""} />
-              {node.in_stock && <div style={{ position: 'absolute', top: '-8px', right: '-8px', background: '#22c55e', color: 'white', fontSize: '10px', padding: '2px 6px', borderRadius: '10px' }}>库存可用</div>}
+    <div className="route-scheme" aria-label={`${route.title} 合成路线预览`}>
+      {steps.map((step, stepIndex) => {
+        const precursors = step.precursor_ids.map((id) => molecules.get(id)).filter(Boolean) as RouteCandidate["molecules"];
+        const product = molecules.get(step.product_id);
+        if (!product || precursors.length === 0) return null;
+        const markerId = `route-arrow-${route.id}-${step.id}`.replace(/[^a-zA-Z0-9_-]/g, "-");
+        return (
+          <div className="route-scheme-step" key={step.id}>
+            <div className="route-step-label">步骤 {stepIndex + 1}</div>
+            <div className="route-scheme-reactants">
+              {precursors.map((precursor, index) => [
+                index > 0 ? <span className="route-plus" key={`${step.id}-plus-${index}`}>+</span> : null,
+                <RoutePreviewMolecule molecule={precursor} key={precursor.id} />,
+              ])}
             </div>
-          );
-        })}
-      </div>
+            <div className="route-reaction-arrow" title={step.template ?? undefined}>
+              <span>{step.template || "合成"}</span>
+              <svg viewBox="0 0 132 32" role="img" aria-label="反应箭头">
+                <defs>
+                  <marker id={markerId} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+                    <path d="M 0 0 L 10 5 L 0 10 z" />
+                  </marker>
+                </defs>
+                <line x1="4" y1="16" x2="122" y2="16" markerEnd={`url(#${markerId})`} />
+              </svg>
+            </div>
+            <RoutePreviewMolecule molecule={product} isTarget={product.id === route.target_id} />
+          </div>
+        );
+      })}
     </div>
+  );
+}
+
+function RoutePreviewMolecule({
+  molecule,
+  isTarget = false,
+}: {
+  molecule: RouteCandidate["molecules"][number];
+  isTarget?: boolean;
+}) {
+  return (
+    <div className={`route-preview-molecule${molecule.in_stock ? " in-stock" : ""}${isTarget ? " target" : ""}`}>
+      <div className="route-molecule-badges">
+        {molecule.in_stock && <span>库存可用</span>}
+        {isTarget && <span>目标产物</span>}
+      </div>
+      <MoleculeDrawing smiles={molecule.smiles} />
+      <code title={molecule.smiles}>{molecule.smiles}</code>
+    </div>
+  );
+}
+
+function orderRouteSteps(route: RouteCandidate): RouteCandidate["steps"] {
+  const stepByProduct = new Map(route.steps.map((step) => [step.product_id, step]));
+  const depthByProduct = new Map<string, number>();
+  const visit = (moleculeId: string, depth: number, path: Set<string>) => {
+    if (path.has(moleculeId)) return;
+    const step = stepByProduct.get(moleculeId);
+    if (!step) return;
+    depthByProduct.set(moleculeId, Math.max(depthByProduct.get(moleculeId) ?? 0, depth));
+    const nextPath = new Set(path).add(moleculeId);
+    step.precursor_ids.forEach((precursorId) => visit(precursorId, depth + 1, nextPath));
+  };
+  visit(route.target_id, 0, new Set());
+  return [...route.steps].sort((left, right) =>
+    (depthByProduct.get(right.product_id) ?? 0) - (depthByProduct.get(left.product_id) ?? 0)
+    || left.id.localeCompare(right.id)
   );
 }
 
@@ -730,7 +756,7 @@ function RouteResultView({ result }: { result: ReturnType<typeof asRoutePredicti
     <div className="structured-result">
       <div className="result-summary">
         <strong>{result.target_smiles}</strong>
-        <span>{result.used_fallback ? "演示候选" : "AiZynthFinder"}</span>
+        <span>{result.used_fallback ? "演示候选" : routeEngineLabel(result.engine)}</span>
       </div>
       <p>{result.status}</p>
       <div className="route-result-list">
@@ -1482,7 +1508,7 @@ function MoleculeDrawing({ smiles }: { smiles: string }) {
     setSvg(null);
     setFailed(false);
     if (!smiles) return;
-    renderMoleculeSvg(smiles)
+    cachedMoleculeSvg(smiles)
       .then((nextSvg) => {
         if (!cancelled) {
           setSvg(nextSvg);
@@ -1500,6 +1526,19 @@ function MoleculeDrawing({ smiles }: { smiles: string }) {
       {svg ? <div dangerouslySetInnerHTML={{ __html: svg }} /> : <span className={failed ? "formula-fallback" : ""}>{failed ? displayFormulaLike(smiles) : "渲染中..."}</span>}
     </div>
   );
+}
+
+const moleculeSvgCache = new Map<string, Promise<string | null>>();
+
+function cachedMoleculeSvg(smiles: string): Promise<string | null> {
+  const cached = moleculeSvgCache.get(smiles);
+  if (cached) return cached;
+  const request = renderMoleculeSvg(smiles).catch((error) => {
+    moleculeSvgCache.delete(smiles);
+    throw error;
+  });
+  moleculeSvgCache.set(smiles, request);
+  return request;
 }
 
 function EditorStrip({ cell, onUpdate }: { cell: WorkspaceCell; onUpdate: (cell: WorkspaceCell) => void }) {
@@ -1823,15 +1862,19 @@ function RouteCandidateSets({
           <div key={set.id} className="route-candidate-set">
             <div className="route-candidate-head">
               <strong>{set.target_smiles}</strong>
-              <span>{set.used_fallback ? "演示" : "预测"}</span>
+              <span>{set.used_fallback ? "演示" : routeEngineLabel(set.engine ?? set.candidates[0]?.source)}</span>
             </div>
             <p>{set.status}</p>
-            {set.candidates.slice(0, 3).map((route, index) => (
+            {set.candidates.slice(0, set.engine === "chemformer" ? 5 : 3).map((route, index) => (
               <div key={route.id} className="route-candidate-card">
                 <button onClick={() => setResult({ ...set, selected_route: route })}>
                   {index + 1}. {route.title}
                 </button>
                 <span>{route.depth} 步 · 前体 {route.precursor_count} · 库存 {route.stock_count}</span>
+                {typeof route.metadata?.log_likelihood === "number" && (
+                  <span>模型对数似然 {route.metadata.log_likelihood.toFixed(3)}</span>
+                )}
+                <RouteCandidatePreview route={route} />
                 <div className="route-actions">
                   <button onClick={() => addRouteToCurrentCell(route, set.target_smiles)}>加入当前画布</button>
                   <button onClick={() => createRouteCell(route)}>新建路线单元</button>
@@ -1872,11 +1915,12 @@ function EngineSelectorView({
   onSelect,
   backendStatus,
 }: {
-  onSelect: (engine: string) => void;
+  onSelect: (engine: RetrosynthesisEngine) => void;
   backendStatus: ComputeStatus | null;
 }) {
   const aizynth = backendStatus?.aizynthfinder;
   const askcos = backendStatus?.askcos;
+  const chemformer = backendStatus?.chemformer;
 
   return (
     <div className="engine-selector-container">
@@ -1894,6 +1938,21 @@ function EngineSelectorView({
           </div>
           <p className="engine-option-desc">
             运行在本地 WSL 中的 AI 逆合成推荐引擎。已完成本地模型包配置，能进行真实计算。
+          </p>
+        </button>
+
+        <button
+          className="engine-option-card"
+          onClick={() => onSelect("chemformer")}
+        >
+          <div className="engine-option-header">
+            <strong>Chemformer（单步候选）</strong>
+            <span className={`engine-badge ${chemformer?.available ? "ready" : "not-ready"}`}>
+              {chemformer ? (chemformer.available ? "已就绪" : "服务未启动") : "检测中"}
+            </span>
+          </div>
+          <p className="engine-option-desc">
+            使用本地 Chemformer checkpoint 生成 Top 5 反应物组合；结果是单步逆合成候选，不会自动展开为完整多步路线。
           </p>
         </button>
 
@@ -1929,7 +1988,7 @@ function AppModal({
 }) {
   return (
     <div className="osf-modal-backdrop">
-      <div className={modal.kind === "result" ? "osf-result-modal" : "osf-config-modal"}>
+      <div className={modal.kind === "result" || modal.kind === "routes" ? "osf-result-modal" : "osf-config-modal"}>
         <div className="osf-modal-header">
           <strong>
             {modal.kind === "result" && modal.title}
@@ -2154,7 +2213,7 @@ function MoleculeTasks({
   const descriptorsTask = makeTaskDefinition(selected, "molecule-descriptors", "计算分子描述符（RDKit）", "RDKit");
   const xtbTask = makeTaskDefinition(selected, "xtb-geometry-energy", "计算几何优化与能量（xTB）", "xTB");
   const crestTask = makeTaskDefinition(selected, "crest-conformers", "搜索低能构象（CREST）", "CREST");
-  const routeTask = makeTaskDefinition(selected, "retrosynthesis", "预测逆合成路线（AiZynthFinder）", "AiZynthFinder");
+  const routeTask = makeTaskDefinition(selected, "retrosynthesis", "预测逆合成路线", undefined);
   const gaussianTask = makeTaskDefinition(selected, "gaussian-opt-freq", "计算结构优化与频率（Gaussian）", "Gaussian");
 
   function recordFor(definition: TaskDefinition) {
@@ -2171,10 +2230,10 @@ function MoleculeTasks({
     });
   }
 
-  async function startRoutePrediction(engine: string) {
+  async function startRoutePrediction(engine: RetrosynthesisEngine) {
     let routeSet: RouteCandidateSet | null = null;
     let nextWorkspace = workspace;
-    const taskEngineLabel = engine === "askcos" ? "ASKCOS" : "AiZynthFinder";
+    const taskEngineLabel = routeEngineLabel(engine);
     const customRouteTask = {
       ...routeTask,
       label: `预测逆合成路线（${taskEngineLabel}）`,
@@ -2182,7 +2241,7 @@ function MoleculeTasks({
     };
 
     const prediction = await runTask(customRouteTask, async () => {
-      const nextPrediction = await analyzeRoute(targetSmiles, 3, engine);
+      const nextPrediction = await analyzeRoute(targetSmiles, engine === "chemformer" ? 5 : 3, engine);
       routeSet = {
         id: `rcs-${Date.now()}`,
         target_smiles: nextPrediction.target_smiles ?? targetSmiles,
@@ -2192,6 +2251,7 @@ function MoleculeTasks({
         route_scores: nextPrediction.route_scores,
         feasibility: nextPrediction.feasibility,
         used_fallback: nextPrediction.used_fallback,
+        engine,
       };
       if (workspace) {
         nextWorkspace = {
@@ -3904,7 +3964,7 @@ function addRouteCandidateToCell(
   // represent each synthetic operation as one reactant block pointing to the
   // product. A + B >> C therefore becomes a single A.B node connected to C.
   route.molecules.forEach((molecule, index) => {
-    if (shiftedAnchorNode && molecule.smiles === anchorTargetSmiles) {
+    if (shiftedAnchorNode && (molecule.id === route.target_id || molecule.smiles === anchorTargetSmiles)) {
       routeNodeIdByMoleculeId.set(molecule.id, shiftedAnchorNode.id);
       return;
     }
@@ -3972,7 +4032,9 @@ function addRouteCandidateToCell(
       if (sourceNodeId === productNodeId) return;
       const sourceNode = allRouteNodes.find((node) => node.id === sourceNodeId);
       const targetNode = allRouteNodes.find((node) => node.id === productNodeId);
-      const edgeData = targetComponentIndex !== null && productNodeId === shiftedAnchorNode?.id && productMol.smiles === anchorTargetSmiles
+      const edgeData = targetComponentIndex !== null
+        && productNodeId === shiftedAnchorNode?.id
+        && (step.product_id === route.target_id || productMol.smiles === anchorTargetSmiles)
         ? { targetComponentIndex }
         : undefined;
       const endpointOverrides = targetNode && edgeData
@@ -4493,11 +4555,19 @@ function asRoutePredictionResult(value: unknown): {
   used_fallback?: boolean;
   target_smiles: string;
   candidates: RouteCandidate[];
+  engine?: RetrosynthesisEngine;
 } | null {
   if (!value || typeof value !== "object") return null;
   const result = value as any;
   if (!Array.isArray(result.candidates) || !result.target_smiles) return null;
   return result;
+}
+
+function routeEngineLabel(engine?: string): string {
+  if (engine === "chemformer") return "Chemformer · 单步候选";
+  if (engine === "askcos") return "ASKCOS";
+  if (engine === "aizynthfinder") return "AiZynthFinder";
+  return "路线预测";
 }
 
 function asPropertyResult(value: unknown): Record<string, any> | null {

@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import re
+from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from fastapi import FastAPI, HTTPException
 
 from services.workbench import (
@@ -52,12 +53,13 @@ class AnalyzeRequest(BaseModel):
 
 class RoutePredictRequest(BaseModel):
     smiles: str
-    max_routes: int = 3
-    engine: str = "aizynthfinder"
+    max_routes: int = Field(3, ge=1, le=20)
+    engine: Literal["aizynthfinder", "askcos", "chemformer"] = "aizynthfinder"
     aizynth_config: str | None = None
     aizynth_stock: str | None = None
     aizynth_policy: str | None = None
     askcos_url: str | None = None
+    chemformer_url: str | None = None
 
 
 class ReactionExplainRequest(BaseModel):
@@ -291,9 +293,10 @@ def route_predict(request: RoutePredictRequest) -> dict[str, object]:
         aizynth_stock=request.aizynth_stock,
         aizynth_policy=request.aizynth_policy,
         askcos_url=request.askcos_url,
+        chemformer_url=request.chemformer_url,
     )
     return {
-        "available": not bool(result.get("used_fallback")),
+        "available": bool(result.get("available")),
         "status": result["status"],
         "used_fallback": result.get("used_fallback", False),
         "target_smiles": request.smiles,

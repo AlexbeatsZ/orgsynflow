@@ -68,7 +68,7 @@ export async function calculateDescriptors(smiles: string): Promise<unknown> {
 export async function analyzeRoute(
   smiles: string,
   maxRoutes: number,
-  engine: string
+  engine: "aizynthfinder" | "askcos" | "chemformer"
 ): Promise<{
   available: boolean;
   status: string;
@@ -77,7 +77,7 @@ export async function analyzeRoute(
   candidates: RouteCandidate[];
   route_scores?: Record<string, unknown>;
   feasibility?: Record<string, unknown>;
-  engine?: string;
+  engine?: "aizynthfinder" | "askcos" | "chemformer";
 }> {
   const { data } = await http.post("/route/predict", {
     smiles,

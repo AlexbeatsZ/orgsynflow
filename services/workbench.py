@@ -13,9 +13,11 @@ from adapters.xtb_adapter import (
     run_crest_job,
     run_xtb_job,
 )
-from adapters.registry import list_adapter_statuses
+from adapters.registry import adapter_status_map, list_adapter_statuses
 from adapters.aizynth_adapter import find_aizynthcli, predict_routes_with_fallback
+from adapters.base import AdapterStatus
 from adapters.askcos_adapter import predict_routes_with_askcos
+from adapters.chemformer_adapter import predict_routes_with_chemformer
 from adapters.opera_adapter import find_opera_executable
 from core.gaussian import coordinates_from_smiles, generate_gaussian_input, parse_gaussian_log
 from core.gaussian_runner import find_gaussian_executable, run_gaussian_job
@@ -68,6 +70,7 @@ def analyze_target(
     aizynth_stock: str | None = None,
     aizynth_policy: str | None = None,
     askcos_url: str | None = None,
+    chemformer_url: str | None = None,
 ) -> dict[str, object]:
     fallback_routes = load_demo_routes(DEMO_TARGETS.get(demo_target, DEMO_TARGETS["Aspirin"]))
     if engine == "askcos":
@@ -80,6 +83,17 @@ def analyze_target(
         routes = result.routes
         status = result.status
         used_fallback = result.used_fallback
+        available = not used_fallback
+    elif engine == "chemformer":
+        result = predict_routes_with_chemformer(
+            smiles,
+            max_routes=max_routes,
+            chemformer_url=chemformer_url,
+        )
+        routes = result.routes
+        status = result.status
+        used_fallback = result.used_fallback
+        available = result.available
     elif use_aizynth or engine == "aizynthfinder":
         result = predict_routes_with_fallback(
             smiles,
@@ -92,10 +106,12 @@ def analyze_target(
         routes = result.routes
         status = _zh_status(result.status)
         used_fallback = result.used_fallback
+        available = not used_fallback
     else:
         routes = fallback_routes[:max_routes]
         status = "已加载内置演示路线。"
         used_fallback = True
+        available = False
 
     target = summarize_molecule(smiles)
     route_scores = {route.id: score_route(route) for route in routes}
@@ -105,6 +121,7 @@ def analyze_target(
     return {
         "status": status,
         "used_fallback": used_fallback,
+        "available": available,
         "target": target.as_display_dict(),
         "routes": [_route_to_dict(route) for route in routes],
         "route_scores": {key: value.as_dict() for key, value in route_scores.items()},
@@ -172,9 +189,12 @@ def gaussian_status() -> dict[str, object]:
 
 
 def compute_backend_status() -> dict[str, object]:
+    runtime_statuses = adapter_status_map()
     return {
         "gaussian": gaussian_status(),
         "aizynthfinder": _command_status("AiZynthFinder", find_aizynthcli()),
+        "askcos": _adapter_runtime_status("askcos", runtime_statuses),
+        "chemformer": _adapter_runtime_status("chemformer", runtime_statuses),
         "opera": _command_status("OPERA", find_opera_executable()),
         "xtb": _command_status("xTB", find_xtb_executable()),
         "crest": _command_status("CREST", find_crest_executable()),
@@ -184,8 +204,8 @@ def compute_backend_status() -> dict[str, object]:
         "psi4": _command_status("Psi4", _find_command(("psi4", "psi4.exe"))),
         "geometric": _command_status("geomeTRIC", _find_command(("geometric-optimize", "geometric-optimize.exe"))),
         "ase": _python_package_status("ASE", "ase"),
-        "rxnmapper": _adapter_runtime_status("rxnmapper"),
-        "drfp": _adapter_runtime_status("drfp"),
+        "rxnmapper": _adapter_runtime_status("rxnmapper", runtime_statuses),
+        "drfp": _adapter_runtime_status("drfp", runtime_statuses),
     }
 
 
@@ -237,6 +257,7 @@ def _route_to_dict(route: Route) -> dict[str, object]:
         "molecules": [molecule.__dict__ for molecule in route.molecules],
         "steps": [step.__dict__ for step in route.steps],
         "layout": _route_layout_to_dict(route),
+        "metadata": route.metadata,
     }
 
 
@@ -272,16 +293,16 @@ def _command_status(name: str, executable: str | None) -> dict[str, object]:
     }
 
 
-def _adapter_runtime_status(name: str) -> dict[str, object]:
-    for status in list_adapter_statuses():
-        if status.name == name:
-            return {
-                "name": status.display_name,
-                "available": status.available,
-                "executable": status.metadata.get("executable"),
-                "source": status.source if status.available else None,
-                "metadata": status.metadata,
-            }
+def _adapter_runtime_status(name: str, statuses: dict[str, AdapterStatus] | None = None) -> dict[str, object]:
+    status = (statuses or adapter_status_map()).get(name)
+    if status is not None:
+        return {
+            "name": status.display_name,
+            "available": status.available,
+            "executable": status.metadata.get("executable"),
+            "source": status.source if status.available else None,
+            "metadata": status.metadata,
+        }
     return {"name": name, "available": False, "executable": None, "source": None}
 
 

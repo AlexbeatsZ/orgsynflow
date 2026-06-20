@@ -6,6 +6,7 @@ import subprocess
 from adapters.base import AdapterCapability, AdapterStatus
 from adapters.aizynth_adapter import find_aizynthcli
 from adapters.askcos_adapter import check_askcos_available, get_askcos_url
+from adapters.chemformer_adapter import check_chemformer_available, get_chemformer_url
 from adapters.goodvibes_adapter import find_goodvibes_executable
 from adapters.opera_adapter import find_opera_executable
 from adapters.xtb_adapter import find_crest_executable, find_xtb_executable
@@ -18,6 +19,7 @@ def list_adapter_statuses() -> list[AdapterStatus]:
         _rdkit_status(),
         _aizynth_status(),
         _askcos_status(),
+        _chemformer_status(),
         _gaussian_status(),
         _python_package_status(
             name="cclib",
@@ -244,6 +246,24 @@ def _askcos_status() -> AdapterStatus:
         source="ASKCOS API",
         confidence="http_ping",
         metadata={"url": url},
+    )
+
+
+def _chemformer_status() -> AdapterStatus:
+    url = get_chemformer_url()
+    available = check_chemformer_available(url)
+    return AdapterStatus(
+        name="chemformer",
+        display_name="Chemformer",
+        available=available,
+        status="available" if available else "unavailable",
+        reason=None if available else f"无法连接到 Chemformer 单步预测服务（{url}）。",
+        capabilities=[
+            AdapterCapability("retrosynthesis_single_step", "为目标分子生成 Top-K 单步逆合成反应物候选。"),
+        ],
+        source="Chemformer HTTP API",
+        confidence="http_ping",
+        metadata={"url": url, "prediction_type": "single_step"},
     )
 
 

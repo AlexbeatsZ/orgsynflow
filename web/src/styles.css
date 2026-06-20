@@ -1462,6 +1462,134 @@ button {
   height: 100%;
 }
 
+.route-scheme {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  padding: 12px;
+  overflow-x: auto;
+  background: #f8fafc;
+  border: 1px solid #dbe3ee;
+  border-radius: 8px;
+}
+
+.route-scheme-step {
+  display: grid;
+  grid-template-columns: max-content 132px 178px;
+  grid-template-rows: auto auto;
+  column-gap: 16px;
+  align-items: center;
+  min-width: max-content;
+  padding: 10px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.route-step-label {
+  grid-column: 1 / -1;
+  margin-bottom: 8px;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.route-scheme-reactants {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.route-plus {
+  color: #334155 !important;
+  font-size: 24px !important;
+  font-weight: 700;
+}
+
+.route-preview-molecule {
+  position: relative;
+  width: 178px;
+  min-height: 146px;
+  padding: 8px;
+  overflow: hidden;
+  background: white;
+  border: 2px solid #cbd5e1;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+}
+
+.route-preview-molecule.in-stock {
+  border-color: #22c55e;
+}
+
+.route-preview-molecule.target {
+  border-color: #2563eb;
+}
+
+.route-preview-molecule code {
+  display: block;
+  overflow: hidden;
+  color: #475569;
+  font-size: 10px;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.route-molecule-badges {
+  position: absolute;
+  z-index: 2;
+  top: 5px;
+  right: 5px;
+  display: flex;
+  gap: 4px;
+}
+
+.route-molecule-badges span {
+  padding: 2px 6px;
+  color: white;
+  background: #16a34a;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.route-preview-molecule.target .route-molecule-badges span:last-child {
+  background: #2563eb;
+}
+
+.route-reaction-arrow {
+  display: grid;
+  place-items: center;
+  width: 132px;
+}
+
+.route-reaction-arrow span {
+  width: 132px;
+  overflow: hidden;
+  color: #475569;
+  font-size: 10px;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.route-reaction-arrow svg {
+  width: 132px;
+  height: 32px;
+  overflow: visible;
+}
+
+.route-reaction-arrow line {
+  stroke: #334155;
+  stroke-width: 2.5;
+}
+
+.route-reaction-arrow marker path {
+  fill: #334155;
+}
+
 .ts-3d-toolbar {
   display: flex;
   flex-wrap: wrap;

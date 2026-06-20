@@ -76,6 +76,7 @@ export interface RouteCandidateSet {
   route_scores?: Record<string, unknown>;
   feasibility?: Record<string, unknown>;
   used_fallback?: boolean;
+  engine?: "aizynthfinder" | "askcos" | "chemformer";
 }
 
 export interface RouteCandidate {
@@ -86,6 +87,12 @@ export interface RouteCandidate {
   depth: number;
   precursor_count: number;
   stock_count: number;
+  metadata?: {
+    rank?: number;
+    log_likelihood?: number | null;
+    prediction_type?: string;
+    [key: string]: unknown;
+  };
   molecules: Array<{ id: string; name: string; smiles: string; in_stock?: boolean }>;
   steps: Array<{
     id: string;
