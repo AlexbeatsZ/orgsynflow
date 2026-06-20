@@ -172,6 +172,7 @@ WSL 临时文件必须放在：
 - Gaussian opt/freq 默认动作应直接生成 gjf 并提交队列；需要修改方法/基组/电荷/多重度时再打开“Gaussian 高级配置”弹窗。不要让用户先点“生成 gjf”再点“提交作业”作为主路径。
 - 路线预测结果要作为可查看候选集，而不是只显示 status。候选集应能从右侧卡片查看详情、插入当前画布并连接到被点击预测的分子，或新建一个路线单元承载整条路线。
 - Windows 调 WSL CLI 时必须显式设置 `encoding="utf-8", errors="replace"`，否则 CREST/xTB 输出里的 UTF-8 字符可能被 GBK 解码线程打断，导致 `stdout` 为 `None` 或测试崩溃。
+- 长时间 CREST / WSL 外部工具任务被强制中断后，可能留下 `wsl.exe` 客户端挂起，导致 AiZynthFinder、OPERA、RXNMapper、DRFP、xTB、CREST 等所有依赖 WSL 的能力一起表现为“缺失/不可用”。恢复顺序：先停止 OrgSynFlow API/Web，精确清理由 API 派生且命令行含 `/tmp/codex/orgsynflow` 或 `orgsynflow-chem` 的残留 `wsl.exe`，再用 `wsl -e true` 验证基础 WSL；只有清理后仍失败时才升级到重启 `WslService`/WSL。
 - TS 相关功能只能说“计划/候选/未验证/验证等级”，不能宣称自动找到正确过渡态。
 - 产率输出必须带 `method`、`confidence`、`applicability_domain`、`note`。
 - 结果弹窗不应默认展示大段原始 stdout/stderr/JSON。前端应优先展示结构化摘要、关键数值、警告和路径；原始日志放在可展开的“原始日志 / 原始数据”中。包含 XYZ/GJF 坐标的结果必须先渲染可交互 3D 分子视图。
@@ -305,6 +306,7 @@ WSL 临时文件必须放在：
 - 2026-06-20 结果展示验证：`cd web; npm run build` 成功；`/compute/xtb` 对 `O` 返回 `data.input_xyz`，可供结果弹窗 3D 渲染；`uv run pytest -q tests/test_route_layout.py tests/test_v5_yield.py` 为 3 passed。全量 `uv run pytest -q` 与 `tests/test_v6_api_service.py` 在本次环境中超时且无输出，需后续单独诊断测试收集/环境探测卡点。
 - 2026-06-20 TS 白色背景回归：修复前浏览器计算样式为 `background=rgba(0,0,0,0)`、`overflow=visible`、`position=static`；改用 `osf-config-modal ts-config-modal` 后为 `background=rgb(255,255,255)`、`overflow=hidden`、`position=relative`，并恢复 modal 阴影，1000×648 视口内截图确认白色内容层完整覆盖。
 - 2026-06-20 公开权重恢复验证：重启 `WslService` 后，`/compute/status` 中 AiZynthFinder、OPERA、RXNMapper、DRFP 及 WSL 计算后端全部 available；`/route/predict` 对 aspirin 返回 `Loaded 2 route(s) from AiZynthFinder via WSL.`、`used_fallback=false`；RXNMapper 映射 `CCO>>CC=O` 得到 `[CH3:1][CH2:2][OH:3]>>[CH3:1][CH:2]=[O:3]`、confidence `0.998663`；OPERA 对 CCO 返回 melting point `-114`、boiling point `78`、LogP `-0.31`、water solubility `1.26`、vapor pressure `1.77`，对应 AD 均为 `1`。
+- 2026-06-20 WSL 挂起事故恢复验证：停止 OrgSynFlow 服务后，发现 API 派生的 CREST 与 `/compute/status` WSL 探测残留 `wsl.exe`；`wsl --terminate Ubuntu-24.04` 与 `wsl --shutdown` 均超时，非管理员 shell 无法 `Restart-Service WslService`。精确停止 10 个命令行含 `/tmp/codex/orgsynflow` / `orgsynflow-chem` 的残留 `wsl.exe` 后，`wsl -e true` 恢复为 exit code 0；重启 OrgSynFlow 后，`/route/predict` 对 aspirin 返回 `used_fallback=false`、`available=true`，OPERA 对 CCO 返回 melting point `-114`、boiling point `78`、LogP `-0.31`、water solubility `1.26`、vapor pressure `1.77`，`/compute/status` 中 AiZynthFinder、OPERA、RXNMapper、DRFP、CREST 均 available。
 
 ## 4. New Issues
 
