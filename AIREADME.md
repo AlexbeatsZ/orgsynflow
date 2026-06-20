@@ -8,10 +8,10 @@ OrgSynFlow 的总目标是构建一个本地优先、可插拔的有机合成工
 
 当前产品方向：
 
-- React/Vite 前端作为主要交互界面，地址为 `http://127.0.0.1:5173/`。
+- React/Vite 前端作为主要且唯一的交互界面，地址为 `http://127.0.0.1:5173/`。
 - FastAPI 后端提供可测试接口，地址为 `http://127.0.0.1:8765/`。
 - CLI `run_cli.py` 保留为稳定自动化入口。
-- Streamlit `app/main.py` 和 Tkinter `desktop_app.py` 是旧入口/调试入口，不是当前主要 UI。
+- 所有的桌面客户端（如 Tkinter `desktop_app.py`、Streamlit）及其打包构建脚本（如 `build_exe.ps1` 等）已被永久废弃和删除。
 - 工作区应该像 notebook/Jupyter：用户可以创建多个工作区，每个工作区内有多个通用化学单元。
 - UI 中不要把单元硬分为“分子/反应/路线”三类；一个通用单元应能根据输入内容识别普通 SMILES、reaction SMILES 和多步路线。
 - 画布中的分子必须渲染为结构图，不能只显示标题或大号文本。
@@ -122,6 +122,10 @@ WSL 临时文件必须放在：
 - 如果修改 Git 仓库，完成时要提交；如果连接 GitHub，还要推送。
 - 不要回滚用户改动；如果测试或浏览器操作弄脏数据文件，只还原自己造成的测试痕迹。
 
+架构与项目精简经验：
+
+- 用户明确只使用 Web 界面（React/Vite），不再需要任何形式的桌面客户端或本地可执行文件打包产物。后续增加交互或 UI 新功能时，请仅针对 `web/` 目录的前端项目和对应的 FastAPI 后端进行开发，切勿重新引入或修改任何桌面 GUI（如 Tkinter/PyQt）及 `.exe` 打包逻辑。
+
 前端 UX 经验：
 
 - SMILES 块删除不能只依赖 React Flow 的临时节点状态；删除时必须同时移除相邻边，并用剩余 nodes/edges 重建 `cell.objects.molecules/reactions`，否则父级单元更新或页面刷新会把节点重新生成。当前选中块后会显示“删除 SMILES 块”按钮，删除结果可随工作区保存持久化。
@@ -211,11 +215,13 @@ WSL 临时文件必须放在：
 - 对组合节点内单个组分预测路线时，插入器必须保留所选 `MoleculeComponent`：复用其外层画布节点作为路线 target，不再创建重复 target 或 `target -> anchor` 伪反应边。
 - 路线每个 `precursor_id` 必须生成独立分子节点和独立的 `precursor -> product` 边，不能把同一步全部前体合并为点式伪分子；多组分节点的布局宽度按组件卡实际宽度估算，否则相邻节点会重叠并让正向箭头视觉上折返。
 - WSL 的 `/tmp` 在服务重启后可能被清空。AiZynthFinder 每次运行前必须自行 `mkdir -p /tmp/codex/orgsynflow`，不能依赖历史目录残留。
+- React Flow 的选中状态同步：在使用 React Flow 内置的 `onNodesChange` / `onEdgesChange` 交互（如 Shift + 点击反选、框选等）时，本地定义的 `selectedNodeId` 和 `selectedEdgeId` 需通过 `useEffect` 进行同步清空或更新。否则会导致“删除选中项”按钮在无选中状态下错误显示，且点击后可能误删未选中的历史节点或由于删除非现有节点导致状态不一致发生卡死。
 
 ## 3. Task Board
 
 当前状态：
 
+- [done] 2026-06-20 修复删除选中项按钮在无选中时显示以及点击卡住/误删的问题：更新 `web/src/App.tsx` 中的渲染判定条件和删除逻辑为仅限当前实际选中的节点和边；引入了 `useEffect` 用于同步 React Flow 的 selection 状态，确保在 deselect 时 `selectedNodeId` 和 `selectedEdgeId` 能够同步清空，并同步更新任务面板。
 - [done] 2026-06-20 合并 temp/ 目录下的 3 个过渡态搜索/绘图文件到 WSL 和 Windows 仓库，并更新 Python 依赖关系：安装/配置了 gradio、py3Dmol、matplotlib；测试均能正常 import 且编译成功。
 - [done] 2026-06-20 修复 EAS TS 应用合并后完全无效问题：诊断出三个根本原因：①`from core.eas_ts_lib import *` 因 sys.path 未包含项目根目录而失败；②Gradio 回调中 `process.wait()` 阻塞导致 UI 完全锁死；③WSL 下直接调用 `g16.exe` 产生 `wsystem` 错误/UNC 路径错误。已分别修复：添加 sys.path bootstrap、改 generator 函数 yield 进度、将 OUT_DIR 映射到 `/mnt/c/...` 并用 `cmd.exe /c` 包装 g16.exe 启动命令。验证：WSL 下 `conda activate orgsynflow-chem && python app/eas_ts_app.py` 可正常启动 Gradio 服务，无异常退出。
 - [done] 2026-06-20 增加 SMILES 块删除：选中块后可显式删除，同时清理相邻箭头、关联反应及选中/连线状态；保存工作区后刷新不会复活。

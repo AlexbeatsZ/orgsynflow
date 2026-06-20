@@ -60,6 +60,10 @@ import {
   updateTaskResult,
   validateReaction,
   getMoleculeCoordinates,
+  createTsWorkflow,
+  getTsWorkflow,
+  confirmTsWorkflow,
+  actOnTsWorkflow,
 } from "./api";
 import type {
   CachedResult,
@@ -74,6 +78,8 @@ import type {
   Workspace,
   WorkspaceCell,
   WorkspaceSummary,
+  TsCoordinate,
+  TsWorkflow,
 } from "./types";
 
 type SelectedObject =
@@ -227,6 +233,29 @@ export function App() {
     for (const cell of loaded.cells) {
       for (const [key, record] of Object.entries(cell.results ?? {})) {
         if (taskStatus(record.status) !== "running") continue;
+        const workflowId = typeof record.config?.workflow_id === "string" ? record.config.workflow_id : null;
+        if (workflowId) {
+          try {
+            const workflow = await getTsWorkflow(workflowId);
+            const workflowStatus: CachedResult["status"] = workflow.status === "completed"
+              ? "succeeded"
+              : ["failed", "partial", "cancelled"].includes(workflow.status)
+                ? "failed"
+                : "running";
+            const recoveredWorkflow: CachedResult = {
+              ...record,
+              status: workflowStatus,
+              updated_at: new Date().toISOString(),
+              payload: workflow,
+              error: workflowStatus === "failed" ? workflow.error || `TS 工作流结束于 ${workflow.status}` : undefined,
+            };
+            await updateTaskResult(loaded.id, cell.id, key, recoveredWorkflow);
+            next = mergeTaskRecord(next, cell.id, key, recoveredWorkflow);
+            continue;
+          } catch {
+            // Fall through to the normal interrupted-task recovery message.
+          }
+        }
         const job = record.job_id ? currentJobs.find((item) => item.job_id === record.job_id) : null;
         const recovered: CachedResult = job
           ? taskRecordFromJob(record, job)
@@ -454,6 +483,7 @@ export function App() {
               {activeCell ? (
                 <>
                   <CellDetail
+                    key={activeCell.id}
                     cell={activeCell}
                     onUpdate={updateCell}
                     onSelect={setSelected}
@@ -865,6 +895,7 @@ function CellDetail({
   const [selectedComponentId, setSelectedComponentId] = useState<string | null>(null);
   const [relationSourceId, setRelationSourceId] = useState("");
   const [relationTargetId, setRelationTargetId] = useState("");
+  const [reactionTaskId, setReactionTaskId] = useState(cell.objects.reactions?.[0]?.id ?? "");
   const nodeTypes = useMemo(() => ({ molecule: MoleculeNode }), []);
   const edgeTypes = useMemo(() => ({ orthogonal: OrthogonalEdge }), []);
   const molecules = cell.objects.molecules ?? [];
@@ -884,6 +915,50 @@ function CellDetail({
     setRelationSourceId("");
     setRelationTargetId("");
   }, [cell.id, cell.objects]);
+
+  // 同步 React Flow 的节点选中状态到 selectedNodeId / selectedComponentId
+  useEffect(() => {
+    const selectedNodes = nodes.filter((n) => n.selected);
+    if (selectedNodes.length === 0) {
+      if (selectedNodeId !== null) {
+        setSelectedNodeId(null);
+        setSelectedComponentId(null);
+        onSelect({ kind: "cell", cell });
+      }
+    } else {
+      const hasCurrent = selectedNodes.some((n) => n.id === selectedNodeId);
+      if (!hasCurrent) {
+        const first = selectedNodes[0];
+        setSelectedNodeId(first.id);
+        setSelectedComponentId(null);
+        const molecule = cell.objects.molecules?.find((m) => m.id === first.id);
+        if (molecule) {
+          onSelect({ kind: "molecule", cell, molecule });
+        }
+      }
+    }
+  }, [nodes, selectedNodeId, cell, onSelect]);
+
+  // 同步 React Flow 的边选中状态到 selectedEdgeId
+  useEffect(() => {
+    const actuallySelectedEdges = edges.filter((e) => e.selected);
+    if (actuallySelectedEdges.length === 0) {
+      if (selectedEdgeId !== null) {
+        setSelectedEdgeId(null);
+        onSelect({ kind: "cell", cell });
+      }
+    } else {
+      const hasCurrent = actuallySelectedEdges.some((e) => e.id === selectedEdgeId);
+      if (!hasCurrent) {
+        const first = actuallySelectedEdges[0];
+        setSelectedEdgeId(first.id);
+        const reaction = reactionFromEdge(cell, first);
+        if (reaction) {
+          onSelect({ kind: "reaction", cell, reaction });
+        }
+      }
+    }
+  }, [edges, selectedEdgeId, cell, onSelect]);
 
   useEffect(() => {
     function handleShiftDown(event: KeyboardEvent) {
@@ -931,10 +1006,16 @@ function CellDetail({
         sourceHandle: route?.sourceHandle ?? normalizeMoleculeHandleId(params.sourceHandle, "right"),
         targetHandle: route?.targetHandle ?? normalizeMoleculeHandleId(params.targetHandle, "left"),
       });
-      setEdges((current) => addEdge(edge, current));
+      const nextEdges = addEdge(edge, edges);
+      setEdges(nextEdges);
+      onUpdate({
+        ...cell,
+        canvas: { nodes, edges: nextEdges },
+        objects: objectsFromCanvas(cell, nodes, nextEdges),
+      });
       setSelectedEdgeId(edge.id);
     },
-    [nodes, setEdges],
+    [nodes, edges, setEdges, cell, onUpdate],
   );
 
   function createRelationship(sourceId: string, targetId: string): boolean {
@@ -948,7 +1029,13 @@ function CellDetail({
       sourceHandle: route?.sourceHandle ?? "right",
       targetHandle: route?.targetHandle ?? "left",
     });
-    setEdges((current) => addEdge(edge, current));
+    const nextEdges = addEdge(edge, edges);
+    setEdges(nextEdges);
+    onUpdate({
+      ...cell,
+      canvas: { nodes, edges: nextEdges },
+      objects: objectsFromCanvas(cell, nodes, nextEdges),
+    });
     setSelectedEdgeId(edge.id);
     return true;
   }
@@ -982,7 +1069,13 @@ function CellDetail({
   }
 
   function removeEdge(edgeId: string) {
-    setEdges((current) => current.filter((edge) => edge.id !== edgeId));
+    const nextEdges = edges.filter((edge) => edge.id !== edgeId);
+    setEdges(nextEdges);
+    onUpdate({
+      ...cell,
+      canvas: { nodes, edges: nextEdges },
+      objects: objectsFromCanvas(cell, nodes, nextEdges),
+    });
     setSelectedEdgeId(null);
   }
 
@@ -1010,16 +1103,53 @@ function CellDetail({
 
   function removeAllEdges() {
     setEdges([]);
+    onUpdate({
+      ...cell,
+      canvas: { nodes, edges: [] },
+      objects: objectsFromCanvas(cell, nodes, []),
+    });
     setSelectedEdgeId(null);
     setPendingConnectionNodeId(null);
   }
 
-  function persistCanvas() {
-    onUpdate({
+  function removeSelectedItems() {
+    const selectedNodeIds = new Set(nodes.filter((n) => n.selected).map((n) => n.id));
+    if (selectedNodeId && nodes.some((n) => n.id === selectedNodeId && n.selected)) {
+      selectedNodeIds.add(selectedNodeId);
+    }
+
+    const selectedEdgeIds = new Set(
+      edges.filter((e) => e.selected || e.id === selectedEdgeId).map((e) => e.id)
+    );
+
+    if (selectedNodeIds.size === 0 && selectedEdgeIds.size === 0) return;
+
+    const nextNodes = nodes.filter((node) => !selectedNodeIds.has(node.id));
+    const nextEdges = edges.filter(
+      (edge) => !selectedEdgeIds.has(edge.id) && !selectedNodeIds.has(edge.source) && !selectedNodeIds.has(edge.target)
+    );
+
+    const updatedCell: WorkspaceCell = {
       ...cell,
-      canvas: { nodes, edges },
-      objects: objectsFromCanvas(cell, nodes, edges),
-    });
+      canvas: { nodes: nextNodes, edges: nextEdges },
+      objects: objectsFromCanvas(cell, nextNodes, nextEdges),
+    };
+    setNodes(nextNodes);
+    setEdges(nextEdges);
+
+    if (selectedNodeId && selectedNodeIds.has(selectedNodeId)) {
+      setSelectedNodeId(null);
+      setSelectedComponentId(null);
+    }
+    if (selectedEdgeId && selectedEdgeIds.has(selectedEdgeId)) {
+      setSelectedEdgeId(null);
+    }
+
+    setPendingConnectionNodeId((current) => (current && selectedNodeIds.has(current) ? null : current));
+    setRelationSourceId((current) => (selectedNodeIds.has(current) ? "" : current));
+    setRelationTargetId((current) => (selectedNodeIds.has(current) ? "" : current));
+    onUpdate(updatedCell);
+    onSelect({ kind: "cell", cell: updatedCell });
   }
 
   return (
@@ -1048,14 +1178,9 @@ function CellDetail({
                 {pendingConnectionNodeId ? "继续选择下一个分子" : shiftConnectMode ? "Shift 连线：选择起点" : "选择起点分子"}
               </span>
             )}
-            {selectedEdgeId && (
-              <button className="ghost-button compact danger-action" onClick={() => removeEdge(selectedEdgeId)}>
-                <Trash2 size={14} /> 删除箭头
-              </button>
-            )}
-            {selectedNodeId && (
-              <button className="ghost-button compact danger-action" onClick={() => removeNodes([selectedNodeId])}>
-                <Trash2 size={14} /> 删除 SMILES 块
+            {(nodes.some((n) => n.selected) || edges.some((e) => e.selected || e.id === selectedEdgeId)) && (
+              <button className="ghost-button compact danger-action" onClick={removeSelectedItems}>
+                <Trash2 size={14} /> 删除选中项
               </button>
             )}
             {edges.length > 0 && (
@@ -1063,7 +1188,20 @@ function CellDetail({
                 <Trash2 size={14} /> 删除全部连线
               </button>
             )}
-            <button className="ghost-button compact" onClick={persistCanvas}>同步画布到单元</button>
+            {(cell.objects.reactions?.length ?? 0) > 0 && (
+              <>
+                <select className="compact-select" aria-label="选择反应任务" value={reactionTaskId} onChange={(event) => setReactionTaskId(event.target.value)}>
+                  {cell.objects.reactions?.map((reaction) => <option key={reaction.id} value={reaction.id}>{reaction.label}</option>)}
+                </select>
+                <button
+                  className="ghost-button compact"
+                  onClick={() => {
+                    const reaction = cell.objects.reactions?.find((item) => item.id === reactionTaskId);
+                    if (reaction) onSelect({ kind: "reaction", cell, reaction });
+                  }}
+                >反应任务</button>
+              </>
+            )}
           </div>
         </div>
         {connectMode && (
@@ -1111,6 +1249,7 @@ function CellDetail({
       </div>
       <div className="canvas">
         <ReactFlow
+          key={cell.id}
           nodes={nodes.map((node) => ({
             ...node,
             data: {
@@ -1143,6 +1282,15 @@ function CellDetail({
             if (!connectMode) setPendingConnectionNodeId(null);
           }}
           onEdgesDelete={() => setSelectedEdgeId(null)}
+          onNodeDragStop={(_, __, draggedNodes) => {
+            const draggedMap = new Map((draggedNodes || []).map((n: Node) => [n.id, n]));
+            const nextNodes = nodes.map((n) => draggedMap.get(n.id) || n);
+            onUpdate({
+              ...cell,
+              canvas: { nodes: nextNodes, edges },
+              objects: objectsFromCanvas(cell, nextNodes, edges),
+            });
+          }}
         >
           <Background />
           <Controls />
@@ -2073,6 +2221,7 @@ function ReactionTasks({
         onRun={() => setTsConfigOpen(true)}
         onRetry={() => setTsConfigOpen(true)}
         onConfigure={() => setTsConfigOpen(true)}
+        onViewResult={() => setTsConfigOpen(true)}
         openModal={openModal}
       />
       {tsConfigOpen && (
@@ -2085,6 +2234,7 @@ function ReactionTasks({
           runTask={runTask}
           refreshJobs={refreshJobs}
           definition={tsComputeTask}
+          existingWorkflowId={typeof recordFor(tsComputeTask)?.config?.workflow_id === "string" ? String(recordFor(tsComputeTask)?.config?.workflow_id) : undefined}
         />
       )}
     </div>
@@ -2100,6 +2250,7 @@ interface TransitionStateConfigModalProps {
   runTask: RunTask;
   refreshJobs: () => Promise<void>;
   definition: TaskDefinition;
+  existingWorkflowId?: string;
 }
 
 function TransitionStateConfigModal({
@@ -2111,17 +2262,33 @@ function TransitionStateConfigModal({
   runTask,
   refreshJobs,
   definition,
+  existingWorkflowId,
 }: TransitionStateConfigModalProps) {
-  const [method, setMethod] = useState("B3LYP");
-  const [basis, setBasis] = useState("6-31G(d)");
+  const [method, setMethod] = useState("wB97XD");
+  const [basis, setBasis] = useState("def2SVP");
   const [charge, setCharge] = useState(0);
   const [multiplicity, setMultiplicity] = useState(1);
+  const [nproc, setNproc] = useState(4);
+  const [memory, setMemory] = useState("4GB");
+  const [solvent, setSolvent] = useState("");
+  const [temperatureK, setTemperatureK] = useState(298.15);
+  const [imaginaryThreshold, setImaginaryThreshold] = useState(-50);
   const [jobType, setJobType] = useState("opt=(ts,calcfc,noeigentest) freq");
   const [components, setComponents] = useState<any[]>([]);
   const [plan, setPlan] = useState<TransitionStatePlanResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [mol3dReady, setMol3dReady] = useState(false);
   const [error, setError] = useState("");
+  const [workflow, setWorkflow] = useState<TsWorkflow | null>(null);
+  const [selectedCandidateId, setSelectedCandidateId] = useState("");
+  const [coordinates, setCoordinates] = useState<TsCoordinate[]>([]);
+  const [animateImaginaryMode, setAnimateImaginaryMode] = useState(false);
+  const availableAgents = useMemo(() => {
+    const parts = reactionSmiles.split(">");
+    return parts.length === 3 ? splitSmilesComponents(parts[1]).filter(Boolean) : [];
+  }, [reactionSmiles]);
+  const [includedAgents, setIncludedAgents] = useState<string[]>([]);
+  const terminalRecordedRef = useRef(false);
 
   const [distanceX, setDistanceX] = useState(3.0);
   const [distanceY, setDistanceY] = useState(0.0);
@@ -2132,6 +2299,7 @@ function TransitionStateConfigModal({
 
   const viewerRef = useRef<HTMLDivElement>(null);
   const [viewer, setViewer] = useState<any>(null);
+  const canConfigureWorkflow = !!workflow && ["awaiting_confirmation", "paused", "failed", "partial"].includes(workflow.status);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -2152,11 +2320,15 @@ function TransitionStateConfigModal({
     Promise.all([
       getMoleculeCoordinates(reactionSmiles),
       fetchTsPlan(reactionSmiles),
+      existingWorkflowId
+        ? getTsWorkflow(existingWorkflowId)
+        : createTsWorkflow(reactionSmiles, workspaceId, cellId, reactionId),
     ])
-      .then(([res, nextPlan]) => {
+      .then(([res, nextPlan, nextWorkflow]) => {
         if (!cancelled) {
           setComponents(res.components);
           setPlan(nextPlan);
+          setWorkflow(nextWorkflow);
           setLoading(false);
         }
       })
@@ -2169,7 +2341,45 @@ function TransitionStateConfigModal({
     return () => {
       cancelled = true;
     };
-  }, [reactionSmiles]);
+  }, [reactionSmiles, workspaceId, cellId, reactionId, existingWorkflowId]);
+
+  useEffect(() => {
+    if (!workflow || ["completed", "partial", "failed", "cancelled"].includes(workflow.status)) return;
+    const timer = window.setInterval(() => {
+      void getTsWorkflow(workflow.workflow_id).then((next) => {
+        setWorkflow(next);
+        if (next.status === "awaiting_confirmation") {
+          setCoordinates(next.coordinates ?? []);
+          setSelectedCandidateId((current) => current || next.candidates?.[0]?.candidate_id || "");
+          setCharge(Number(next.config?.charge ?? 0));
+          setMultiplicity(Number(next.config?.multiplicity ?? 1));
+          setMethod(String(next.config?.method ?? "wB97XD"));
+          setBasis(String(next.config?.basis ?? "def2SVP"));
+          setNproc(Number(next.config?.nproc ?? 4));
+          setMemory(String(next.config?.memory ?? "4GB"));
+          setSolvent(String(next.config?.solvent ?? ""));
+          setTemperatureK(Number(next.config?.temperature_k ?? 298.15));
+          setImaginaryThreshold(Number(next.config?.imaginary_threshold_cm1 ?? -50));
+        }
+      }).catch((err) => setError(errorMessage(err)));
+    }, 2000);
+    return () => window.clearInterval(timer);
+  }, [workflow?.workflow_id, workflow?.status]);
+
+  useEffect(() => {
+    if (!workflow || terminalRecordedRef.current || !["completed", "partial", "failed", "cancelled"].includes(workflow.status)) return;
+    terminalRecordedRef.current = true;
+    void runTask(
+      definition,
+      async () => workflow,
+      {
+        openResult: false,
+        title: definition.label,
+        config: { workflow_id: workflow.workflow_id, ...workflow.config },
+        statusFromResult: () => workflow.status === "completed" ? "succeeded" : "failed",
+      },
+    );
+  }, [workflow?.status]);
 
   useEffect(() => {
     if (loading || !mol3dReady || components.length === 0 || !viewerRef.current || !(window as any).$3Dmol) return;
@@ -2181,6 +2391,11 @@ function TransitionStateConfigModal({
   }, [loading, mol3dReady, components]);
 
   const getCombinedXyz = useCallback(() => {
+    const selectedCandidate = workflow?.candidates?.find((candidate) => candidate.candidate_id === selectedCandidateId);
+    if (selectedCandidate?.xyz) {
+      const lines = selectedCandidate.xyz.trim().split(/\r?\n/);
+      return /^\d+$/.test(lines[0] ?? "") ? lines.slice(2).join("\n") : selectedCandidate.xyz;
+    }
     if (components.length === 0) return "";
     let combinedAtoms: MoleculeCoordinates["atoms"] = [];
 
@@ -2241,7 +2456,7 @@ function TransitionStateConfigModal({
     }
 
     return combinedAtoms.map(a => `${a.element.padEnd(2)} ${a.x.toFixed(6).padStart(12)} ${a.y.toFixed(6).padStart(12)} ${a.z.toFixed(6).padStart(12)}`).join("\n");
-  }, [components, distanceX, distanceY, distanceZ, rotationX, rotationY, rotationZ]);
+  }, [components, distanceX, distanceY, distanceZ, rotationX, rotationY, rotationZ, workflow?.candidates, selectedCandidateId]);
 
   useEffect(() => {
     if (!viewer) return;
@@ -2254,24 +2469,89 @@ function TransitionStateConfigModal({
     viewer.render();
   }, [viewer, getCombinedXyz]);
 
+  useEffect(() => {
+    if (!viewer || !animateImaginaryMode || !workflow?.ts_results?.length) return;
+    const frequencyResult = workflow.ts_results[workflow.ts_results.length - 1]?.frequency_result;
+    const xyzText = frequencyResult?.final_coordinates_xyz as string | undefined;
+    const modes = frequencyResult?.vibration_modes as Array<{ frequency_cm1: number; displacements: number[][] }> | undefined;
+    const mode = modes?.filter((item) => item.frequency_cm1 < 0).sort((a, b) => a.frequency_cm1 - b.frequency_cm1)[0];
+    if (!xyzText || !mode?.displacements?.length) return;
+    const lines = xyzText.trim().split(/\r?\n/);
+    const atomLines = /^\d+$/.test(lines[0] ?? "") ? lines.slice(2) : lines;
+    const atoms = atomLines.map((line) => {
+      const [element, x, y, z] = line.trim().split(/\s+/);
+      return { element, x: Number(x), y: Number(y), z: Number(z) };
+    });
+    let phase = -1;
+    const timer = window.setInterval(() => {
+      phase *= -1;
+      const animated = atoms.map((atom, index) => {
+        const displacement = mode.displacements[index] ?? [0, 0, 0];
+        return `${atom.element} ${(atom.x + phase * displacement[0] * 0.8).toFixed(6)} ${(atom.y + phase * displacement[1] * 0.8).toFixed(6)} ${(atom.z + phase * displacement[2] * 0.8).toFixed(6)}`;
+      }).join("\n");
+      viewer.clear();
+      viewer.addModel(animated, "xyz");
+      viewer.setStyle({}, { stick: { radius: 0.15 }, sphere: { scale: 0.25 } });
+      viewer.zoomTo();
+      viewer.render();
+    }, 450);
+    return () => window.clearInterval(timer);
+  }, [viewer, animateImaginaryMode, workflow?.ts_results]);
+
   const gjfText = useMemo(() => {
     const coords = getCombinedXyz();
-    return `%nprocshared=4\n%mem=4GB\n# ${jobType} ${method}/${basis}\n\nOrgSynFlow TS Search Job\n\n${charge} ${multiplicity}\n${coords}\n\n`;
-  }, [jobType, method, basis, charge, multiplicity, getCombinedXyz]);
+    const solventRoute = solvent ? ` scrf=(smd,solvent=${solvent})` : "";
+    return `%nprocshared=${nproc}\n%mem=${memory}\n# ${jobType} ${method}/${basis}${solventRoute}\n\nOrgSynFlow TS Search Job\n\n${charge} ${multiplicity}\n${coords}\n\n`;
+  }, [jobType, method, basis, charge, multiplicity, nproc, memory, solvent, getCombinedXyz]);
 
   async function handleSubmit() {
-    onClose();
+    if (!workflow || !canConfigureWorkflow || !selectedCandidateId || coordinates.length === 0) {
+      setError("工作流尚未准备完成，或缺少反应坐标。请稍后重试并确认原子对。");
+      return;
+    }
+    terminalRecordedRef.current = false;
     await runTask(
       definition,
-      () => submitGaussianJob(gjfText, workspaceId, cellId, reactionId),
+      () => confirmTsWorkflow(
+        workflow.workflow_id,
+        selectedCandidateId,
+        coordinates,
+        { method, basis, charge, multiplicity, nproc, memory, solvent: solvent || null, temperature_k: temperatureK, imaginary_threshold_cm1: imaginaryThreshold },
+      ),
       {
         openResult: false,
         title: definition.label,
-        config: { gjf_text: gjfText, method, basis, job_type: jobType, charge, multiplicity },
-        statusFromResult: (result) => gaussianTaskStatus((result as GaussianJob).status),
+        config: { workflow_id: workflow.workflow_id, method, basis, charge, multiplicity },
+        statusFromResult: () => "running",
       }
     );
+    setWorkflow(await getTsWorkflow(workflow.workflow_id));
     await refreshJobs();
+  }
+
+  async function handleWorkflowAction(action: "pause" | "resume" | "cancel" | "retry") {
+    if (!workflow) return;
+    try {
+      if (action === "resume" || action === "retry") terminalRecordedRef.current = false;
+      setWorkflow(await actOnTsWorkflow(workflow.workflow_id, action));
+    } catch (err) {
+      setError(errorMessage(err));
+    }
+  }
+
+  async function reprepareWithAgents() {
+    setLoading(true);
+    setError("");
+    try {
+      const next = await createTsWorkflow(reactionSmiles, workspaceId, cellId, reactionId, includedAgents);
+      setWorkflow(next);
+      setCoordinates([]);
+      setSelectedCandidateId("");
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -2289,10 +2569,74 @@ function TransitionStateConfigModal({
           ) : (
             <div className="ts-config-grid">
               <div className="ts-config-left">
+                {workflow && (
+                  <div className="ts-workflow-summary">
+                    <strong>工作流：{workflow.workflow_id}</strong>
+                    <span className={`ts-stage-badge status-${workflow.status}`}>{workflow.stage} · {workflow.validation_level}</span>
+                    {workflow.error && <p className="error-box">{workflow.error}</p>}
+                    {workflow.warnings?.map((warning) => <p className="warning-box" key={warning}>{warning}</p>)}
+                    {workflow.grid_points.length > 0 && (
+                      <div className="ts-grid-summary">
+                        <span>扫描点 {workflow.grid_points.length}</span>
+                        <span>完成 {workflow.grid_points.filter((point) => point.status === "succeeded").length}</span>
+                        <span>失败 {workflow.grid_points.filter((point) => point.status === "failed").length}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+                {canConfigureWorkflow && workflow && (
+                  <>
+                    {availableAgents.length > 0 && (
+                      <div className="ts-agent-picker">
+                        <h4>可选显式助剂</h4>
+                        {availableAgents.map((agent) => (
+                          <label key={agent}>
+                            <input type="checkbox" checked={includedAgents.includes(agent)} onChange={(event) => setIncludedAgents((current) => event.target.checked ? [...current, agent] : current.filter((item) => item !== agent))} />
+                            {agent}
+                          </label>
+                        ))}
+                        <button type="button" className="secondary-button" onClick={() => void reprepareWithAgents()}>按所选助剂重新生成构象</button>
+                      </div>
+                    )}
+                    <h4>初始构象候选</h4>
+                    <div className="ts-candidate-list">
+                      {workflow.candidates.map((candidate) => (
+                        <button
+                          type="button"
+                          key={candidate.candidate_id}
+                          className={`ts-candidate-card ${selectedCandidateId === candidate.candidate_id ? "selected" : ""}`}
+                          onClick={() => setSelectedCandidateId(candidate.candidate_id)}
+                        >
+                          <strong>{candidate.label}</strong>
+                          <small>{candidate.preoptimization || "RDKit"} · {candidate.energy_hartree?.toFixed(6) ?? "无 xTB 能量"} Ha</small>
+                        </button>
+                      ))}
+                    </div>
+                    <h4>反应坐标</h4>
+                    {coordinates.map((coordinate, index) => (
+                      <div className="ts-coordinate-row" key={`${coordinate.atom1}-${coordinate.atom2}-${index}`}>
+                        <span>{coordinate.label || `${coordinate.atom1}-${coordinate.atom2}`} · {coordinate.kind}</span>
+                        <label>原子 1 <input type="number" min="1" value={coordinate.atom1} onChange={(event) => setCoordinates((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, atom1: Number(event.target.value) } : item))} /></label>
+                        <label>原子 2 <input type="number" min="1" value={coordinate.atom2} onChange={(event) => setCoordinates((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, atom2: Number(event.target.value) } : item))} /></label>
+                        <label>起点 <input type="number" step="0.05" value={coordinate.start} onChange={(event) => setCoordinates((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, start: Number(event.target.value) } : item))} /></label>
+                        <label>终点 <input type="number" step="0.05" value={coordinate.end} onChange={(event) => setCoordinates((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, end: Number(event.target.value) } : item))} /></label>
+                        <button type="button" className="icon-button danger" title="删除坐标" onClick={() => setCoordinates((current) => current.filter((_, itemIndex) => itemIndex !== index))}>×</button>
+                      </div>
+                    ))}
+                    {coordinates.length < 2 && (
+                      <button
+                        type="button"
+                        className="secondary-button"
+                        onClick={() => setCoordinates((current) => [...current, { atom1: 1, atom2: 2, label: `人工坐标 ${current.length + 1}`, kind: "formed", start: 3.0, end: 1.5 }])}
+                      >添加人工反应坐标</button>
+                    )}
+                  </>
+                )}
                 <h4>1. 量子化学参数</h4>
                 <div className="form-row">
                   <label>方法 (Method)</label>
                   <select value={method} onChange={(e) => setMethod(e.target.value)}>
+                    <option value="wB97XD">ωB97X-D (DFT)</option>
                     <option value="B3LYP">B3LYP (DFT)</option>
                     <option value="HF">HF (Ab Initio)</option>
                     <option value="PM6">PM6 (Semi-empirical)</option>
@@ -2302,6 +2646,7 @@ function TransitionStateConfigModal({
                 <div className="form-row">
                   <label>基组 (Basis Set)</label>
                   <select value={basis} onChange={(e) => setBasis(e.target.value)}>
+                    <option value="def2SVP">def2-SVP</option>
                     <option value="6-31G(d)">6-31G(d)</option>
                     <option value="6-31+G(d,p)">6-31+G(d,p)</option>
                     <option value="3-21G">3-21G</option>
@@ -2315,6 +2660,26 @@ function TransitionStateConfigModal({
                 <div className="form-row">
                   <label>多重度 (Multiplicity)</label>
                   <input type="number" min={1} value={multiplicity} onChange={(e) => setMultiplicity(parseInt(e.target.value) || 1)} />
+                </div>
+                <div className="form-row">
+                  <label>CPU 核数</label>
+                  <input type="number" min={1} value={nproc} onChange={(e) => setNproc(Math.max(1, parseInt(e.target.value) || 1))} />
+                </div>
+                <div className="form-row">
+                  <label>内存</label>
+                  <input value={memory} onChange={(e) => setMemory(e.target.value)} />
+                </div>
+                <div className="form-row">
+                  <label>SMD 溶剂（留空为气相）</label>
+                  <input value={solvent} onChange={(e) => setSolvent(e.target.value)} placeholder="Water / Dichloromethane" />
+                </div>
+                <div className="form-row">
+                  <label>温度 (K)</label>
+                  <input type="number" step="0.1" min={1} value={temperatureK} onChange={(e) => setTemperatureK(Number(e.target.value))} />
+                </div>
+                <div className="form-row">
+                  <label>显著虚频阈值 (cm⁻¹)</label>
+                  <input type="number" max={-1} value={imaginaryThreshold} onChange={(e) => setImaginaryThreshold(Number(e.target.value))} />
                 </div>
                 <div className="form-row">
                   <label>作业类型 (Job Type)</label>
@@ -2370,6 +2735,33 @@ function TransitionStateConfigModal({
                     <div className="ts-3d-viewer-placeholder">正在加载 3D 渲染插件...</div>
                   )}
                 </div>
+                {workflow?.validation?.frequency_ok && (
+                  <button className={`secondary-button ${animateImaginaryMode ? "active-action" : ""}`} onClick={() => setAnimateImaginaryMode((current) => !current)}>
+                    {animateImaginaryMode ? "停止虚频动画" : "播放虚频模式"}
+                  </button>
+                )}
+                {workflow && workflow.grid_points.length > 0 && (
+                  <>
+                    <h4>扫描能量面</h4>
+                    <div className="ts-energy-grid">
+                      {workflow.grid_points.map((point) => (
+                        <span
+                          key={point.point_id}
+                          className={`ts-energy-point status-${point.status}`}
+                          title={`${point.point_id}: ${point.energy_hartree ?? "pending"} Ha`}
+                        >{point.energy_hartree?.toFixed(4) ?? "·"}</span>
+                      ))}
+                    </div>
+                  </>
+                )}
+                {workflow?.thermochemistry && (
+                  <div className="ts-thermochemistry">
+                    <h4>热化学结果</h4>
+                    <p>ΔG<sub>rxn</sub>：{String(workflow.thermochemistry.delta_g_rxn_kj_mol ?? "-")} kJ/mol</p>
+                    <p>正向 ΔG‡：{String(workflow.thermochemistry.delta_g_activation_forward_kj_mol ?? "-")} kJ/mol</p>
+                    <p>标准态：{String(workflow.thermochemistry.standard_state ?? "-")}</p>
+                  </div>
+                )}
                 <h4>Gaussian 输入预览 (GJF)</h4>
                 <pre style={{ maxHeight: "200px", overflow: "auto", fontSize: "11px", background: "#0f172a", color: "#38bdf8", padding: "10px", borderRadius: "6px" }}>
                   {gjfText}
@@ -2379,8 +2771,17 @@ function TransitionStateConfigModal({
           )}
         </div>
         <div className="osf-modal-footer">
-          <button className="secondary-button" onClick={onClose}>取消</button>
-          <button className="primary-button" disabled={loading || !!error} onClick={handleSubmit}>提交 Gaussian 计算</button>
+          <button className="secondary-button" onClick={onClose}>关闭</button>
+          {workflow && ["scanning", "refining", "ts_optimizing", "irc", "thermochemistry", "queued"].includes(workflow.status) && (
+            <button className="secondary-button" onClick={() => void handleWorkflowAction("pause")}>暂停</button>
+          )}
+          {workflow && ["paused", "partial", "failed"].includes(workflow.status) && (
+            <button className="secondary-button" onClick={() => void handleWorkflowAction(workflow.status === "failed" ? "retry" : "resume")}>续算</button>
+          )}
+          {workflow && !["completed", "cancelled"].includes(workflow.status) && (
+            <button className="secondary-button danger" onClick={() => void handleWorkflowAction("cancel")}>取消工作流</button>
+          )}
+          <button className="primary-button" disabled={loading || !!error || !canConfigureWorkflow || !selectedCandidateId || coordinates.length === 0} onClick={handleSubmit}>确认参数并启动自动闭环</button>
         </div>
       </div>
     </div>
