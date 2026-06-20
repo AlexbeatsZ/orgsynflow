@@ -184,6 +184,11 @@ WSL 临时文件必须放在：
 - 产率输出必须带 `method`、`confidence`、`applicability_domain`、`note`。
 - 结果弹窗不应默认展示大段原始 stdout/stderr/JSON。前端应优先展示结构化摘要、关键数值、警告和路径；原始日志放在可展开的“原始日志 / 原始数据”中。包含 XYZ/GJF 坐标的结果必须先渲染可交互 3D 分子视图。
 - 依赖隔离与运行环境统一：Gradio、py3Dmol 与 matplotlib 必须在 Windows (uv) 和 WSL (mamba) 中同时声明与安装。在过渡态库中通过 `core.gaussian_runner.find_gaussian_executable()` 代替硬编码的 `g16.exe` 路径，保证计算服务跨 Windows 和 WSL 均可自动发现和调用 Gaussian 可执行文件，并把中间结果输出至工程统一的工作目录下。
+- EAS TS 应用调试经验：`app/eas_ts_app.py` 如果直接用 `python app/eas_ts_app.py` 运行，`app/` 目录会作为工作目录，`from core.eas_ts_lib import *` 因 `core` 不在 sys.path 上而抛 `ModuleNotFoundError`。修复方式是在文件头加 `sys.path.insert(0, str(Path(__file__).resolve().parent.parent))`，同样适用于 `core/eas_ts_lib.py` 自身对 `core.gaussian_runner` 的引用。
+- WSL 下运行 Windows Gaussian：直接在 WSL bash 中以 Linux 路径调用 `g16.exe` 会报 `Thread and Process ID are zero in wsystem: No such file or directory`，传入 UNC 路径会报 `PGFIO/stdio: No such file or directory`。正确做法是：①将 OUT_DIR 映射到 `/mnt/c/...` 而非 `/home/...`；②用 `cmd.exe /c 'g16.exe input.gjf'` 而非直接 `subprocess.Popen(['g16.exe', ...])` 启动。
+- Gradio UI 锁死：若 Gradio 回调函数中含同步 `process.wait()`，整个 Gradio event loop 会被阻塞，UI 无响应。必须改为 generator 函数，用 `time.sleep(2)` + `process.poll()` 轮询，每次循环 `yield` 进度给 Gradio，既能实时更新界面，也能响应取消请求。
+- Conda/Miniforge 路径：本机 WSL 的 conda/mamba 安装位置为 `~/.local/opt/miniforge3`，而非 `~/miniconda3` 或 `~/anaconda3`。正确的初始化命令：`source ~/.local/opt/miniforge3/etc/profile.d/conda.sh && conda activate orgsynflow-chem`。
+- WSL Gradio 浏览器错误：WSL 无桌面环境时，Gradio 的 `inbrowser=True` 会触发 `gio: http://localhost:7861/: Operation not supported`，这是无害信息，不代表服务启动失败；可在 WSL 中用 `server_name="0.0.0.0"` 并在 Windows 浏览器访问 WSL 的端口。
 
 服务和启动经验：
 
@@ -212,6 +217,7 @@ WSL 临时文件必须放在：
 当前状态：
 
 - [done] 2026-06-20 合并 temp/ 目录下的 3 个过渡态搜索/绘图文件到 WSL 和 Windows 仓库，并更新 Python 依赖关系：安装/配置了 gradio、py3Dmol、matplotlib；测试均能正常 import 且编译成功。
+- [done] 2026-06-20 修复 EAS TS 应用合并后完全无效问题：诊断出三个根本原因：①`from core.eas_ts_lib import *` 因 sys.path 未包含项目根目录而失败；②Gradio 回调中 `process.wait()` 阻塞导致 UI 完全锁死；③WSL 下直接调用 `g16.exe` 产生 `wsystem` 错误/UNC 路径错误。已分别修复：添加 sys.path bootstrap、改 generator 函数 yield 进度、将 OUT_DIR 映射到 `/mnt/c/...` 并用 `cmd.exe /c` 包装 g16.exe 启动命令。验证：WSL 下 `conda activate orgsynflow-chem && python app/eas_ts_app.py` 可正常启动 Gradio 服务，无异常退出。
 - [done] 2026-06-20 增加 SMILES 块删除：选中块后可显式删除，同时清理相邻箭头、关联反应及选中/连线状态；保存工作区后刷新不会复活。
 - [done] 2026-06-20 修复组合节点组分级逆合成插入：AiZynthFinder reaction 节点不再误作分子；多个前体拆为独立结构；复用所选目标节点；路线和原反应箭头均保持前体到产物的正向顺序；多组分宽度与下游间距已校正。
 - [done] 2026-06-20 修复逆合成候选插入语义：从现有 SMILES 块预测路线时强制复用该产物块；同一步多个前体合并为一个点式 SMILES 反应物块，并只生成一条反应箭头指向产物。
