@@ -238,11 +238,15 @@ Data & Testing Lessons:
 - Each `precursor_id` in the route must generate an independent molecular node and an independent `precursor -> product` edge, rather than merging all precursors of the same step into a dot-separated pseudo-molecule; the layout width of multi-component nodes is estimated by actual card width, otherwise adjacent nodes overlap and cause forward arrows to visually double back.
 - WSL's `/tmp` may be cleared upon reboot. AiZynthFinder must execute `mkdir -p /tmp/codex/orgsynflow` before each run, without relying on legacy persistence.
 - React Flow selection sync: When using React Flow's built-in `onNodesChange` / `onEdgesChange` interactions (like Shift+Click toggle, box selection, etc.), the locally tracked `selectedNodeId` and `selectedEdgeId` must be synced or cleared via `useEffect`. Otherwise, the "Delete Selected" button may show incorrectly when nothing is selected, and clicking it could delete untargeted nodes or crash due to deleting non-existent nodes.
+- When updating the workspace via `onUpdate` to add new components (like adding SMILES via the input box), do not pass an empty `canvas: { nodes: [], edges: [] }` state, otherwise React Flow will reset all previously dragged nodes to default grid positions, causing the layout to fall apart.
+- Orthogonal path search algorithm must avoid using O(N log N) `Array.sort` inside the while-loop for A*/Dijkstra-style priority queues. `runOrthogonalSearch` caused severe UI lag on layout changes. Using an O(log N) binary insertion sort to maintain the priority queue eliminates the lag.
 
 ## 3. Task Board
 
 Current Status:
 
+- [done] 2026-06-20 Fixed UI layout wipeout ("completely falls apart") when adding new molecules, by preserving the canvas state instead of resetting it to empty arrays during `onUpdate`.
+- [done] 2026-06-20 Fixed inexplicable UI lag during edge layout updates by replacing O(N log N) `Array.sort` inside the `runOrthogonalSearch` queue loop with O(log N) binary insertion sort.
 - [done] 2026-06-20 Added Chemformer single-step retrosynthesis option: reuses the local Conda sidecar and checkpoint of `chem-ai/work-4`, returning Top 5 valid candidates without demo fallback. AiZynthFinder, ASKCOS, and Chemformer candidates uniformly display molecular structures, `+`, and reaction arrows. A one-click script automatically manages 8000/8765/5173 services and logs to `%LOCALAPPDATA%\Temp\.agents\orgsynflow`.
 - [done] 2026-06-20 Added route de-duplication and cyclic path interception based on RDKit Canonical SMILES to AiZynthFinder and ASKCOS adapters (automatically pruning redundant nodes if a precursor is identical to the target or ancestor), resolving duplicates.
 - [done] 2026-06-20 Fixed issue where the "Delete Selected" button showed without selection or caused hangs/accidental deletions: updated `web/src/App.tsx` rendering checks and deletion logic to target only selected nodes/edges, and added a `useEffect` to sync selection status, ensuring `selectedNodeId` and `selectedEdgeId` clear appropriately on deselect and update the task panel.

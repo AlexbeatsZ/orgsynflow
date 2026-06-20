@@ -297,7 +297,7 @@ export function App() {
               status: workflowStatus,
               updated_at: new Date().toISOString(),
               payload: workflow,
-              error: workflowStatus === "failed" ? workflow.error || `TS 工作流结束于 ${workflow.status}` : undefined,
+              error: workflowStatus === "failed" ? workflow.error || `TS workflow ended in ${workflow.status}` : undefined,
             };
             await updateTaskResult(loaded.id, cell.id, key, recoveredWorkflow);
             next = mergeTaskRecord(next, cell.id, key, recoveredWorkflow);
@@ -314,8 +314,8 @@ export function App() {
               status: "failed",
               updated_at: new Date().toISOString(),
               error: record.job_id
-                ? "计算后端已重启或任务不存在，请重新提交。"
-                : "页面刷新后无法恢复此同步任务，请重新计算。",
+                ? "Calculation backend has restarted or task does not exist, please resubmit."
+                : "This synchronous task cannot be recovered after page refresh, please recompute.",
             };
         await updateTaskResult(loaded.id, cell.id, key, recovered);
         next = mergeTaskRecord(next, cell.id, key, recovered);
@@ -343,7 +343,7 @@ export function App() {
 
   async function persistTaskRecord(cellId: string, key: string, record: CachedResult): Promise<CachedResult> {
     const current = workspaceRef.current;
-    if (!current) throw new Error("请先打开工作区。");
+    if (!current) throw new Error("Please open a workspace first.");
     const stored = await updateTaskResult(current.id, cellId, key, record);
     setWorkspace((previous) => {
       if (!previous) return previous;
@@ -440,20 +440,20 @@ export function App() {
       <main className="main">
         <header className="topbar">
           <div className="topbar-left">
-            <button className="rail-toggle" onClick={() => setUnitRailOpen((open) => !open)} title={unitRailOpen ? "隐藏单元栏" : "显示单元栏"}>
+            <button className="rail-toggle" onClick={() => setUnitRailOpen((open) => !open)} title={unitRailOpen ? "Hide unit sidebar" : "Show unit sidebar"}>
               {unitRailOpen ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />}
             </button>
             <div className="workspace-switcher">
               <button className="workspace-trigger" onClick={() => setWorkspaceMenuOpen((open) => !open)}>
                 <Atom size={18} />
-                <span>{workspace?.title ?? "选择工作区"}</span>
+                <span>{workspace?.title ?? "Select Workspace"}</span>
                 <ChevronDown size={18} />
               </button>
-              <p>{workspace ? `${workspace.cells.length} 个单元 · ${workspace.updated_at}` : "创建或打开一个工作区开始"}</p>
+              <p>{workspace ? `${workspace.cells.length} cells · ${workspace.updated_at}` : "Create or open a workspace to start"}</p>
               {workspaceMenuOpen && (
                 <div className="workspace-menu">
                   <button className="workspace-menu-new" onClick={() => { handleNewWorkspace(); setWorkspaceMenuOpen(false); }}>
-                    <Plus size={16} /> 新建工作区
+                    <Plus size={16} /> New Workspace
                   </button>
                   {summaries.map((item) => (
                     <button
@@ -471,10 +471,10 @@ export function App() {
           </div>
           <div className="topbar-actions">
             <button className="ghost-button compact" onClick={() => setModal({ kind: "backend", status: computeStatus })}>
-              <Cpu size={15} /> 后端
+              <Cpu size={15} /> Backend
             </button>
             <button className="primary-button" onClick={() => handleSaveWorkspace()} disabled={!workspace}>
-              <Save size={16} /> 保存
+              <Save size={16} /> Save
             </button>
           </div>
         </header>
@@ -483,9 +483,9 @@ export function App() {
           {unitRailOpen && (
             <aside className="unit-rail">
               <div className="unit-rail-header">
-                <strong>单元</strong>
+                <strong>Cells</strong>
                 <button className="primary-button compact" onClick={() => handleAddCell("chem")} disabled={!workspace}>
-                  <Plus size={15} /> 添加
+                  <Plus size={15} /> Add
                 </button>
               </div>
               <div className="cell-list compact-list">
@@ -514,7 +514,7 @@ export function App() {
                       <strong>{cell.title}</strong>
                       <button
                         className="icon-button danger"
-                        title="删除单元"
+                        title="Delete Cell"
                         onClick={(event) => {
                           event.stopPropagation();
                           handleDeleteCell(cell.id);
@@ -589,9 +589,9 @@ function ResultPanel({ result }: { result: unknown }) {
     <section className="result-panel">
       <div className="result-header">
         <BookOpen size={16} />
-        <span>结果 / 日志</span>
+        <span>Result / Log</span>
       </div>
-      {!result && <p className="muted">选择一个节点或箭头，然后在右侧运行任务。</p>}
+      {!result && <p className="muted">Select a node or arrow, then run tasks in the right panel.</p>}
       {geometry && <Molecule3DResultView geometry={geometry} />}
       {routeResult && <RouteResultView result={routeResult} />}
       {propertyResult && <PropertyResultView result={propertyResult} />}
@@ -641,12 +641,12 @@ function ReactionMappingView({ result }: { result: any }) {
   
   return (
     <div className="reaction-mapping-view result-block">
-      <h4>反应原子映射 (RXNMapper)</h4>
+      <h4>Reaction Atom Mapping (RXNMapper)</h4>
       <table className="osf-table" style={{ marginBottom: "12px" }}>
         <tbody>
           <tr>
-            <td style={{ width: "120px" }}>置信度</td>
-            <td><strong>{result.confidence ?? "未知"}</strong></td>
+            <td style={{ width: "120px" }}>Confidence</td>
+            <td><strong>{result.confidence ?? "Unknown"}</strong></td>
           </tr>
         </tbody>
       </table>
@@ -663,20 +663,20 @@ function ReactionYieldView({ result }: { result: any }) {
   const yieldVal = result.predicted_yield_percent ?? result.heuristic_yield_percent;
   return (
     <div className="reaction-yield-view result-block">
-      <h4>产率预估结果</h4>
+      <h4>Yield Prediction Result</h4>
       <table className="osf-table">
         <tbody>
           <tr>
-            <td style={{ width: "120px" }}>预估产率</td>
-            <td><strong>{typeof yieldVal === "number" ? `${yieldVal}%` : "未知"}</strong></td>
+            <td style={{ width: "120px" }}>Estimated Yield</td>
+            <td><strong>{typeof yieldVal === "number" ? `${yieldVal}%` : "Unknown"}</strong></td>
           </tr>
           <tr>
-            <td>置信度</td>
-            <td>{result.confidence ?? "未知"}</td>
+            <td>Confidence</td>
+            <td>{result.confidence ?? "Unknown"}</td>
           </tr>
           {result.factors && result.factors.length > 0 && (
             <tr>
-              <td>影响因素</td>
+              <td>Factors</td>
               <td>
                 <ul style={{ margin: 0, paddingLeft: "16px" }}>
                   {result.factors.map((f: string, i: number) => <li key={i}>{f}</li>)}
@@ -693,19 +693,19 @@ function ReactionYieldView({ result }: { result: any }) {
 function ReactionExplanationView({ result }: { result: any }) {
   return (
     <div className="reaction-explanation-view result-block">
-      <h4>{result.reaction_type ?? "反应解释"}</h4>
+      <h4>{result.reaction_type ?? "Reaction Explanation"}</h4>
       <p>{result.summary}</p>
       <div className="metric-grid" style={{ marginTop: "12px" }}>
         <div>
-          <span>断裂键</span>
+          <span>Broken Bonds</span>
           <strong>{result.broken_bonds?.join(", ") || "-"}</strong>
         </div>
         <div>
-          <span>形成键</span>
+          <span>Formed Bonds</span>
           <strong>{result.formed_bonds?.join(", ") || "-"}</strong>
         </div>
         <div>
-          <span>反应中心</span>
+          <span>Reaction Center</span>
           <strong>{result.reaction_center?.join(", ") || "-"}</strong>
         </div>
       </div>
@@ -716,20 +716,20 @@ function ReactionExplanationView({ result }: { result: any }) {
 function ReactionValidationView({ result }: { result: any }) {
   return (
     <div className="reaction-validation-view result-block">
-      <h4>反应可行性校验</h4>
+      <h4>Reaction Feasibility Validation</h4>
       <table className="osf-table">
         <tbody>
           <tr>
-            <td style={{ width: "120px" }}>结果</td>
+            <td style={{ width: "120px" }}>Result</td>
             <td>
               <strong style={{ color: result.is_valid ? "#10b981" : "#ef4444" }}>
-                {result.is_valid ? "通过 (Valid)" : "不通过 (Invalid)"}
+                {result.is_valid ? "Passed (Valid)" : "Failed (Invalid)"}
               </strong>
             </td>
           </tr>
           {result.errors && result.errors.length > 0 && (
             <tr>
-              <td>错误</td>
+              <td>Error</td>
               <td style={{ color: "#ef4444" }}>
                 <ul style={{ margin: 0, paddingLeft: "16px" }}>
                   {result.errors.map((e: string, i: number) => <li key={i}>{e}</li>)}
@@ -739,7 +739,7 @@ function ReactionValidationView({ result }: { result: any }) {
           )}
           {result.warnings && result.warnings.length > 0 && (
             <tr>
-              <td>警告</td>
+              <td>Warning</td>
               <td style={{ color: "#f59e0b" }}>
                 <ul style={{ margin: 0, paddingLeft: "16px" }}>
                   {result.warnings.map((w: string, i: number) => <li key={i}>{w}</li>)}
@@ -770,9 +770,9 @@ function TaskLogDrawer({
     .sort((left, right) => String(right.record.updated_at).localeCompare(String(left.record.updated_at)));
 
   function openRecord(record: CachedResult, key: string) {
-    const title = record.task_label ?? "任务记录";
+    const title = record.task_label ?? "Task Record";
     if (taskStatusForRecord(record) === "failed") {
-      openModal({ kind: "task-error", title: `${title}失败`, record });
+      openModal({ kind: "task-error", title: `${title} Failed`, record });
       return;
     }
     const parts = key.split(":");
@@ -799,7 +799,7 @@ function TaskLogDrawer({
   return (
     <section className={`task-log-drawer ${open ? "open" : ""}`}>
       <button className="task-log-toggle" onClick={() => setOpen((current) => !current)}>
-        <span><History size={16} /> 任务日志</span>
+        <span><History size={16} /> Task Logs</span>
         <span className="task-log-count">{records.length}</span>
         {open ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
       </button>
@@ -812,12 +812,12 @@ function TaskLogDrawer({
                 <span className={`task-log-status task-log-status-${status}`}>{taskStatusLabel(status)}</span>
                 <span className="task-log-main">
                   <strong>{record.task_label ?? key}</strong>
-                  <small>{record.object_label ?? record.object_id ?? "当前单元"}</small>
+                  <small>{record.object_label ?? record.object_id ?? "Current Cell"}</small>
                 </span>
                 <time>{formatTaskTime(record.updated_at)}</time>
               </button>
             );
-          }) : <p className="muted task-log-empty">当前单元还没有任务记录。</p>}
+          }) : <p className="muted task-log-empty">No task records in the current cell yet.</p>}
         </div>
       )}
     </section>
@@ -833,7 +833,7 @@ function RouteCandidatePreview({ route }: { route: RouteCandidate }) {
   }
 
   return (
-    <div className="route-scheme" aria-label={`${route.title} 合成路线预览`}>
+    <div className="route-scheme" aria-label={`${route.title} Synthesis Route Preview`}>
       {steps.map((step, stepIndex) => {
         const precursors = step.precursor_ids.map((id) => molecules.get(id)).filter(Boolean) as RouteCandidate["molecules"];
         const product = molecules.get(step.product_id);
@@ -841,7 +841,7 @@ function RouteCandidatePreview({ route }: { route: RouteCandidate }) {
         const markerId = `route-arrow-${route.id}-${step.id}`.replace(/[^a-zA-Z0-9_-]/g, "-");
         return (
           <div className="route-scheme-step" key={step.id}>
-            <div className="route-step-label">步骤 {stepIndex + 1}</div>
+            <div className="route-step-label">Step {stepIndex + 1}</div>
             <div className="route-scheme-reactants">
               {precursors.map((precursor, index) => [
                 index > 0 ? <span className="route-plus" key={`${step.id}-plus-${index}`}>+</span> : null,
@@ -849,8 +849,8 @@ function RouteCandidatePreview({ route }: { route: RouteCandidate }) {
               ])}
             </div>
             <div className="route-reaction-arrow" title={step.template ?? undefined}>
-              <span>{step.template || "合成"}</span>
-              <svg viewBox="0 0 132 32" role="img" aria-label="反应箭头">
+              <span>{step.template || "Synthesis"}</span>
+              <svg viewBox="0 0 132 32" role="img" aria-label="Reaction Arrow">
                 <defs>
                   <marker id={markerId} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
                     <path d="M 0 0 L 10 5 L 0 10 z" />
@@ -877,8 +877,8 @@ function RoutePreviewMolecule({
   return (
     <div className={`route-preview-molecule${molecule.in_stock ? " in-stock" : ""}${isTarget ? " target" : ""}`}>
       <div className="route-molecule-badges">
-        {molecule.in_stock && <span>库存可用</span>}
-        {isTarget && <span>目标产物</span>}
+        {molecule.in_stock && <span>In Stock</span>}
+        {isTarget && <span>Target Product</span>}
       </div>
       <MoleculeDrawing smiles={molecule.smiles} />
       <code title={molecule.smiles}>{molecule.smiles}</code>
@@ -909,14 +909,14 @@ function RouteResultView({ result }: { result: ReturnType<typeof asRoutePredicti
     <div className="structured-result">
       <div className="result-summary">
         <strong>{result.target_smiles}</strong>
-        <span>{result.used_fallback ? "演示候选" : routeEngineLabel(result.engine)}</span>
+        <span>{result.used_fallback ? "Demo Candidate" : routeEngineLabel(result.engine)}</span>
       </div>
       <p>{result.status}</p>
       <div className="route-result-list">
         {result.candidates.map((route, index) => (
           <div className="route-result-card" key={route.id}>
             <strong>{index + 1}. {route.title}</strong>
-            <span>{route.depth} 步 · {route.precursor_count} 个前体 · 库存 {route.stock_count}</span>
+            <span>{route.depth} steps · {route.precursor_count} precursors · In stock {route.stock_count}</span>
             <RouteCandidatePreview route={route} />
             <small style={{ display: 'block', marginTop: '8px' }}>{route.molecules.map((item) => item.smiles).join("  +  ")}</small>
           </div>
@@ -932,7 +932,7 @@ function PropertyResultView({ result }: { result: Record<string, any> }) {
   return (
     <div className="structured-result">
       <div className="result-summary">
-        <strong>{rdkit.SMILES ?? "分子性质"}</strong>
+        <strong>{rdkit.SMILES ?? "Molecular Properties"}</strong>
         <span>{opera?.status === "available" ? "RDKit + OPERA" : "RDKit"}</span>
       </div>
       <div className="metric-grid">
@@ -966,7 +966,7 @@ function Molecule3DResultView({ geometry }: { geometry: ExtractedGeometry }) {
     let cancelled = false;
     void load3Dmol()
       .then(() => { if (!cancelled) setReady(true); })
-      .catch(() => { if (!cancelled) setError("3Dmol 渲染插件初始化失败。"); });
+      .catch(() => { if (!cancelled) setError("3Dmol rendering plugin initialization failed."); });
     return () => { cancelled = true; };
   }, []);
 
@@ -985,15 +985,15 @@ function Molecule3DResultView({ geometry }: { geometry: ExtractedGeometry }) {
   return (
     <div className="result-block molecule-3d-result">
       <div className="result-summary">
-        <strong>三维结构</strong>
+        <strong>3D Structure</strong>
         <span>{geometry.atomCount} atoms</span>
       </div>
       <div className="result-3d-viewer-container">
         <div ref={viewerRef} className="result-3d-viewer" />
-        {!ready && !error && <div className="result-3d-placeholder">正在加载 3D 结构...</div>}
+        {!ready && !error && <div className="result-3d-placeholder">Loading 3D structure...</div>}
         {error && <div className="result-3d-placeholder error">{error}</div>}
       </div>
-      <p className="result-hint">鼠标拖拽旋转，滚轮缩放，右键拖拽平移。</p>
+      <p className="result-hint">Left-click drag to rotate, wheel to zoom, right-click drag to pan.</p>
     </div>
   );
 }
@@ -1007,12 +1007,12 @@ function ComputeResultView({ result }: { result: Record<string, any> }) {
   return (
     <div className="structured-result">
       <div className="result-summary">
-        <strong>{result.source ?? "计算结果"}</strong>
+        <strong>{result.source ?? "Calculation Result"}</strong>
         <span>{statusLabel(result.status)}</span>
       </div>
       <div className="result-status-line">
         <span className={`status-dot ${result.status === "failed" ? "missing" : "ready"}`} />
-        <strong>{result.status === "failed" ? "计算失败" : "计算完成"}</strong>
+        <strong>{result.status === "failed" ? "Calculation Failed" : "Calculation Completed"}</strong>
         {typeof data.returncode !== "undefined" && <small>return code {String(data.returncode)}</small>}
       </div>
       {result.work_dir && <code>{result.work_dir}</code>}
@@ -1027,8 +1027,8 @@ function ComputeResultView({ result }: { result: Record<string, any> }) {
       {highlights.length > 0 && <LogHighlights items={highlights} />}
       <RawLogDetails
         logs={[
-          ["标准输出", result.stdout],
-          ["错误输出", result.stderr],
+          ["Standard Output", result.stdout],
+          ["Error Output", result.stderr],
         ]}
         raw={result}
       />
@@ -1051,11 +1051,11 @@ function GaussianJobView({ job }: { job: GaussianJob }) {
   );
   const logTail = String(payload.log_tail ?? result?.log_tail ?? "");
   const metrics = [
-    ["状态", statusLabel(job.status)],
-    ["作业 ID", job.job_id],
-    ["最终能量", parsed?.final_energy_hartree],
-    ["Gibbs 自由能", parsed?.gibbs_free_energy_hartree],
-    ["虚频数量", parsed?.imaginary_frequency_count],
+    ["Status", statusLabel(job.status)],
+    ["Job ID", job.job_id],
+    ["Final Energy", parsed?.final_energy_hartree],
+    ["Gibbs Free Energy", parsed?.gibbs_free_energy_hartree],
+    ["Imaginary Freq Count", parsed?.imaginary_frequency_count],
     ["HOMO", parsed?.homo_ev],
     ["LUMO", parsed?.lumo_ev],
   ].filter(([, value]) => value !== undefined && value !== null && value !== "");
@@ -1077,7 +1077,7 @@ function GaussianJobView({ job }: { job: GaussianJob }) {
       {(payload.log_path || result?.log_path) && <code>{String(payload.log_path ?? result?.log_path)}</code>}
       {Array.isArray(parsed?.warnings) && parsed.warnings.length > 0 && (
         <div className="result-block">
-          <strong>解析警告</strong>
+          <strong>Parsing Warnings</strong>
           {parsed.warnings.map((warning: string) => <p key={warning}>{warning}</p>)}
         </div>
       )}
@@ -1086,8 +1086,8 @@ function GaussianJobView({ job }: { job: GaussianJob }) {
       <RawLogDetails
         logs={[
           ["Gaussian log", logTail],
-          ["标准输出", result?.stdout],
-          ["错误输出", result?.stderr],
+          ["Standard Output", result?.stdout],
+          ["Error Output", result?.stderr],
         ]}
         raw={job}
       />
@@ -1106,16 +1106,16 @@ function GaussianProgressView({ progress }: { progress: any }) {
   return (
     <div className="gaussian-progress">
       <div className="result-block">
-        <strong>输出预览 / 计算进度</strong>
-        <p>{String(progress?.summary ?? "等待 Gaussian 写入日志。")}</p>
+        <strong>Output Preview / Progress</strong>
+        <p>{String(progress?.summary ?? "Waiting for Gaussian to write logs.")}</p>
       </div>
       {scfCycles.length > 0 && (
         <div className="result-block">
-          <strong>SCF 迭代 ({scfCycles.length})</strong>
+          <strong>SCF Iterations ({scfCycles.length})</strong>
           <div className="gaussian-progress-list">
             {scfCycles.slice(-8).map((cycle: any, index: number) => (
               <div key={`${cycle.step}-${index}`} className={cycle.in_progress ? "running-row" : ""}>
-                <span>{cycle.in_progress ? "进行中" : `SCF ${cycle.step ?? index + 1}`}</span>
+                <span>{cycle.in_progress ? "In Progress" : `SCF ${cycle.step ?? index + 1}`}</span>
                 <code>{formatResultValue(cycle.energy_hartree)} Ha</code>
                 <small>{cycle.cycles ? `${cycle.cycles} cycles` : "-"}</small>
               </div>
@@ -1125,7 +1125,7 @@ function GaussianProgressView({ progress }: { progress: any }) {
       )}
       {optimizationSteps.length > 0 && (
         <div className="result-block">
-          <strong>优化收敛过程 ({optimizationSteps.length} 步)</strong>
+          <strong>Optimization Convergence Process ({optimizationSteps.length} steps)</strong>
           <div className="gaussian-progress-list">
             {optimizationSteps.slice(-10).map((step: any) => (
               <div key={step.step}>
@@ -1139,13 +1139,13 @@ function GaussianProgressView({ progress }: { progress: any }) {
       )}
       {latestConvergence?.rows?.length > 0 && (
         <div className="result-block">
-          <strong>最新收敛表 · Step {latestConvergence.step}</strong>
+          <strong>Latest Convergence Table · Step {latestConvergence.step}</strong>
           <div className="gaussian-convergence-table">
             {latestConvergence.rows.map((row: any) => (
               <div key={row.item} className={row.converged ? "converged" : "not-converged"}>
                 <span>{row.item}</span>
                 <code>{formatResultValue(row.value)}</code>
-                <small>阈值 {formatResultValue(row.threshold)}</small>
+                <small>Threshold {formatResultValue(row.threshold)}</small>
                 <strong>{row.converged ? "YES" : "NO"}</strong>
               </div>
             ))}
@@ -1154,7 +1154,7 @@ function GaussianProgressView({ progress }: { progress: any }) {
       )}
       {(errors.length > 0 || warnings.length > 0) && (
         <div className="result-block">
-          <strong>日志告警</strong>
+          <strong>Log Warnings</strong>
           {errors.slice(0, 5).map((item: any, index: number) => <p className="error-text" key={`e-${index}`}>[{item.line ?? "-"}] {item.text}</p>)}
           {warnings.slice(0, 5).map((item: any, index: number) => <p key={`w-${index}`}>[{item.line ?? "-"}] {item.text}</p>)}
         </div>
@@ -1193,7 +1193,7 @@ function GenericResultView({ result }: { result: unknown }) {
 function LogHighlights({ items }: { items: string[] }) {
   return (
     <div className="result-block log-highlights">
-      <strong>日志摘要</strong>
+      <strong>Log Summary</strong>
       {items.map((item) => <p key={item}>{item}</p>)}
     </div>
   );
@@ -1204,7 +1204,7 @@ function RawLogDetails({ logs = [], raw }: { logs?: Array<[string, unknown]>; ra
   if (visibleLogs.length === 0 && raw === undefined) return null;
   return (
     <details className="raw-log-details">
-      <summary>原始日志 / 原始数据</summary>
+      <summary>Raw Logs / Raw Data</summary>
       {visibleLogs.map(([title, value]) => (
         <div key={title} className="raw-log-block">
           <strong>{title}</strong>
@@ -1213,7 +1213,7 @@ function RawLogDetails({ logs = [], raw }: { logs?: Array<[string, unknown]>; ra
       ))}
       {raw !== undefined && (
         <div className="raw-log-block">
-          <strong>完整 JSON</strong>
+          <strong>Full JSON</strong>
           <pre>{trimLongText(JSON.stringify(raw, null, 2) ?? "")}</pre>
         </div>
       )}
@@ -1518,26 +1518,26 @@ function CellDetail({
                 setSelectedEdgeId(null);
               }}
             >
-              <Link2 size={14} /> 连接分子
+              <Link2 size={14} /> Connect Molecules
             </button>
             {linkingActive && (
               <span className="toolbar-hint">
-                {pendingConnectionNodeId ? "继续选择下一个分子" : shiftConnectMode ? "Shift 连线：选择起点" : "选择起点分子"}
+                {pendingConnectionNodeId ? "Select next molecule" : shiftConnectMode ? "Shift Connect: Select Start Node" : "Select Start Molecule"}
               </span>
             )}
             {(nodes.some((n) => n.selected) || edges.some((e) => e.selected || e.id === selectedEdgeId)) && (
               <button className="ghost-button compact danger-action" onClick={removeSelectedItems}>
-                <Trash2 size={14} /> 删除选中项
+                <Trash2 size={14} /> Delete Selected
               </button>
             )}
             {edges.length > 0 && (
               <button className="ghost-button compact danger-action" onClick={removeAllEdges}>
-                <Trash2 size={14} /> 删除全部连线
+                <Trash2 size={14} /> Delete All Connections
               </button>
             )}
             {(cell.objects.reactions?.length ?? 0) > 0 && (
               <>
-                <select className="compact-select" aria-label="选择反应任务" value={reactionTaskId} onChange={(event) => setReactionTaskId(event.target.value)}>
+                <select className="compact-select" aria-label="Select reaction task" value={reactionTaskId} onChange={(event) => setReactionTaskId(event.target.value)}>
                   {cell.objects.reactions?.map((reaction) => <option key={reaction.id} value={reaction.id}>{reaction.label}</option>)}
                 </select>
                 <button
@@ -1546,7 +1546,7 @@ function CellDetail({
                     const reaction = cell.objects.reactions?.find((item) => item.id === reactionTaskId);
                     if (reaction) onSelect({ kind: "reaction", cell, reaction });
                   }}
-                >反应任务</button>
+                >Reaction Task</button>
               </>
             )}
           </div>
@@ -1554,25 +1554,25 @@ function CellDetail({
         {connectMode && (
           <div className="relationship-bar">
             <select
-              aria-label="连接起点"
+              aria-label="Connection Start"
               value={relationSourceId}
               onChange={(event) => {
                 setRelationSourceId(event.target.value);
                 setPendingConnectionNodeId(event.target.value || null);
               }}
             >
-              <option value="">起点</option>
+              <option value="">Start</option>
               {molecules.map((molecule) => (
                 <option key={molecule.id} value={molecule.id}>{molecule.label || molecule.smiles}</option>
               ))}
             </select>
             <span>→</span>
             <select
-              aria-label="连接终点"
+              aria-label="Connection End"
               value={relationTargetId}
               onChange={(event) => setRelationTargetId(event.target.value)}
             >
-              <option value="">终点</option>
+              <option value="">End</option>
               {molecules.map((molecule) => (
                 <option key={molecule.id} value={molecule.id}>{molecule.label || molecule.smiles}</option>
               ))}
@@ -1589,7 +1589,7 @@ function CellDetail({
                 }
               }}
             >
-              创建连接
+              Create Connection
             </button>
           </div>
         )}
@@ -1686,7 +1686,7 @@ function MoleculeNode({ id, data }: NodeProps) {
         </span>
       ))}
       {componentSmiles.length > 1 ? (
-        <div className="molecule-components" aria-label="多分子组分">
+        <div className="molecule-components" aria-label="Multi-molecule Components">
           {componentSmiles.map((component, index) => {
             const componentId = `${id}:component:${index}`;
             return (
@@ -1697,8 +1697,8 @@ function MoleculeNode({ id, data }: NodeProps) {
                 onClick={() => {
                   onActivateComponent?.(index);
                 }}
-                title={`选择组分 ${index + 1}：${component}`}
-                aria-label={`选择组分 ${index + 1}：${component}`}
+                title={`Select component ${index + 1}: ${component}`}
+                aria-label={`Select component ${index + 1}: ${component}`}
                 data-component-id={componentId}
               >
                 <MoleculeDrawing smiles={component} />
@@ -1742,7 +1742,7 @@ function MoleculeDrawing({ smiles }: { smiles: string }) {
 
   return (
     <div className="molecule-drawing">
-      {svg ? <div dangerouslySetInnerHTML={{ __html: svg }} /> : <span className={failed ? "formula-fallback" : ""}>{failed ? displayFormulaLike(smiles) : "渲染中..."}</span>}
+      {svg ? <div dangerouslySetInnerHTML={{ __html: svg }} /> : <span className={failed ? "formula-fallback" : ""}>{failed ? displayFormulaLike(smiles) : "Rendering..."}</span>}
     </div>
   );
 }
@@ -1790,13 +1790,12 @@ function EditorStrip({ cell, onUpdate }: { cell: WorkspaceCell; onUpdate: (cell:
         molecules,
         reactions,
       },
-      canvas: { nodes: [], edges: [] },
     });
   }
 
   return (
     <div className="smiles-input-container">
-      <label className="smiles-input-title">输入 SMILES</label>
+      <label className="smiles-input-title">Input SMILES</label>
       <div className="smiles-input-body">
         <textarea
           value={input}
@@ -1804,9 +1803,9 @@ function EditorStrip({ cell, onUpdate }: { cell: WorkspaceCell; onUpdate: (cell:
           placeholder={"CCO\nCCO>>CC=O\nA.B>>C"}
         />
         <div className="smiles-input-actions">
-          <button className="primary-button" onClick={addInput}>添加到画布</button>
+          <button className="primary-button" onClick={addInput}>Add to Canvas</button>
           <button className="ghost-button compact" onClick={() => setDrawerOpen(true)}>
-            打开绘图器
+            Open Editor
           </button>
         </div>
       </div>
@@ -1853,7 +1852,7 @@ function KetcherModal({
           setStructServiceProvider(new StandaloneStructServiceProvider());
         }
       } catch (exc) {
-        if (!cancelled) setError(`Ketcher 加载失败：${String(exc)}`);
+        if (!cancelled) setError(`Ketcher failed to load: ${String(exc)}`);
       }
     }
     loadKetcher();
@@ -1864,7 +1863,7 @@ function KetcherModal({
 
   async function apply() {
     if (!ketcherRef.current) {
-      setError("Ketcher 尚未初始化。");
+      setError("Ketcher has not been initialized.");
       return;
     }
     try {
@@ -1879,8 +1878,8 @@ function KetcherModal({
     <div className="osf-modal-backdrop">
       <div className="osf-ketcher-modal">
         <div className="osf-modal-header">
-          <strong>Ketcher 绘图输入</strong>
-          <button onClick={onClose}>关闭</button>
+          <strong>Ketcher Drawing Input</strong>
+          <button onClick={onClose}>Close</button>
         </div>
         <div className="osf-ketcher-host">
           {EditorComponent && structServiceProvider ? (
@@ -1897,13 +1896,13 @@ function KetcherModal({
               }}
             />
           ) : (
-            <div className="empty-state">正在加载 Ketcher 绘图器...</div>
+            <div className="empty-state">Loading Ketcher editor...</div>
           )}
         </div>
         {error && <div className="error-box">{error}</div>}
         <div className="osf-modal-footer">
-          <span>应用后会回填到“添加分子”的 SMILES 输入框。</span>
-          <button className="primary-button" onClick={apply}>应用结构</button>
+          <span>Applying will fill back into the SMILES input field.</span>
+          <button className="primary-button" onClick={apply}>Apply Structure</button>
         </div>
       </div>
     </div>
@@ -1967,7 +1966,7 @@ function TaskPanel({
         status: nextStatus,
         updated_at: new Date().toISOString(),
         payload: nextResult,
-        error: nextStatus === "failed" ? resultErrorMessage(nextResult) ?? job?.error ?? "计算失败。" : undefined,
+        error: nextStatus === "failed" ? resultErrorMessage(nextResult) ?? job?.error ?? "Calculation failed." : undefined,
         job_id: job?.job_id,
       };
       await persistTaskRecord(definition.cellId, key, completedRecord);
@@ -1975,7 +1974,7 @@ function TaskPanel({
       if (nextStatus === "failed") {
         openModal({
           kind: "task-error",
-          title: `${definition.label}失败`,
+          title: `${definition.label} Failed`,
           record: completedRecord,
           onRetry: () => void runTask(definition, task, options),
           onConfigure: options?.onConfigure,
@@ -1983,7 +1982,7 @@ function TaskPanel({
       } else if (options?.openResult !== false) {
         openModal({
           kind: "result",
-          title: options?.title ?? "任务结果",
+          title: options?.title ?? "Task Result",
           result: resultForRecord(completedRecord),
           onRecompute: () => void runTask(definition, task, options),
           onConfigure: options?.onConfigure,
@@ -2002,7 +2001,7 @@ function TaskPanel({
       setResult(failedRecord);
       openModal({
         kind: "task-error",
-        title: `${definition.label}失败`,
+        title: `${definition.label} Failed`,
         record: failedRecord,
         onRetry: () => void runTask(definition, task, options),
         onConfigure: options?.onConfigure,
@@ -2015,9 +2014,9 @@ function TaskPanel({
     <div>
       <div className="panel-title">
         <Boxes size={16} />
-        <span>任务面板</span>
+        <span>Task Panel</span>
       </div>
-      {!selected && <p className="muted">选择 notebook 单元、分子节点或反应箭头。</p>}
+      {!selected && <p className="muted">Select a notebook cell, molecular node, or reaction arrow.</p>}
       {selected?.kind === "cell" && <CellTasks selected={selected} openModal={openModal} />}
       {selected?.kind === "molecule" && (
         <MoleculeTasks
@@ -2083,13 +2082,13 @@ function RouteCandidateSets({
 
   return (
     <>
-      <div className="panel-title jobs-title">路线候选集</div>
+      <div className="panel-title jobs-title">Route Candidates</div>
       <div className="route-candidate-list">
         {sets.slice(-4).reverse().map((set) => (
           <div key={set.id} className="route-candidate-set">
             <div className="route-candidate-head">
               <strong>{set.target_smiles}</strong>
-              <span>{set.used_fallback ? "演示" : routeEngineLabel(set.engine ?? set.candidates[0]?.source)}</span>
+              <span>{set.used_fallback ? "Demo" : routeEngineLabel(set.engine ?? set.candidates[0]?.source)}</span>
             </div>
             <p>{set.status}</p>
             {set.candidates.slice(0, set.engine === "chemformer" ? 5 : 3).map((route, index) => (
@@ -2097,14 +2096,14 @@ function RouteCandidateSets({
                 <button onClick={() => setResult({ ...set, selected_route: route })}>
                   {index + 1}. {route.title}
                 </button>
-                <span>{route.depth} 步 · 前体 {route.precursor_count} · 库存 {route.stock_count}</span>
+                <span>{route.depth} steps · precursors {route.precursor_count} · in stock {route.stock_count}</span>
                 {typeof route.metadata?.log_likelihood === "number" && (
-                  <span>模型对数似然 {route.metadata.log_likelihood.toFixed(3)}</span>
+                  <span>Model Log Likelihood {route.metadata.log_likelihood.toFixed(3)}</span>
                 )}
                 <RouteCandidatePreview route={route} />
                 <div className="route-actions">
-                  <button onClick={() => addRouteToCurrentCell(route, set.target_smiles)}>加入当前画布</button>
-                  <button onClick={() => createRouteCell(route)}>新建路线单元</button>
+                  <button onClick={() => addRouteToCurrentCell(route, set.target_smiles)}>Add to Canvas</button>
+                  <button onClick={() => createRouteCell(route)}>Create Route Cell</button>
                 </div>
               </div>
             ))}
@@ -2151,20 +2150,20 @@ function EngineSelectorView({
 
   return (
     <div className="engine-selector-container">
-      <p className="engine-selector-desc">请选择用来预测逆合成反应路线的计算后端引擎：</p>
+      <p className="engine-selector-desc">Please select the compute backend engine to predict retrosynthesis routes:</p>
       <div className="engine-options-list">
         <button
           className="engine-option-card"
           onClick={() => onSelect("aizynthfinder")}
         >
           <div className="engine-option-header">
-            <strong>AiZynthFinder (本地/WSL)</strong>
+            <strong>AiZynthFinder (Local/WSL)</strong>
             <span className={`engine-badge ${aizynth?.available ? "ready" : "not-ready"}`}>
-              {aizynth?.available ? "已就绪" : "演示候选（未配置）"}
+              {aizynth?.available ? "Ready" : "Demo Candidate (Unconfigured)"}
             </span>
           </div>
           <p className="engine-option-desc">
-            运行在本地 WSL 中的 AI 逆合成推荐引擎。已完成本地模型包配置，能进行真实计算。
+            AI retrosynthesis recommendation engine running in local WSL. Local model packages configured for authentic predictions.
           </p>
         </button>
 
@@ -2173,13 +2172,13 @@ function EngineSelectorView({
           onClick={() => onSelect("chemformer")}
         >
           <div className="engine-option-header">
-            <strong>Chemformer（单步候选）</strong>
+            <strong>Chemformer (Single-Step Candidates)</strong>
             <span className={`engine-badge ${chemformer?.available ? "ready" : "not-ready"}`}>
-              {chemformer ? (chemformer.available ? "已就绪" : "服务未启动") : "检测中"}
+              {chemformer ? (chemformer.available ? "Ready" : "Service Not Started") : "Detecting"}
             </span>
           </div>
           <p className="engine-option-desc">
-            使用本地 Chemformer checkpoint 生成 Top 5 反应物组合；结果是单步逆合成候选，不会自动展开为完整多步路线。
+            Use local Chemformer checkpoint to generate Top 5 reactant combinations; results are single-step candidates and will not auto-expand to multi-step routes.
           </p>
         </button>
 
@@ -2188,13 +2187,13 @@ function EngineSelectorView({
           onClick={() => onSelect("askcos")}
         >
           <div className="engine-option-header">
-            <strong>ASKCOS (Docker/远程)</strong>
+            <strong>ASKCOS (Docker/Remote)</strong>
             <span className={`engine-badge ${askcos?.available ? "ready" : "not-ready"}`}>
-              {askcos?.available ? "已就绪" : "演示候选（未启动）"}
+              {askcos?.available ? "Ready" : "Demo Candidate (Not Started)"}
             </span>
           </div>
           <p className="engine-option-desc">
-            由 MIT 开发的多步骤路线规则检索平台，部署于本地或远程 Docker 服务（{askcos?.metadata?.url || "100.106.169.46:9100"}）。
+            Multi-step route rule retrieval platform developed by MIT, deployed locally or on remote Docker service ({askcos?.metadata?.url || "100.106.169.46:9100"}).
           </p>
         </button>
       </div>
@@ -2220,18 +2219,18 @@ function AppModal({
           <strong>
             {modal.kind === "result" && modal.title}
             {modal.kind === "task-error" && modal.title}
-            {modal.kind === "backend" && "计算后端状态"}
-            {modal.kind === "jobs" && "Gaussian 队列"}
-            {modal.kind === "routes" && "路线候选"}
-            {modal.kind === "engine-select" && "选择合成路线预测引擎"}
+            {modal.kind === "backend" && "Compute Backend Status"}
+            {modal.kind === "jobs" && "Gaussian Queue"}
+            {modal.kind === "routes" && "Route Candidates"}
+            {modal.kind === "engine-select" && "Select Synthesis Route Prediction Engine"}
           </strong>
-          <button onClick={onClose}>关闭</button>
+          <button onClick={onClose}>Close</button>
         </div>
         <div className="osf-modal-body">
           {modal.kind === "result" && <ResultPanel result={modal.result} />}
           {modal.kind === "task-error" && (
             <div className="task-error-content">
-              <div className="error-box">{modal.record.error ?? "计算失败，未返回具体错误。"}</div>
+              <div className="error-box">{modal.record.error ?? "Calculation failed without returning specific errors."}</div>
               {Boolean(modal.record.payload) && <ResultPanel result={resultForRecord(modal.record)} />}
             </div>
           )}
@@ -2245,7 +2244,7 @@ function AppModal({
               onSave={modal.onSave}
               setResult={(result) => {
                 setResult(result);
-                openModal({ kind: "result", title: "路线操作结果", result });
+                openModal({ kind: "result", title: "Route Action Result", result });
               }}
             />
           )}
@@ -2262,11 +2261,11 @@ function AppModal({
         {(modal.kind === "result" || modal.kind === "routes") && (modal.onRecompute || (modal.kind === "result" && modal.onConfigure)) && (
           <div className="osf-modal-footer task-error-actions">
             {modal.kind === "result" && modal.onConfigure && (
-              <button className="ghost-button" onClick={() => { onClose(); modal.onConfigure?.(); }}>修改配置</button>
+              <button className="ghost-button" onClick={() => { onClose(); modal.onConfigure?.(); }}>Modify Config</button>
             )}
             {modal.onRecompute && (
               <button className="primary-button" onClick={() => { onClose(); modal.onRecompute?.(); }}>
-                <RotateCcw size={14} /> 重新计算
+                <RotateCcw size={14} /> Recompute
               </button>
             )}
           </div>
@@ -2274,10 +2273,10 @@ function AppModal({
         {modal.kind === "task-error" && (modal.onRetry || modal.onConfigure) && (
           <div className="osf-modal-footer task-error-actions">
             {modal.onConfigure && (
-              <button className="ghost-button" onClick={() => { onClose(); modal.onConfigure?.(); }}>修改配置</button>
+              <button className="ghost-button" onClick={() => { onClose(); modal.onConfigure?.(); }}>Modify Config</button>
             )}
             {modal.onRetry && (
-              <button className="primary-button" onClick={() => { onClose(); modal.onRetry?.(); }}>重新计算</button>
+              <button className="primary-button" onClick={() => { onClose(); modal.onRetry?.(); }}>Recompute</button>
             )}
           </div>
         )}
@@ -2289,13 +2288,13 @@ function AppModal({
 function GaussianJobsView({ jobs, refresh }: { jobs: GaussianJob[]; refresh: () => Promise<void> }) {
   return (
     <div className="job-list osf-modal-job-list">
-      <button className="ghost-button compact" onClick={() => refresh()}>刷新队列</button>
+      <button className="ghost-button compact" onClick={() => refresh()}>Refresh Queue</button>
       {jobs.length ? jobs.map((job) => (
         <div key={job.job_id} className="job-row">
           <span>{job.job_id}</span>
           <strong>{job.status}</strong>
         </div>
-      )) : <p className="muted">暂无 Gaussian 作业。</p>}
+      )) : <p className="muted">No Gaussian jobs.</p>}
     </div>
   );
 }
@@ -2306,7 +2305,7 @@ function BackendStatus({ status }: { status: ComputeStatus | null }) {
     .map((key) => [key, status?.[key]] as const)
     .filter(([, item]) => Boolean(item));
   return (
-    <div className="backend-status" aria-label="计算后端状态">
+    <div className="backend-status" aria-label="Compute Backend Status">
       {entries.length ? (
         entries.map(([key, item]) => (
           <div className="backend-row" key={key} title={item?.executable ?? undefined}>
@@ -2318,7 +2317,7 @@ function BackendStatus({ status }: { status: ComputeStatus | null }) {
       ) : (
         <div className="backend-row">
           <span className="status-dot missing" />
-          <span>计算后端</span>
+          <span>Compute Backend</span>
           <strong>checking</strong>
         </div>
       )}
@@ -2360,7 +2359,7 @@ function TaskButton({
     if (status === "failed") {
       openModal({
         kind: "task-error",
-        title: `${definition.label}失败`,
+        title: `${definition.label} Failed`,
         record,
         onRetry: onRetry ?? onRun,
         onConfigure,
@@ -2402,7 +2401,7 @@ function CellTasks({
   return (
     <div className="task-group">
       <h3>{selected.cell.title}</h3>
-      <button className="secondary-task-button" onClick={() => openModal({ kind: "result", title: "单元数据", result: selected.cell })}>查看单元数据</button>
+      <button className="secondary-task-button" onClick={() => openModal({ kind: "result", title: "Cell Data", result: selected.cell })}>View Cell Data</button>
       {selected.cell.type === "route" && (
         <button className="secondary-task-button" onClick={() => openModal({ kind: "result", title: "路线报告", result: { note: "路线级报告沿用后端 report_markdown；下一步可在此接入 PDF/Markdown 导出。" } })}>
           查看路线报告
@@ -2438,12 +2437,12 @@ function MoleculeTasks({
   const targetLabel = component?.label ?? molecule.label;
   const [gaussianConfigOpen, setGaussianConfigOpen] = useState(false);
   const moleculeRouteSets = workspace?.route_candidate_sets?.filter((set) => set.target_smiles === targetSmiles) ?? [];
-  const propertiesTask = makeTaskDefinition(selected, "molecule-properties", "计算分子性质（RDKit + OPERA）", "RDKit + OPERA");
-  const descriptorsTask = makeTaskDefinition(selected, "molecule-descriptors", "计算分子描述符（RDKit）", "RDKit");
-  const xtbTask = makeTaskDefinition(selected, "xtb-geometry-energy", "计算几何优化与能量（xTB）", "xTB");
-  const crestTask = makeTaskDefinition(selected, "crest-conformers", "搜索低能构象（CREST）", "CREST");
-  const routeTask = makeTaskDefinition(selected, "retrosynthesis", "预测逆合成路线", undefined);
-  const gaussianTask = makeTaskDefinition(selected, "gaussian-opt-freq", "计算结构优化与频率（Gaussian）", "Gaussian");
+  const propertiesTask = makeTaskDefinition(selected, "molecule-properties", "Compute Molecular Properties (RDKit + OPERA)", "RDKit + OPERA");
+  const descriptorsTask = makeTaskDefinition(selected, "molecule-descriptors", "Compute Molecular Descriptors (RDKit)", "RDKit");
+  const xtbTask = makeTaskDefinition(selected, "xtb-geometry-energy", "Compute Geometry Optimization & Energy (xTB)", "xTB");
+  const crestTask = makeTaskDefinition(selected, "crest-conformers", "Search Low-Energy Conformations (CREST)", "CREST");
+  const routeTask = makeTaskDefinition(selected, "retrosynthesis", "Predict Retrosynthesis Route", undefined);
+  const gaussianTask = makeTaskDefinition(selected, "gaussian-opt-freq", "Compute Geometry Optimization & Frequency (Gaussian)", "Gaussian");
 
   function recordFor(definition: TaskDefinition) {
     return selected.cell.results?.[taskResultKey(definition)];
@@ -2465,7 +2464,7 @@ function MoleculeTasks({
     const taskEngineLabel = routeEngineLabel(engine);
     const customRouteTask = {
       ...routeTask,
-      label: `预测逆合成路线（${taskEngineLabel}）`,
+      label: `Predict Retrosynthesis Route (${taskEngineLabel})`,
       engine: engine
     };
 
@@ -2537,7 +2536,7 @@ function MoleculeTasks({
     } catch (error) {
       openModal({
         kind: "task-error",
-        title: "强制结束 Gaussian 失败",
+        title: "Force Terminate Gaussian Failed",
         record: {
           ...record,
           status: "failed",
@@ -2554,7 +2553,7 @@ function MoleculeTasks({
   return (
     <div className="task-group">
       <h3>{targetLabel}</h3>
-      {component && <small className="component-context">来自多分子块：{molecule.label}</small>}
+      {component && <small className="component-context">From multi-molecule block: {molecule.label}</small>}
       <code>{targetSmiles}</code>
       <TaskButton definition={propertiesTask} record={recordFor(propertiesTask)} onRun={() => void runTask(propertiesTask, () => predictProperties(targetSmiles, true), { title: propertiesTask.label })} openModal={openModal} />
       <TaskButton definition={descriptorsTask} record={recordFor(descriptorsTask)} onRun={() => void runTask(descriptorsTask, () => calculateDescriptors(targetSmiles), { title: descriptorsTask.label })} openModal={openModal} />
@@ -2587,7 +2586,7 @@ function MoleculeTasks({
       />
       {canCancelGaussian && (
         <button className="secondary-task-button danger-action" onClick={() => void forceCancelGaussian()}>
-          强制结束 Gaussian 进程
+          Force Terminate Gaussian Process
         </button>
       )}
       {gaussianConfigOpen && (
@@ -2617,12 +2616,12 @@ function ReactionTasks({
   refreshJobs: () => Promise<void>;
 }) {
   const { reaction } = selected;
-  const validationTask = makeTaskDefinition(selected, "reaction-validation", "校验反应可行性", undefined);
-  const explanationTask = makeTaskDefinition(selected, "reaction-explanation", "解释反应", undefined);
-  const mappingTask = makeTaskDefinition(selected, "reaction-mapping", "映射反应原子（RXNMapper）", "RXNMapper");
-  const yieldTask = makeTaskDefinition(selected, "reaction-yield", "估算反应产率", undefined);
-  const featuresTask = makeTaskDefinition(selected, "reaction-features", "计算反应特征", undefined);
-  const tsComputeTask = makeTaskDefinition(selected, "transition-state-compute", "计算过渡态（Gaussian）", "Gaussian");
+  const validationTask = makeTaskDefinition(selected, "reaction-validation", "Validate Reaction Feasibility", undefined);
+  const explanationTask = makeTaskDefinition(selected, "reaction-explanation", "Explain Reaction", undefined);
+  const mappingTask = makeTaskDefinition(selected, "reaction-mapping", "Map Reaction Atoms (RXNMapper)", "RXNMapper");
+  const yieldTask = makeTaskDefinition(selected, "reaction-yield", "Estimate Reaction Yield", undefined);
+  const featuresTask = makeTaskDefinition(selected, "reaction-features", "Compute Reaction Features", undefined);
+  const tsComputeTask = makeTaskDefinition(selected, "transition-state-compute", "Compute Transition State (Gaussian)", "Gaussian");
   const [tsConfigOpen, setTsConfigOpen] = useState(false);
 
   function recordFor(definition: TaskDefinition) {
@@ -2760,7 +2759,7 @@ function TransitionStateConfigModal({
     let cancelled = false;
     void load3Dmol()
       .then(() => { if (!cancelled) setMol3dReady(true); })
-      .catch(() => { if (!cancelled) setError("3Dmol 渲染插件初始化失败。"); });
+      .catch(() => { if (!cancelled) setError("3Dmol rendering plugin initialization failed."); });
     return () => { cancelled = true; };
   }, []);
 
@@ -2785,7 +2784,7 @@ function TransitionStateConfigModal({
              fetch(`/api/workspaces/${workspaceId}/cells/${cellId}/results/reaction-mapping`, {
                  method: "PUT",
                  headers: {"Content-Type": "application/json"},
-                 body: JSON.stringify({ record: { task_label: "映射反应原子（RXNMapper）", ...nextWorkflow.mapping } })
+                 body: JSON.stringify({ record: { task_label: "Map Reaction Atoms (RXNMapper)", ...nextWorkflow.mapping } })
              }).catch(console.error);
           }
         }
@@ -2871,7 +2870,7 @@ function TransitionStateConfigModal({
   }, [components, selectedCandidateXyz]);
 
   const moleculeLabels = useMemo(
-    () => baseMoleculeAtoms.map((_, index) => components[index]?.smiles ?? `显式助剂 ${index - components.length + 1}`),
+    () => baseMoleculeAtoms.map((_, index) => components[index]?.smiles ?? `Explicit Agent ${index - components.length + 1}`),
     [baseMoleculeAtoms, components],
   );
 
@@ -3096,7 +3095,7 @@ function TransitionStateConfigModal({
         if (data.suggestion.temperature_k) setTemperatureK(Number(data.suggestion.temperature_k));
         setAiSuggestionResult(data.suggestion);
       } else {
-        setError(data.reason || "AI 辅助推荐暂不可用。");
+        setError(data.reason || "AI suggestions are currently unavailable.");
       }
     } catch (err) {
       setError(errorMessage(err));
@@ -3107,7 +3106,7 @@ function TransitionStateConfigModal({
 
   async function handleSubmit() {
     if (!workflow || !canConfigureWorkflow || !selectedCandidateId || coordinates.length === 0) {
-      setError("工作流尚未准备完成，或缺少反应坐标。请稍后重试并确认原子对。");
+      setError("Workflow is not ready, or reaction coordinates are missing. Please retry and confirm atom pairs.");
       return;
     }
     terminalRecordedRef.current = false;
@@ -3123,7 +3122,7 @@ function TransitionStateConfigModal({
       imaginary_threshold_cm1: imaginaryThreshold,
       gjf_preview_text: tsGjfText,
       gjf_preview_manual: !tsAutoPreview,
-      gjf_preview_note: "TS 自动闭环会按 workflow 参数、扫描点坐标和 ModRedundant 约束逐点生成 Gaussian 输入；此字段用于记录用户在 UI 中看到或编辑过的预览模板。",
+      gjf_preview_note: "TS auto-closure generates Gaussian input for each scan point based on workflow parameters, scan coordinates, and ModRedundant constraints; this field records the preview template viewed or edited by the user.",
     };
     await runTask(
       definition,
@@ -3174,12 +3173,12 @@ function TransitionStateConfigModal({
     <div className="osf-modal-backdrop">
       <div className="osf-config-modal ts-config-modal">
         <div className="osf-modal-header">
-          <strong>过渡态构象编辑器</strong>
+          <strong>Transition State Conformation Editor</strong>
           <button className="close-button" onClick={onClose}>×</button>
         </div>
         <div className="osf-modal-body config-form">
           {loading ? (
-            <p className="muted">正在生成 3D 初始坐标...</p>
+            <p className="muted">Generating 3D initial coordinates...</p>
           ) : error ? (
             <p className="error-box">{error}</p>
           ) : (
@@ -3187,15 +3186,15 @@ function TransitionStateConfigModal({
               <div className="ts-config-left">
                 {workflow && (
                   <div className="ts-workflow-summary">
-                    <strong>工作流：{workflow.workflow_id}</strong>
+                    <strong>Workflow: {workflow.workflow_id}</strong>
                     <span className={`ts-stage-badge status-${workflow.status}`}>{workflow.stage} · {workflow.validation_level}</span>
                     {workflow.error && <p className="error-box">{workflow.error}</p>}
                     {workflow.warnings?.map((warning: string) => <p className="warning-box" key={warning}>{warning}</p>)}
                     {workflow.grid_points.length > 0 && (
                       <div className="ts-grid-summary">
-                        <span>扫描点 {workflow.grid_points.length}</span>
-                        <span>完成 {workflow.grid_points.filter((point: any) => point.status === "succeeded").length}</span>
-                        <span>失败 {workflow.grid_points.filter((point: any) => point.status === "failed").length}</span>
+                        <span>Scan Points {workflow.grid_points.length}</span>
+                        <span>Completed {workflow.grid_points.filter((point: any) => point.status === "succeeded").length}</span>
+                        <span>Failed {workflow.grid_points.filter((point: any) => point.status === "failed").length}</span>
                       </div>
                     )}
                   </div>
@@ -3204,17 +3203,17 @@ function TransitionStateConfigModal({
                   <>
                     {availableAgents.length > 0 && (
                       <div className="ts-agent-picker">
-                        <h4>可选显式助剂</h4>
+                        <h4>Optional Explicit Agents</h4>
                         {availableAgents.map((agent) => (
                           <label key={agent}>
                             <input type="checkbox" checked={includedAgents.includes(agent)} onChange={(event) => setIncludedAgents((current) => event.target.checked ? [...current, agent] : current.filter((item) => item !== agent))} />
                             {agent}
                           </label>
                         ))}
-                        <button type="button" className="secondary-button" onClick={() => void reprepareWithAgents()}>按所选助剂重新生成构象</button>
+                        <button type="button" className="secondary-button" onClick={() => void reprepareWithAgents()}>Regenerate Conformations with Selected Agents</button>
                       </div>
                     )}
-                    <h4>初始构象候选</h4>
+                    <h4>Initial Conformation Candidates</h4>
                     <div className="ts-candidate-list">
                       {workflow.candidates.map((candidate: any) => (
                         <button
@@ -3224,55 +3223,55 @@ function TransitionStateConfigModal({
                           onClick={() => setSelectedCandidateId(candidate.candidate_id)}
                         >
                           <strong>{candidate.label}</strong>
-                          <small>{candidate.preoptimization || "RDKit"} · {candidate.energy_hartree?.toFixed(6) ?? "无 xTB 能量"} Ha</small>
+                          <small>{candidate.preoptimization || "RDKit"} · {candidate.energy_hartree?.toFixed(6) ?? "No xTB energy"} Ha</small>
                         </button>
                       ))}
                     </div>
-                    <h4>反应坐标</h4>
+                    <h4>Reaction Coordinates</h4>
                     {coordinates.map((coordinate, index) => (
                       <div className="ts-coordinate-row" key={`${coordinate.atom1}-${coordinate.atom2}-${index}`}>
                         <span>{coordinate.label || `${coordinate.atom1}-${coordinate.atom2}`} · {coordinate.kind}</span>
-                        <label>原子 1 <input type="number" min="1" value={coordinate.atom1} onChange={(event) => setCoordinates((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, atom1: Number(event.target.value) } : item))} /></label>
-                        <label>原子 2 <input type="number" min="1" value={coordinate.atom2} onChange={(event) => setCoordinates((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, atom2: Number(event.target.value) } : item))} /></label>
-                        <label>起点 <input type="number" step="0.05" value={coordinate.start} onChange={(event) => setCoordinates((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, start: Number(event.target.value) } : item))} /></label>
-                        <label>终点 <input type="number" step="0.05" value={coordinate.end} onChange={(event) => setCoordinates((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, end: Number(event.target.value) } : item))} /></label>
-                        <button type="button" className="icon-button danger" title="删除坐标" onClick={() => setCoordinates((current) => current.filter((_, itemIndex) => itemIndex !== index))}>×</button>
+                        <label>Atom 1 <input type="number" min="1" value={coordinate.atom1} onChange={(event) => setCoordinates((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, atom1: Number(event.target.value) } : item))} /></label>
+                        <label>Atom 2 <input type="number" min="1" value={coordinate.atom2} onChange={(event) => setCoordinates((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, atom2: Number(event.target.value) } : item))} /></label>
+                        <label>Start <input type="number" step="0.05" value={coordinate.start} onChange={(event) => setCoordinates((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, start: Number(event.target.value) } : item))} /></label>
+                        <label>End <input type="number" step="0.05" value={coordinate.end} onChange={(event) => setCoordinates((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, end: Number(event.target.value) } : item))} /></label>
+                        <button type="button" className="icon-button danger" title="Delete Coordinate" onClick={() => setCoordinates((current) => current.filter((_, itemIndex) => itemIndex !== index))}>×</button>
                       </div>
                     ))}
                     {missingTsCoordinates && (
-                      <p className="warning-box">缺少反应坐标，请添加人工反应坐标或重新选择反应。</p>
+                      <p className="warning-box">Missing reaction coordinates. Please add manual coordinates or reselect reaction.</p>
                     )}
                     {coordinates.length < 2 && (
                       <button
                         type="button"
                         className="secondary-button"
                         onClick={() => setCoordinates((current) => [...current, { atom1: 1, atom2: 2, label: `人工坐标 ${current.length + 1}`, kind: "formed", start: 3.0, end: 1.5 }])}
-                      >添加人工反应坐标</button>
+                      >Add Manual Reaction Coordinate</button>
                     )}
                   </>
                 )}
-                <h4>1. 过渡态搜索算法</h4>
+                <h4>1. Transition State Search Algorithm</h4>
                 <div className="form-row">
-                  <label>算法模式</label>
+                  <label>Algorithm Mode</label>
                   <select disabled defaultValue="pes">
-                    <option value="pes">柔性势能面扫描 (Relaxed PES Scan) - 稳定推荐</option>
-                    <option value="qst2">QST2 / QST3 (敬请期待)</option>
+                    <option value="pes">Relaxed PES Scan - Recommended & Stable</option>
+                    <option value="qst2">QST2 / QST3 (Coming Soon)</option>
                   </select>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "16px" }}>
-                  <h4>2. 量子化学参数</h4>
+                  <h4>2. Quantum Chemical Parameters</h4>
                   <button type="button" className="secondary-button" onClick={handleSuggestConfig} disabled={aiSuggestionLoading}>
-                    {aiSuggestionLoading ? "正在请求..." : "AI 自动生成"}
+                    {aiSuggestionLoading ? "Requesting..." : "AI Auto Suggest"}
                   </button>
                 </div>
                 {aiSuggestionResult && (
                   <div className="result-block" style={{ marginBottom: "12px", borderLeftColor: "#3b82f6" }}>
-                    <strong>AI 分析说明</strong>
+                    <strong>AI Analysis</strong>
                     <p style={{ margin: 0 }}>{aiSuggestionResult.explanation}</p>
                   </div>
                 )}
                 <div className="form-row">
-                  <label>方法 (Method)</label>
+                  <label>Method (Method)</label>
                   <select value={method} onChange={(e) => setMethod(e.target.value)}>
                     <option value="wB97XD">ωB97X-D (DFT)</option>
                     <option value="B3LYP">B3LYP (DFT)</option>
@@ -3282,7 +3281,7 @@ function TransitionStateConfigModal({
                   </select>
                 </div>
                 <div className="form-row">
-                  <label>基组 (Basis Set)</label>
+                  <label>Basis Set</label>
                   <select value={basis} onChange={(e) => setBasis(e.target.value)}>
                     <option value="def2SVP">def2-SVP</option>
                     <option value="6-31G(d)">6-31G(d)</option>
@@ -3292,53 +3291,53 @@ function TransitionStateConfigModal({
                   </select>
                 </div>
                 <div className="form-row">
-                  <label>电荷 (Charge)</label>
+                  <label>Charge</label>
                   <input type="number" value={charge} onChange={(e) => setCharge(parseInt(e.target.value) || 0)} />
                 </div>
                 <div className="form-row">
-                  <label>多重度 (Multiplicity)</label>
+                  <label>Multiplicity</label>
                   <input type="number" min={1} value={multiplicity} onChange={(e) => setMultiplicity(parseInt(e.target.value) || 1)} />
                 </div>
                 <div className="form-row">
-                  <label>CPU 核数</label>
+                  <label>CPU Cores</label>
                   <input type="number" min={1} value={nproc} onChange={(e) => setNproc(Math.max(1, parseInt(e.target.value) || 1))} />
                 </div>
                 <div className="form-row">
-                  <label>内存</label>
+                  <label>Memory</label>
                   <input value={memory} onChange={(e) => setMemory(e.target.value)} />
                 </div>
                 <div className="form-row">
-                  <label>SMD 溶剂（留空为气相）</label>
+                  <label>SMD Solvent (leave blank for gas phase)</label>
                   <input value={solvent} onChange={(e) => setSolvent(e.target.value)} placeholder="Water / Dichloromethane" />
                 </div>
                 <div className="form-row">
-                  <label>温度 (K)</label>
+                  <label>Temperature (K)</label>
                   <input type="number" step="0.1" min={1} value={temperatureK} onChange={(e) => setTemperatureK(Number(e.target.value))} />
                 </div>
                 <div className="form-row">
-                  <label>显著虚频阈值 (cm⁻¹)</label>
+                  <label>Significant Imaginary Freq Threshold (cm⁻¹)</label>
                   <input type="number" max={-1} value={imaginaryThreshold} onChange={(e) => setImaginaryThreshold(Number(e.target.value))} />
                 </div>
                 <div className="form-row">
-                  <label>作业类型 (Job Type)</label>
+                  <label>Job Type</label>
                   <input type="text" value={jobType} onChange={(e) => setJobType(e.target.value)} />
                 </div>
 
                 {plan && (
                   <div className="ts-plan-summary">
-                    <strong>TS 搜索建议</strong>
+                    <strong>TS Search Suggestions</strong>
                     <small>{plan.validation_level} · {plan.status}</small>
                     <code>{plan.gaussian_ts_route}</code>
                     {plan.warnings.slice(0, 2).map((warning) => <p key={warning}>{warning}</p>)}
                   </div>
                 )}
 
-                <h4>2. 刚体变换参数</h4>
+                <h4>2. Rigid Body Transformation</h4>
                 {(["x", "y", "z"] as const).map((axis) => (
                   <div className="ts-slider-group" key={`translation-${axis}`}>
-                    <label>{axis.toUpperCase()} 轴平移 (Å)</label>
+                    <label>{axis.toUpperCase()} translation (Å)</label>
                     <input
-                      aria-label={`${axis.toUpperCase()} 轴平移`}
+                      aria-label={`${axis.toUpperCase()} Axis Translation`}
                       type="range"
                       min={-8}
                       max={8}
@@ -3351,9 +3350,9 @@ function TransitionStateConfigModal({
                 ))}
                 {(["rotationX", "rotationY", "rotationZ"] as const).map((axis) => (
                   <div className="ts-slider-group" key={axis}>
-                    <label>绕 {axis.slice(-1)} 轴旋转 (°)</label>
+                    <label>Rotation around {axis.slice(-1)} Axis (°)</label>
                     <input
-                      aria-label={`绕 ${axis.slice(-1)} 轴旋转`}
+                      aria-label={`Rotation around ${axis.slice(-1)} Axis`}
                       type="range"
                       min={-180}
                       max={180}
@@ -3365,23 +3364,23 @@ function TransitionStateConfigModal({
                   </div>
                 ))}
                 <button type="button" className="secondary-button" onClick={() => updateSelectedMoleculeTransform(emptyMoleculeTransform())}>
-                  <RotateCcw size={14} /> 重置选中分子
+                  <RotateCcw size={14} /> Reset Selected Molecule
                 </button>
               </div>
               <div className="ts-config-right">
-                <h4>三维构象编辑</h4>
-                <div className="ts-3d-toolbar" role="toolbar" aria-label="3D 分子操作">
-                  <button type="button" onClick={() => setFitViewNonce((current) => current + 1)}>居中</button>
-                  <label><input type="checkbox" checked={showAtomLabels} onChange={(event) => setShowAtomLabels(event.target.checked)} /> 原子编号</label>
+                <h4>3D Conformation Editor</h4>
+                <div className="ts-3d-toolbar" role="toolbar" aria-label="3D Molecular Actions">
+                  <button type="button" onClick={() => setFitViewNonce((current) => current + 1)}>Fit View</button>
+                  <label><input type="checkbox" checked={showAtomLabels} onChange={(event) => setShowAtomLabels(event.target.checked)} /> Atom Labels</label>
                 </div>
                 <div className="ts-selected-molecule">
-                  已选择：<strong>分子 {selectedMoleculeIndex + 1}</strong>
+                  Selected: <strong>Molecule {selectedMoleculeIndex + 1}</strong>
                   <code>{moleculeLabels[selectedMoleculeIndex] ?? "-"}</code>
                 </div>
                 <div
                   className="ts-3d-viewer-container"
                   role="application"
-                  aria-label="3D 分子视图：左键调整视角，Shift 加左键平移分子，Ctrl 加左键旋转分子"
+                  aria-label="3D molecular view: left-click to adjust perspective, Shift + left-click to translate, Ctrl + left-click to rotate"
                   tabIndex={0}
                   onPointerDownCapture={handleMoleculePointerDown}
                   onPointerMoveCapture={handleMoleculePointerMove}
@@ -3390,20 +3389,20 @@ function TransitionStateConfigModal({
                 >
                   <div ref={viewerRef} className="ts-3d-viewer" />
                   {!mol3dReady && (
-                    <div className="ts-3d-viewer-placeholder">正在加载 3D 渲染插件...</div>
+                    <div className="ts-3d-viewer-placeholder">Loading 3D rendering plugin...</div>
                   )}
                 </div>
                 <p className="result-hint">
-                  左键拖拽调整视角；从目标分子上按下 Shift + 左键可沿当前视图平面平移；从目标分子上按下 Ctrl + 左键可执行刚体旋转。滚轮缩放。
+                  Left-click drag to adjust perspective; hold Shift + left-click drag on a molecule to translate; hold Ctrl + left-click drag on a molecule to rotate. Scroll wheel to zoom.
                 </p>
                 {workflow?.validation?.frequency_ok && (
                   <button className={`secondary-button ${animateImaginaryMode ? "active-action" : ""}`} onClick={() => setAnimateImaginaryMode((current) => !current)}>
-                    {animateImaginaryMode ? "停止虚频动画" : "播放虚频模式"}
+                    {animateImaginaryMode ? "Stop Freq Animation" : "Play Freq Mode"}
                   </button>
                 )}
                 {workflow && workflow.grid_points.length > 0 && (
                   <>
-                    <h4>扫描能量面</h4>
+                    <h4>Scanning Energy Profile</h4>
                     <div className="ts-energy-grid">
                       {workflow.grid_points.map((point: any) => (
                         <span
@@ -3417,26 +3416,26 @@ function TransitionStateConfigModal({
                 )}
                 {workflow?.thermochemistry && (
                   <div className="ts-thermochemistry">
-                    <h4>热化学结果</h4>
+                    <h4>Thermochemistry Results</h4>
                     <p>ΔG<sub>rxn</sub>：{String(workflow.thermochemistry.delta_g_rxn_kj_mol ?? "-")} kJ/mol</p>
-                    <p>正向 ΔG‡：{String(workflow.thermochemistry.delta_g_activation_forward_kj_mol ?? "-")} kJ/mol</p>
-                    <p>标准态：{String(workflow.thermochemistry.standard_state ?? "-")}</p>
+                    <p>Forward ΔG‡: {String(workflow.thermochemistry.delta_g_activation_forward_kj_mol ?? "-")} kJ/mol</p>
+                    <p>Standard State: {String(workflow.thermochemistry.standard_state ?? "-")}</p>
                   </div>
                 )}
                 {shouldShowTsOutputPreview ? (
                   <>
                     <TsPotentialEnergyChart gridPoints={workflow.grid_points || []} />
-                    <h4>Gaussian 输出预览</h4>
+                    <h4>Gaussian Output Preview</h4>
                     <TsGaussianOutputPreview workflow={workflow} />
                   </>
                 ) : (
                   <>
                     <div className="gaussian-input-heading">
-                      <strong>Gaussian 输入预览 (GJF)</strong>
+                      <strong>Gaussian Input Preview (GJF)</strong>
                       <div className="gaussian-input-actions">
-                        <span className={`preview-sync-status ${tsAutoPreview ? "active" : ""}`}>{tsAutoPreview ? "自动预览已开启" : "已手动编辑"}</span>
+                        <span className={`preview-sync-status ${tsAutoPreview ? "active" : ""}`}>{tsAutoPreview ? "Auto Preview On" : "Manually Edited"}</span>
                         <button className="ghost-button compact" type="button" onClick={restoreTsAutoPreview}>
-                          <RotateCcw size={14} /> 恢复自动预览
+                          <RotateCcw size={14} /> Restore Auto Preview
                         </button>
                       </div>
                     </div>
@@ -3447,10 +3446,10 @@ function TransitionStateConfigModal({
                         setTsAutoPreview(false);
                         setTsGjfText(event.target.value);
                       }}
-                      aria-label="TS Gaussian 输入预览"
+                      aria-label="TS Gaussian Input Preview"
                     />
                     <p className="result-hint">
-                      这是当前候选构象与参数生成的预览模板。自动闭环启动后，会按参数、扫描点坐标和 ModRedundant 约束为每个扫描点重新生成 Gaussian 输入；手动编辑内容会记录到任务配置中，但本轮不直接覆盖每个扫描点输入。
+                      This is the preview template generated from current conformation and parameters. Once auto-closure starts, Gaussian input for each scan point will be generated according to parameters, coordinates, and ModRedundant constraints; manual edits will be logged to task config but won't directly overwrite each scan point's input in this run.
                     </p>
                   </>
                 )}
@@ -3459,9 +3458,9 @@ function TransitionStateConfigModal({
           )}
         </div>
         <div className="osf-modal-footer">
-          <button className="secondary-button" onClick={onClose}>关闭</button>
+          <button className="secondary-button" onClick={onClose}>Close</button>
           {workflow && ["scanning", "refining", "ts_optimizing", "irc", "thermochemistry", "queued"].includes(workflow.status) && (
-            <button className="secondary-button" onClick={() => void handleWorkflowAction("pause")}>暂停</button>
+            <button className="secondary-button" onClick={() => void handleWorkflowAction("pause")}>Pause</button>
           )}
           {workflow && ["paused", "partial", "failed"].includes(workflow.status) && (
             <button className="secondary-button" onClick={() => void handleWorkflowAction(workflow.status === "failed" ? "retry" : "resume")}>续算</button>
@@ -3469,16 +3468,16 @@ function TransitionStateConfigModal({
           {workflow && ["queued", "scanning", "refining", "ts_optimizing", "irc", "thermochemistry", "paused"].includes(workflow.status) && (
             <button
               className="secondary-button danger"
-              title="停止当前 TS workflow 和正在运行的 Gaussian 子进程；不会删除历史记录。"
+              title="Stop current TS workflow and running Gaussian sub-processes; history will not be deleted."
               onClick={() => void handleWorkflowAction("cancel")}
             >
-              强制结束进程
+              Force Terminate
             </button>
           )}
           {missingTsCoordinates && (
-            <span className="footer-warning">缺少反应坐标，请添加人工反应坐标或重新选择反应。</span>
+            <span className="footer-warning">Missing reaction coordinates. Please add manual coordinates or reselect reaction.</span>
           )}
-          <button className="primary-button" disabled={loading || !!error || !canConfigureWorkflow || !selectedCandidateId || coordinates.length === 0} onClick={handleSubmit}>确认参数并启动自动闭环</button>
+          <button className="primary-button" disabled={loading || !!error || !canConfigureWorkflow || !selectedCandidateId || coordinates.length === 0} onClick={handleSubmit}>Confirm Parameters & Start Auto-Closure</button>
         </div>
       </div>
     </div>
@@ -3490,7 +3489,7 @@ function TsPotentialEnergyChart({ gridPoints }: { gridPoints: any[] }) {
   if (pointsWithEnergy.length < 2) return null;
   const is1D = gridPoints[0]?.indices?.length === 1;
   if (!is1D) {
-    return <div className="result-block"><p className="muted">当前为二维扫描，正在显示能量点。不支持一维曲线绘制。</p></div>;
+    return <div className="result-block"><p className="muted">This is a 2D scan showing energy points. 1D curve drawing is not supported.</p></div>;
   }
   const minEnergy = Math.min(...pointsWithEnergy.map(p => p.energy_hartree));
   const maxEnergy = Math.max(...pointsWithEnergy.map(p => p.energy_hartree));
@@ -3506,7 +3505,7 @@ function TsPotentialEnergyChart({ gridPoints }: { gridPoints: any[] }) {
 
   return (
     <div className="ts-pes-chart" style={{ marginBottom: "16px", padding: "12px", background: "white", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
-      <strong>一维扫描势能曲线</strong>
+      <strong>1D Scan Potential Energy Profile</strong>
       <div style={{ position: "relative", width: "100%", overflowX: "auto", marginTop: "12px" }}>
         <svg width={chartWidth + 20} height={chartHeight} style={{ overflow: "visible" }}>
           <polyline points={polylinePoints} fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinejoin="round" />
@@ -3540,13 +3539,13 @@ function TsGaussianOutputPreview({ workflow }: { workflow: TsWorkflow }) {
         <GaussianProgressView progress={progress} />
       ) : (
         <div className="result-block">
-          <strong>等待 Gaussian 日志</strong>
-          <p>工作流已提交，当前阶段尚未产生 `.log/.out` 文件。</p>
+          <strong>Waiting for Gaussian Logs</strong>
+          <p>Workflow submitted; no .log/.out files generated in current stage yet.</p>
         </div>
       )}
       {activeGridPoints.length > 0 && (
         <div className="result-block">
-          <strong>扫描/TS 任务概览</strong>
+          <strong>Scan/TS Task Overview</strong>
           <div className="gaussian-progress-list">
             {activeGridPoints.slice(-8).map((point: any) => (
               <div key={point.point_id}>
@@ -3626,45 +3625,45 @@ function GaussianConfigModal({
     <div className="osf-modal-backdrop">
       <div className="osf-config-modal gaussian-config-modal">
         <div className="osf-modal-header">
-          <strong>结构优化与频率计算（Gaussian）</strong>
-          <button onClick={onClose}>关闭</button>
+          <strong>Geometry Optimization & Frequency Calculation (Gaussian)</strong>
+          <button onClick={onClose}>Close</button>
         </div>
         <div className="config-form">
           <label>
-            结构
+            Geometry
             <code>{smiles}</code>
           </label>
           <label>
-            任务
+            Task
             <select value={jobType} onChange={(event) => setJobType(event.target.value)}>
-              <option value="opt freq">结构优化 + 频率</option>
-              <option value="opt">结构优化</option>
-              <option value="freq">频率</option>
-              <option value="sp">单点能</option>
+              <option value="opt freq">Geometry优化 + 频率</option>
+              <option value="opt">Geometry优化</option>
+              <option value="freq">Freq</option>
+              <option value="sp">Single Point (SP)</option>
             </select>
           </label>
           <label>
-            方法
+            Method
             <input value={method} onChange={(event) => setMethod(event.target.value)} />
           </label>
           <label>
-            基组
+            Basis Set
             <input value={basis} onChange={(event) => setBasis(event.target.value)} />
           </label>
           <label>
-            电荷
+            Charge
             <input type="number" value={charge} onChange={(event) => setCharge(Number(event.target.value))} />
           </label>
           <label>
-            自旋多重度
+            Multiplicity
             <input type="number" min={1} value={multiplicity} onChange={(event) => setMultiplicity(Number(event.target.value))} />
           </label>
           <div className="gaussian-input-heading">
-            <strong>Gaussian 输入</strong>
+            <strong>Gaussian Input</strong>
             <div className="gaussian-input-actions">
-              <span className={`preview-sync-status ${autoPreview ? "active" : ""}`}>{autoPreview ? "自动预览已开启" : "已手动编辑"}</span>
+              <span className={`preview-sync-status ${autoPreview ? "active" : ""}`}>{autoPreview ? "Auto Preview On" : "Manually Edited"}</span>
               <button className="ghost-button compact" onClick={() => void regenerate()} disabled={generating}>
-                <RotateCcw size={14} /> {generating ? "正在生成" : "恢复自动预览"}
+                <RotateCcw size={14} /> {generating ? "正在生成" : "Restore Auto Preview"}
               </button>
             </div>
           </div>
@@ -3681,7 +3680,7 @@ function GaussianConfigModal({
         </div>
         <div className="osf-modal-footer">
           <button className="ghost-button" onClick={onClose}>关闭</button>
-          <button className="primary-button" disabled={generating || !gjfText.trim()} onClick={() => onSubmit(gjfText, config)}>提交计算</button>
+          <button className="primary-button" disabled={generating || !gjfText.trim()} onClick={() => onSubmit(gjfText, config)}>Submit Job</button>
         </div>
       </div>
     </div>
@@ -3692,7 +3691,7 @@ function EmptyState() {
   return (
     <div className="empty-state">
       <Atom size={36} />
-      <p>新建工作区并添加分子、反应或路线单元。</p>
+      <p>Create a workspace and add molecular, reaction, or route cells.</p>
     </div>
   );
 }
@@ -3728,7 +3727,7 @@ function componentsForMolecule(molecule: MoleculeObject): MoleculeComponent[] {
       parent_molecule_id: molecule.id,
       component_index: index,
       smiles: parts[index],
-      label: component.label || `组分 ${index + 1}`,
+      label: component.label || `Component ${index + 1}`,
     }));
   }
   return parts.map((smiles, index) => ({
@@ -3736,7 +3735,7 @@ function componentsForMolecule(molecule: MoleculeObject): MoleculeComponent[] {
     parent_molecule_id: molecule.id,
     component_index: index,
     smiles,
-    label: `组分 ${index + 1}`,
+    label: `Component ${index + 1}`,
   }));
 }
 
@@ -4069,9 +4068,22 @@ function runOrthogonalSearch(
   }];
   const bestByState = new Map<string, SearchState>();
 
+  function insertState(state: SearchState) {
+    let low = 0;
+    let high = queue.length;
+    while (low < high) {
+      const mid = (low + high) >>> 1;
+      if (compareSearchStates(queue[mid], state) <= 0) {
+        high = mid;
+      } else {
+        low = mid + 1;
+      }
+    }
+    queue.splice(low, 0, state);
+  }
+
   while (queue.length) {
-    queue.sort(compareSearchStates);
-    const state = queue.shift()!;
+    const state = queue.pop()!;
     const key = `${state.index}:${state.direction ?? "none"}`;
     const previous = bestByState.get(key);
     if (previous && compareSearchStates(previous, state) <= 0) continue;
@@ -4095,7 +4107,7 @@ function runOrthogonalSearch(
         activeSegment: sameDirection ? state.activeSegment + distance : distance,
         path: [...state.path, nextIndex],
       };
-      queue.push(nextState);
+      insertState(nextState);
     }
   }
   return null;
@@ -4623,10 +4635,10 @@ function gaussianTaskStatus(status: string): CachedResult["status"] {
 }
 
 function taskStatusLabel(status: DisplayTaskStatus): string {
-  if (status === "running") return "计算中";
-  if (status === "succeeded") return "已完成";
-  if (status === "failed") return "计算失败";
-  return "未计算";
+  if (status === "running") return "Computing";
+  if (status === "succeeded") return "Completed";
+  if (status === "failed") return "Failed";
+  return "Not Computed";
 }
 
 function makeTaskDefinition(
@@ -4671,7 +4683,7 @@ function taskRecordFromJob(record: CachedResult, job: GaussianJob): CachedResult
     status,
     updated_at: job.finished_at ?? job.started_at ?? job.created_at ?? new Date().toISOString(),
     payload: job,
-    error: status === "failed" ? job.error ?? "Gaussian 计算失败。" : undefined,
+    error: status === "failed" ? job.error ?? "Gaussian calculation failed." : undefined,
     job_id: job.job_id,
   };
 }
@@ -4925,11 +4937,11 @@ function extractLogHighlights(text: string): string[] {
   if (!text.trim()) return [];
   const items: string[] = [];
   const totalEnergy = lastRegex(text, /TOTAL ENERGY\s+(-?\d+\.\d+)/gi);
-  if (totalEnergy) items.push(`总能量: ${totalEnergy} Hartree`);
+  if (totalEnergy) items.push(`Total Energy: ${totalEnergy} Hartree`);
   const scfEnergy = lastRegex(text, /SCF Done:\s+E\([^)]+\)\s+=\s+(-?\d+\.\d+)/gi);
-  if (scfEnergy) items.push(`SCF 最终能量: ${scfEnergy} Hartree`);
+  if (scfEnergy) items.push(`SCF Final Energy: ${scfEnergy} Hartree`);
   const gibbs = lastRegex(text, /Sum of electronic and thermal Free Energies=\s+(-?\d+\.\d+)/gi);
-  if (gibbs) items.push(`Gibbs 自由能: ${gibbs} Hartree`);
+  if (gibbs) items.push(`Gibbs Free Energy: ${gibbs} Hartree`);
   const gap = lastRegex(text, /HOMO-LUMO GAP\s+(-?\d+\.\d+)/gi);
   if (gap) items.push(`HOMO-LUMO gap: ${gap}`);
   const frequencies = [...text.matchAll(/Frequencies --\s+([^\n]+)/g)]
@@ -4937,10 +4949,10 @@ function extractLogHighlights(text: string): string[] {
     .filter((value) => Number.isFinite(value));
   if (frequencies.length > 0) {
     const imaginary = frequencies.filter((value) => value < 0);
-    items.push(`频率: ${frequencies.length} 个，虚频 ${imaginary.length} 个`);
+    items.push(`Frequencies: ${frequencies.length} total, imaginary ${imaginary.length} 个`);
   }
-  if (/Normal termination/i.test(text)) items.push("Gaussian 正常结束。");
-  if (/ERROR|FAILED|abnormal termination/i.test(text)) items.push("日志中检测到错误或异常终止，需要检查原始日志。");
+  if (/Normal termination/i.test(text)) items.push("Gaussian completed normally.");
+  if (/ERROR|FAILED|abnormal termination/i.test(text)) items.push("Error or abnormal termination detected in log, please check raw logs.");
   return [...new Set(items)].slice(0, 8);
 }
 
@@ -4977,7 +4989,7 @@ function summarizeUnknownResult(result: unknown): {
       if (value.every((item) => typeof item === "string" || typeof item === "number")) {
         messages.push(`${humanizeKey(key)}: ${value.join(", ")}`);
       } else {
-        metrics.push([humanizeKey(key), `${value.length} 项`]);
+        metrics.push([humanizeKey(key), `${value.length} items`]);
       }
       continue;
     }
@@ -4998,26 +5010,24 @@ function isVerboseResultKey(key: string): boolean {
 
 function humanizeKey(key: string): string {
   const labels: Record<string, string> = {
-    available: "可用",
-    status: "状态",
-    source: "来源",
-    work_dir: "工作目录",
-    returncode: "返回码",
-    total_energy_hartree: "总能量 (Hartree)",
-    final_energy_hartree: "最终能量 (Hartree)",
-    gibbs_free_energy_hartree: "Gibbs 自由能 (Hartree)",
-    imaginary_frequency_count: "虚频数量",
+    available: "available",
+    status: "status",
+    source: "source",
+    work_dir: "work_dir",
+    returncode: "returncode",
+    total_energy_hartree: "Total Energy (Hartree)",
+    final_energy_hartree: "Final Energy (Hartree)",
+    gibbs_free_energy_hartree: "Gibbs Free Energy (Hartree)",
+    imaginary_frequency_count: "Imaginary Freq Count",
     homo_ev: "HOMO (eV)",
     lumo_ev: "LUMO (eV)",
-    method: "方法",
-    confidence: "置信度",
-    applicability_domain: "适用域",
-    note: "说明",
-    reaction_type: "反应类型",
+    method: "Method",
+    confidence: "confidence",
+    reaction_type: "reaction_type",
     reaction_smiles: "Reaction SMILES",
-    mapped_reaction_smiles: "映射反应",
-    valid: "有效",
-    balanced: "元素守恒",
+    mapped_reaction_smiles: "mapped_reaction_smiles",
+    valid: "valid",
+    balanced: "balanced",
   };
   return labels[key] ?? key.replace(/_/g, " ");
 }
@@ -5025,12 +5035,12 @@ function humanizeKey(key: string): string {
 function statusLabel(status: unknown): string {
   const text = String(status ?? "");
   const labels: Record<string, string> = {
-    available: "完成",
-    succeeded: "成功",
-    failed: "失败",
-    running: "运行中",
-    queued: "排队中",
-    unavailable: "不可用",
+    available: "completed",
+    succeeded: "succeeded",
+    failed: "failed",
+    running: "running",
+    queued: "queued",
+    unavailable: "unavailable",
   };
   return labels[text] ?? text;
 }
@@ -5041,15 +5051,15 @@ function formatResultValue(value: unknown): string {
     if (Math.abs(value) >= 1000 || (Math.abs(value) > 0 && Math.abs(value) < 0.001)) return value.toExponential(4);
     return Number.isInteger(value) ? String(value) : value.toFixed(6).replace(/0+$/, "").replace(/\.$/, "");
   }
-  if (typeof value === "boolean") return value ? "是" : "否";
-  if (Array.isArray(value)) return `${value.length} 项`;
-  if (isPlainObject(value)) return "结构化数据";
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  if (Array.isArray(value)) return `${value.length} items`;
+  if (isPlainObject(value)) return "Geometry化数据";
   return String(value);
 }
 
 function trimLongText(text: string, limit = 12000): string {
   if (text.length <= limit) return text;
-  return `${text.slice(0, limit)}\n\n... 已截断，完整内容仍在任务缓存/日志文件中。`;
+  return `${text.slice(0, limit)}\n\n... 已截断，完整内容仍在Task缓存/日志文件中。`;
 }
 
 function asRoutePredictionResult(value: unknown): {
@@ -5066,10 +5076,10 @@ function asRoutePredictionResult(value: unknown): {
 }
 
 function routeEngineLabel(engine?: string): string {
-  if (engine === "chemformer") return "Chemformer · 单步候选";
+  if (engine === "chemformer") return "Chemformer · Single-Step Candidates";
   if (engine === "askcos") return "ASKCOS";
   if (engine === "aizynthfinder") return "AiZynthFinder";
-  return "路线预测";
+  return "Route Prediction";
 }
 
 function asPropertyResult(value: unknown): Record<string, any> | null {
@@ -5111,5 +5121,5 @@ function displayFormulaLike(value: string): string {
   if (/^(?:\d+)?(?:[A-Z][a-z]?\d*)+(?:[.·•](?:\d+)?(?:[A-Z][a-z]?\d*)+)*$/.test(value.trim())) {
     return value.replace(/[.·•]/g, " · ");
   }
-  return "无法渲染结构";
+  return "无法渲染Geometry";
 }
