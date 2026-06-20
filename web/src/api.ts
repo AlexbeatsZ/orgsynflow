@@ -159,23 +159,32 @@ export async function runXtb(smiles: string, timeoutSeconds = 300): Promise<unkn
   return data;
 }
 
-export async function runCrest(smiles: string, timeoutSeconds = 1800): Promise<unknown> {
+export interface CrestRunOptions {
+  method: "gfnff" | "gfn1" | "gfn2" | "gfn2//gfnff";
+  search_mode: "mquick" | "squick" | "quick" | "full";
+  charge: number;
+  threads?: number;
+  timeout_seconds: number;
+}
+
+export async function runCrest(smiles: string, options: CrestRunOptions): Promise<unknown> {
   const { data: job } = await http.post("/compute/crest", {
     smiles,
-    timeout_seconds: timeoutSeconds,
+    ...options,
   });
   return job;
 }
 
-export async function pollCrestResult(jobId: string): Promise<unknown> {
-  for (let i = 0; i < 600; i++) {
+export async function pollCrestResult(jobId: string, timeoutSeconds = 1800): Promise<unknown> {
+  const attempts = Math.ceil(timeoutSeconds / 3) + 10;
+  for (let i = 0; i < attempts; i++) {
     await new Promise((resolve) => setTimeout(resolve, 3000));
     const { data: status } = await http.get(`/compute/crest/${jobId}`);
     const s = (status as any).status as string;
     if (s === "succeeded") return (status as any).result ?? status;
     if (s === "failed" || s === "cancelled" || s === "unavailable") return status;
   }
-  return { status: "failed", reason: "CREST 轮询超时（30分钟），请检查结果。" };
+  return { status: "failed", reason: `CREST 轮询超时（${Math.ceil(timeoutSeconds / 60)} 分钟），请检查结果。` };
 }
 
 export async function cancelCrestJob(jobId: string): Promise<unknown> {

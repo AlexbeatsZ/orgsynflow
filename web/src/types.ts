@@ -191,6 +191,12 @@ export interface GaussianOptimizationStep {
 
 export interface GaussianLogProgress {
   summary?: string;
+  crest_sampling?: {
+    current_mtd?: number | null;
+    completed_mtd?: number;
+    total_mtd?: number | null;
+    energy_evaluations?: number;
+  };
   estimated_runtime?: {
     one_mtd_seconds?: number;
     batch_seconds?: number;

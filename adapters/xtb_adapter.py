@@ -65,7 +65,19 @@ def run_xtb_job(xyz_text: str, timeout_seconds: int = 300, cancel_event: Any = N
     return _run([executable, str(xyz_path)], work_dir, "xTB CLI", timeout_seconds, cancel_event=cancel_event)
 
 
-def run_crest_job(xyz_text: str, timeout_seconds: int = 1800, cancel_event: Any = None, work_dir: str | None = None) -> SemiempiricalJobResult:
+def run_crest_job(
+    xyz_text: str,
+    timeout_seconds: int = 1800,
+    cancel_event: Any = None,
+    work_dir: str | None = None,
+    *,
+    method: str = "gfn2",
+    search_mode: str = "full",
+    charge: int = 0,
+    threads: int | None = None,
+) -> SemiempiricalJobResult:
+    settings = _crest_settings(method, search_mode, charge, threads)
+    crest_args = _crest_arguments(settings)
     executable = find_crest_executable()
     if executable is None:
         return SemiempiricalJobResult(
@@ -75,7 +87,13 @@ def run_crest_job(xyz_text: str, timeout_seconds: int = 1800, cancel_event: Any 
             reason="未在 PATH 中检测到 CREST；无法运行构象搜索 job。",
         )
     if executable.startswith("wsl:"):
-        return _run_wsl(executable.removeprefix("wsl:"), xyz_text, "crest_jobs", "CREST CLI via WSL", timeout_seconds, cancel_event=cancel_event, work_dir=work_dir)
+        result = _run_wsl(
+            executable.removeprefix("wsl:"), xyz_text, "crest_jobs", "CREST CLI via WSL",
+            timeout_seconds, cancel_event=cancel_event, work_dir=work_dir, extra_args=crest_args,
+            threads=settings["threads"],
+        )
+        result.data["settings"] = settings
+        return result
 
     if work_dir is None:
         work_dir_path = _default_job_dir("crest_jobs")
@@ -85,7 +103,31 @@ def run_crest_job(xyz_text: str, timeout_seconds: int = 1800, cancel_event: Any 
     work_dir_path.mkdir(parents=True, exist_ok=True)
     xyz_path = work_dir_path / "input.xyz"
     xyz_path.write_text(xyz_text, encoding="utf-8")
-    return _run([executable, str(xyz_path), "--gfn2", "--chrg", "0"], work_dir_path, "CREST CLI", timeout_seconds, cancel_event=cancel_event)
+    result = _run([executable, str(xyz_path), *crest_args], work_dir_path, "CREST CLI", timeout_seconds, cancel_event=cancel_event)
+    result.data["settings"] = settings
+    return result
+
+
+def _crest_settings(method: str, search_mode: str, charge: int, threads: int | None) -> dict[str, Any]:
+    if method not in {"gfnff", "gfn1", "gfn2", "gfn2//gfnff"}:
+        raise ValueError(f"Unsupported CREST method: {method}")
+    if search_mode not in {"mquick", "squick", "quick", "full"}:
+        raise ValueError(f"Unsupported CREST search mode: {search_mode}")
+    if not -10 <= charge <= 10:
+        raise ValueError("CREST charge must be between -10 and 10")
+    if threads is not None and not 1 <= threads <= 64:
+        raise ValueError("CREST threads must be between 1 and 64")
+    return {"method": method, "search_mode": search_mode, "charge": charge, "threads": threads}
+
+
+def _crest_arguments(settings: dict[str, Any]) -> list[str]:
+    args = [f"--{settings['method']}"]
+    if settings["search_mode"] != "full":
+        args.append(f"--{settings['search_mode']}")
+    args.extend(["--chrg", str(settings["charge"])])
+    if settings["threads"] is not None:
+        args.extend(["-T", str(settings["threads"])])
+    return args
 
 
 def _run(
@@ -153,6 +195,8 @@ def _run_wsl(
     timeout_seconds: int,
     cancel_event: Any = None,
     work_dir: str | None = None,
+    extra_args: list[str] | None = None,
+    threads: int | None = None,
 ) -> SemiempiricalJobResult:
     if work_dir is None:
         token = f"{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}-{uuid.uuid4().hex[:8]}"
@@ -161,17 +205,20 @@ def _run_wsl(
         wsl_work_dir = work_dir
     cmd_args = shlex.quote(executable)
     if kind == "crest_jobs":
-        cmd_args = f"stdbuf -oL -eL {cmd_args} input.xyz --gfn2 --chrg 0"
+        rendered_args = " ".join(shlex.quote(arg) for arg in (extra_args or ["--gfn2", "--chrg", "0"]))
+        cmd_args = f"stdbuf -oL -eL {cmd_args} input.xyz {rendered_args}"
     else:
         cmd_args += " input.xyz"
 
+    thread_env = f"export OMP_NUM_THREADS={threads} OPENBLAS_NUM_THREADS={threads} MKL_NUM_THREADS={threads}\n" if threads else ""
     script = (
         f"work_dir={shlex.quote(wsl_work_dir)}\n"
         'mkdir -p "$work_dir"\n'
         'cat > "$work_dir/input.xyz"\n'
         'cd "$work_dir"\n'
         'printf "%s\\n" "$$" > .orgsynflow-process-group\n'
-        f"{cmd_args} > crest_cli.log 2>&1\n"
+        + thread_env
+        + f"{cmd_args} > crest_cli.log 2>&1\n"
         'status=$?\n'
         'if [ -f crest_best.xyz ]; then\n'
         '  printf "\\n__ORGSYNFLOW_CREST_BEST_XYZ_BEGIN__\\n"\n'

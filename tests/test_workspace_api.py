@@ -96,6 +96,36 @@ def test_molecule_svg_and_gaussian_job_submission() -> None:
     assert "jobs" in client.get("/jobs").json()
 
 
+def test_crest_submission_passes_user_selected_search_settings(monkeypatch) -> None:
+    captured = {}
+
+    def fake_submit(xyz, timeout_seconds=1800, settings=None):
+        captured.update(xyz=xyz, timeout_seconds=timeout_seconds, settings=settings)
+        return {"job_id": "crest-test", "status": "queued", "settings": settings}
+
+    monkeypatch.setattr("api.main.crest_manager.submit", fake_submit)
+    response = TestClient(app).post(
+        "/compute/crest",
+        json={
+            "smiles": "Brc1ccccc1",
+            "method": "gfnff",
+            "search_mode": "mquick",
+            "charge": -1,
+            "threads": 4,
+            "timeout_seconds": 600,
+        },
+    )
+
+    assert response.status_code == 200
+    assert captured["timeout_seconds"] == 600
+    assert captured["settings"] == {
+        "method": "gfnff",
+        "search_mode": "mquick",
+        "charge": -1,
+        "threads": 4,
+    }
+
+
 def test_route_predict_returns_visible_fallback_candidates_without_config() -> None:
     client = TestClient(app)
 

@@ -68,6 +68,7 @@ import {
   getTsWorkflow,
   confirmTsWorkflow,
   actOnTsWorkflow,
+  type CrestRunOptions,
 } from "./api";
 import type {
   CachedResult,
@@ -1280,6 +1281,7 @@ function GaussianProgressView({ progress, logTail = "" }: { progress: any; logTa
   const errors = Array.isArray(issues.errors) ? issues.errors : [];
   const warnings = Array.isArray(issues.warnings) ? issues.warnings : [];
   const estimatedRuntime = crestRuntimeEstimate(progress, logTail);
+  const crestSampling = isPlainObject(progress?.crest_sampling) ? progress.crest_sampling : null;
   return (
     <div className="gaussian-progress">
       <div className="result-block">
@@ -1304,6 +1306,16 @@ function GaussianProgressView({ progress, logTail = "" }: { progress: any; logTa
             )}
           </div>
           <small>该时间来自 CREST 试运行估算，实际耗时会随体系和系统负载变化。</small>
+        </div>
+      )}
+      {crestSampling && (
+        <div className="result-block">
+          <strong>CREST 构象采样进度</strong>
+          <div className="metric-grid">
+            <div><span>当前 MTD</span><strong>{crestSampling.current_mtd ?? "-"} / {crestSampling.total_mtd ?? "?"}</strong></div>
+            <div><span>已完成 MTD</span><strong>{crestSampling.completed_mtd ?? 0}</strong></div>
+            <div><span>能量评估记录</span><strong>{crestSampling.energy_evaluations ?? 0}</strong></div>
+          </div>
         </div>
       )}
       {scfCycles.length > 0 && (
@@ -2640,6 +2652,7 @@ function MoleculeTasks({
   const targetSmiles = component?.smiles ?? molecule.smiles;
   const targetLabel = component?.label ?? molecule.label;
   const [gaussianConfigOpen, setGaussianConfigOpen] = useState(false);
+  const [crestConfigOpen, setCrestConfigOpen] = useState(false);
   const moleculeRouteSets = workspace?.route_candidate_sets?.filter((set) => set.target_smiles === targetSmiles) ?? [];
   const propertiesTask = makeTaskDefinition(selected, "molecule-properties", "计算分子性质（RDKit + OPERA）", "RDKit + OPERA");
   const descriptorsTask = makeTaskDefinition(selected, "molecule-descriptors", "计算分子描述符（RDKit）", "RDKit");
@@ -2803,8 +2816,11 @@ function MoleculeTasks({
       <TaskButton definition={propertiesTask} record={recordFor(propertiesTask)} onRun={() => void runTask(propertiesTask, () => predictProperties(targetSmiles, true), { title: propertiesTask.label })} openModal={openModal} />
       <TaskButton definition={descriptorsTask} record={recordFor(descriptorsTask)} onRun={() => void runTask(descriptorsTask, () => calculateDescriptors(targetSmiles), { title: descriptorsTask.label })} openModal={openModal} />
       <TaskButton definition={xtbTask} record={recordFor(xtbTask)} onRun={() => void runTask(xtbTask, () => runXtb(targetSmiles, 300), { title: xtbTask.label })} openModal={openModal} />
-      <TaskButton definition={crestTask} record={recordFor(crestTask)} onRun={() => void runTask(crestTask, async () => {
-        const job = await runCrest(targetSmiles, 1800) as any;
+      <TaskButton definition={crestTask} record={recordFor(crestTask)} onRun={() => setCrestConfigOpen(true)} onRetry={() => setCrestConfigOpen(true)} onConfigure={() => setCrestConfigOpen(true)} openModal={openModal} />
+      {crestConfigOpen && (
+        <CrestConfigModal smiles={targetSmiles} onClose={() => setCrestConfigOpen(false)} onSubmit={(config) => void runTask(crestTask, async () => {
+        setCrestConfigOpen(false);
+        const job = await runCrest(targetSmiles, config) as any;
         crestJobIdRef.current = job?.job_id ?? null;
         await persistTaskRecord(selected.cell.id, taskResultKey(crestTask), {
           task_id: crestTask.id,
@@ -2817,13 +2833,17 @@ function MoleculeTasks({
           updated_at: new Date().toISOString(),
           payload: job,
           job_id: job?.job_id,
+          config: { ...config },
         });
         await refreshJobs();
-        return pollCrestResult(job.job_id);
+        return pollCrestResult(job.job_id, config.timeout_seconds);
       }, {
         title: crestTask.label,
+        config: { ...config },
+        onConfigure: () => setCrestConfigOpen(true),
         statusFromResult: (result) => gaussianTaskStatus(String((result as any)?.status ?? (result as any)?.result?.status ?? "failed")),
-      })} openModal={openModal} />
+      })} />
+      )}
       <TaskButton
         definition={routeTask}
         record={recordFor(routeTask)}
@@ -3830,6 +3850,90 @@ function TsGaussianOutputPreview({ workflow }: { workflow: TsWorkflow }) {
       {gaussianProgress?.log_tail && (
         <RawLogDetails logs={[["Gaussian log", gaussianProgress.log_tail]]} raw={gaussianProgress} />
       )}
+    </div>
+  );
+}
+
+type CrestPreset = "rapid" | "balanced" | "standard" | "thorough" | "custom";
+
+const CREST_PRESETS: Record<Exclude<CrestPreset, "custom">, CrestRunOptions> = {
+  rapid: { method: "gfnff", search_mode: "mquick", charge: 0, threads: 4, timeout_seconds: 600 },
+  balanced: { method: "gfn1", search_mode: "squick", charge: 0, threads: 8, timeout_seconds: 1200 },
+  standard: { method: "gfn2", search_mode: "quick", charge: 0, threads: 8, timeout_seconds: 1800 },
+  thorough: { method: "gfn2", search_mode: "full", charge: 0, threads: 16, timeout_seconds: 3600 },
+};
+
+function CrestConfigModal({
+  smiles,
+  onClose,
+  onSubmit,
+}: {
+  smiles: string;
+  onClose: () => void;
+  onSubmit: (config: CrestRunOptions) => void;
+}) {
+  const [preset, setPreset] = useState<CrestPreset>("standard");
+  const [config, setConfig] = useState<CrestRunOptions>(CREST_PRESETS.standard);
+
+  function choosePreset(next: CrestPreset) {
+    setPreset(next);
+    if (next !== "custom") setConfig({ ...CREST_PRESETS[next], charge: config.charge });
+  }
+
+  function updateConfig(patch: Partial<CrestRunOptions>) {
+    setPreset("custom");
+    setConfig((current) => ({ ...current, ...patch }));
+  }
+
+  return (
+    <div className="osf-modal-backdrop">
+      <div className="osf-config-modal crest-config-modal">
+        <div className="osf-modal-header">
+          <strong>低能构象搜索（CREST）</strong>
+          <button onClick={onClose}>关闭</button>
+        </div>
+        <div className="config-form">
+          <label>结构<code>{smiles}</code></label>
+          <label>
+            计算预设
+            <select value={preset} onChange={(event) => choosePreset(event.target.value as CrestPreset)}>
+              <option value="rapid">快速初筛 · GFN-FF / mquick</option>
+              <option value="balanced">均衡 · GFN1-xTB / squick</option>
+              <option value="standard">标准 · GFN2-xTB / quick</option>
+              <option value="thorough">精细 · GFN2-xTB / 完整采样</option>
+              <option value="custom">自定义</option>
+            </select>
+          </label>
+          <div className="warning-box crest-preset-note">
+            快速初筛适合刚性小分子和批量预筛；精细模式等同此前固定的完整 GFN2 搜索，耗时可能达到数十分钟。
+          </div>
+          <label>
+            能量方法
+            <select value={config.method} onChange={(event) => updateConfig({ method: event.target.value as CrestRunOptions["method"] })}>
+              <option value="gfnff">GFN-FF（最快）</option>
+              <option value="gfn1">GFN1-xTB</option>
+              <option value="gfn2//gfnff">GFN2//GFN-FF 复合</option>
+              <option value="gfn2">GFN2-xTB（最精细）</option>
+            </select>
+          </label>
+          <label>
+            采样强度
+            <select value={config.search_mode} onChange={(event) => updateConfig({ search_mode: event.target.value as CrestRunOptions["search_mode"] })}>
+              <option value="mquick">mquick（最少采样）</option>
+              <option value="squick">squick</option>
+              <option value="quick">quick</option>
+              <option value="full">完整采样</option>
+            </select>
+          </label>
+          <label>电荷<input type="number" min={-10} max={10} value={config.charge} onChange={(event) => updateConfig({ charge: Number(event.target.value) })} /></label>
+          <label>线程数<input type="number" min={1} max={64} value={config.threads ?? 1} onChange={(event) => updateConfig({ threads: Number(event.target.value) })} /></label>
+          <label>超时（秒）<input type="number" min={60} max={7200} step={60} value={config.timeout_seconds} onChange={(event) => updateConfig({ timeout_seconds: Number(event.target.value) })} /></label>
+        </div>
+        <div className="osf-modal-footer">
+          <button className="ghost-button" onClick={onClose}>关闭</button>
+          <button className="primary-button" onClick={() => onSubmit(config)}>提交 CREST 计算</button>
+        </div>
+      </div>
     </div>
   );
 }

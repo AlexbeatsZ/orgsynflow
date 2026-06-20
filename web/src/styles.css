@@ -1408,6 +1408,17 @@ button {
   grid-template-rows: auto minmax(0, 1fr) auto;
 }
 
+.crest-config-modal {
+  width: min(620px, 94vw);
+  max-height: min(820px, 92vh);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.crest-preset-note {
+  margin: 0;
+}
+
 .gaussian-config-modal .config-form {
   overflow: auto;
 }

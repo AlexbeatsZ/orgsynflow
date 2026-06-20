@@ -246,11 +246,15 @@ Data & Testing Lessons:
 - WSL CREST jobs must `cd` into their unique work directory before invoking CREST. `setsid` must include `--wait`; without it, `wsl.exe` returns while CREST continues detached and the API falsely reports success before output exists. Store the session process-group ID and kill that exact group on cancellation. Use microseconds plus a UUID in work-directory names to prevent simultaneous jobs from colliding.
 - CREST and Gaussian jobs share the `/jobs` recovery surface. Persist the CREST `job_id` as soon as submission succeeds so page refresh can recover the running task. CREST execution is serialized to avoid multiple CPU-heavy searches exhausting the machine.
 - Polling Gaussian logs must cache snapshots by path/mtime/size and parse at most the latest 2 MB. Re-reading and reparsing every completed log for every five-second `/jobs` poll makes long sessions progressively slower. Stop frontend job polling when no queued/running jobs remain.
+- CREST progress is not Gaussian optimization progress. `Etot=` records from `crestopt.log` must not be exposed as `optimization_steps`; parse the CREST lifecycle from both `crest_cli.log` and `crestopt.log`, and report current/completed/total MTD sampling explicitly.
+- A full GFN2-xTB CREST search is a poor universal default. On this machine, bromobenzene ran for more than 22 minutes without completing under full GFN2 sampling, while GFN-FF with `mquick` completed in about 1.9 seconds and found one unique conformer. Expose presets and retain full GFN2 as an opt-in thorough mode.
+- CREST `-T` alone does not override an inherited `OPENBLAS_NUM_THREADS=32`. Set `OMP_NUM_THREADS`, `OPENBLAS_NUM_THREADS`, and `MKL_NUM_THREADS` alongside `-T` so user-selected CPU limits are meaningful.
 
 ## 3. Task Board
 
 Current Status:
 
+- [done] 2026-06-21 Fixed CREST progress semantics and added configurable conformation-search presets. The UI now reports MTD sampling instead of a false Gaussian-style optimization table and offers rapid/balanced/standard/thorough modes plus method, sampling intensity, charge, threads, and timeout. Real bromobenzene rapid-mode validation completed in about 1.9 seconds; 66 backend tests and the frontend production build passed.
 - [done] 2026-06-21 Reviewed and summarized all AI/computational chemistry integrations in the project (including retrosynthesis route prediction, reaction mapping, DeepSeek LLM reaction explanation, yield prediction, and feasibility checks).
 - [done] 2026-06-20 Optimized large-canvas routing and stabilized CREST/Gaussian tasks: drag-time and 24+ node canvases use bounded fast orthogonal routing; selection no longer reroutes edges; unchanged Gaussian logs are cached; CREST WSL execution now uses unique working directories, waits for the real process, supports process-group cancellation, returns `crest_best.xyz`, is serialized, and persists through the unified `/jobs` queue across page refreshes.
 - [done] 2026-06-20 Fixed UI layout wipeout ("completely falls apart") when adding new molecules, by preserving the canvas state instead of resetting it to empty arrays during `onUpdate`.

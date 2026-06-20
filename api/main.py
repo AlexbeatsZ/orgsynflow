@@ -150,6 +150,13 @@ class SemiempiricalRunRequest(BaseModel):
     timeout_seconds: int | None = None
 
 
+class CrestRunRequest(SemiempiricalRunRequest):
+    method: Literal["gfnff", "gfn1", "gfn2", "gfn2//gfnff"] = "gfn2"
+    search_mode: Literal["mquick", "squick", "quick", "full"] = "quick"
+    charge: int = Field(default=0, ge=-10, le=10)
+    threads: int | None = Field(default=None, ge=1, le=64)
+
+
 class CoordinatesRequest(BaseModel):
     smiles: str
 
@@ -393,12 +400,21 @@ def compute_xtb(request: SemiempiricalRunRequest) -> dict[str, object]:
 
 
 @app.post("/compute/crest")
-def compute_crest(request: SemiempiricalRunRequest) -> dict[str, object]:
+def compute_crest(request: CrestRunRequest) -> dict[str, object]:
     from core.gaussian import coordinates_from_smiles
     coordinates = coordinates_from_smiles(request.smiles)
     coordinate_lines = [line for line in coordinates.splitlines() if line.strip()]
     xyz = "\n".join([str(len(coordinate_lines)), request.smiles, *coordinate_lines, ""])
-    return crest_manager.submit(xyz, timeout_seconds=request.timeout_seconds or 1800)
+    return crest_manager.submit(
+        xyz,
+        timeout_seconds=request.timeout_seconds or 1800,
+        settings={
+            "method": request.method,
+            "search_mode": request.search_mode,
+            "charge": request.charge,
+            "threads": request.threads,
+        },
+    )
 
 
 @app.get("/compute/crest/{job_id}")

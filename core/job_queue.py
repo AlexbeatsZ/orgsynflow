@@ -197,10 +197,11 @@ gaussian_job_queue = GaussianJobQueue()
 
 
 class CrestJob:
-    def __init__(self, xyz_text: str, timeout_seconds: int = 1800):
+    def __init__(self, xyz_text: str, timeout_seconds: int = 1800, settings: dict[str, Any] | None = None):
         self.job_id = str(uuid.uuid4())[:8]
         self.xyz_text = xyz_text
         self.timeout_seconds = timeout_seconds
+        self.settings = settings or {}
         self.status: str = "queued"
         self.created_at: str = datetime.now(timezone.utc).isoformat()
         self.started_at: str | None = None
@@ -221,6 +222,7 @@ class CrestJob:
             "result": self.result,
             "error": self.error,
             "work_dir": self.work_dir or (self.result.get("work_dir") if self.result else None),
+            "settings": self.settings,
             **log_snapshot,
         }
 
@@ -232,8 +234,8 @@ class CrestJobManager:
         self._lock = threading.Lock()
         self._compute_slot = threading.Semaphore(1)
 
-    def submit(self, xyz_text: str, timeout_seconds: int = 1800) -> dict[str, Any]:
-        job = CrestJob(xyz_text, timeout_seconds=timeout_seconds)
+    def submit(self, xyz_text: str, timeout_seconds: int = 1800, settings: dict[str, Any] | None = None) -> dict[str, Any]:
+        job = CrestJob(xyz_text, timeout_seconds=timeout_seconds, settings=settings)
         with self._lock:
             self._jobs[job.job_id] = job
         thread = threading.Thread(target=self._run, args=(job,), daemon=True)
@@ -293,7 +295,13 @@ class CrestJobManager:
 
         try:
             from adapters.xtb_adapter import run_crest_job  # deferred import to avoid circular dependency
-            result = run_crest_job(job.xyz_text, timeout_seconds=job.timeout_seconds, cancel_event=cancel_event, work_dir=job.work_dir)
+            result = run_crest_job(
+                job.xyz_text,
+                timeout_seconds=job.timeout_seconds,
+                cancel_event=cancel_event,
+                work_dir=job.work_dir,
+                **job.settings,
+            )
         except Exception as exc:
             with self._lock:
                 job.finished_at = datetime.now(timezone.utc).isoformat()
@@ -355,8 +363,9 @@ def _read_crest_log_snapshot(work_dir: str | None) -> dict[str, Any]:
     if cli_log:
         snapshot["log_tail"] = cli_log
 
-    if opt_log:
-        snapshot["log_progress"] = parse_crest_log_progress(opt_log)
+    progress_text = "\n".join(part for part in (opt_log, cli_log) if part)
+    if progress_text:
+        snapshot["log_progress"] = parse_crest_log_progress(progress_text)
 
     return snapshot
 

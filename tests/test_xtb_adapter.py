@@ -68,6 +68,36 @@ def test_wsl_crest_runs_inside_unique_workdir_and_returns_lowest_conformer(monke
     assert first.data["lowest_conformer_xyz"].startswith("2\nlowest conformer")
 
 
+def test_crest_settings_are_rendered_as_safe_wsl_arguments(monkeypatch) -> None:
+    processes: list[_FakeProcess] = []
+
+    def fake_popen(command: list[str], **kwargs: object) -> _FakeProcess:
+        process = _FakeProcess(command, **kwargs)
+        processes.append(process)
+        return process
+
+    monkeypatch.setattr(xtb_adapter.subprocess, "Popen", fake_popen)
+    monkeypatch.setattr(xtb_adapter, "find_crest_executable", lambda: "wsl:/opt/crest")
+
+    result = xtb_adapter.run_crest_job(
+        "2\n\nH 0 0 0\nH 0 0 1\n",
+        method="gfnff",
+        search_mode="mquick",
+        charge=-1,
+        threads=4,
+    )
+
+    script = processes[0].command[-1]
+    assert "input.xyz --gfnff --mquick --chrg -1 -T 4" in script
+    assert "export OMP_NUM_THREADS=4 OPENBLAS_NUM_THREADS=4 MKL_NUM_THREADS=4" in script
+    assert result.data["settings"] == {
+        "method": "gfnff",
+        "search_mode": "mquick",
+        "charge": -1,
+        "threads": 4,
+    }
+
+
 def test_wsl_crest_honours_preexisting_cancel_request(monkeypatch) -> None:
     processes: list[_FakeProcess] = []
 
