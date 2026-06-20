@@ -6,6 +6,16 @@
 
 import os
 import sys
+
+# ---- 确保项目根目录在 sys.path 上 ----
+_HERE = Path(__file__).resolve().parent.parent if "Path" in dir() else None
+try:
+    from pathlib import Path as _Path
+    _HERE = _Path(__file__).resolve().parent.parent
+    if str(_HERE) not in sys.path:
+        sys.path.insert(0, str(_HERE))
+except Exception:
+    pass
 import subprocess
 import shutil
 import re
@@ -40,7 +50,19 @@ try:
 except ImportError:
     HAS_PY3DMOL = False
 
-from core.gaussian_runner import find_gaussian_executable
+try:
+    from core.gaussian_runner import find_gaussian_executable
+except ImportError:
+    # 回退：直接在 PATH / GAUSS_EXEDIR 中搜索
+    import shutil as _shutil
+    def find_gaussian_executable():
+        for name in ("g16.exe", "g16", "g09.exe", "g09"):
+            found = _shutil.which(name)
+            if found:
+                return found
+        from pathlib import Path as _P
+        wsl_path = _P("/mnt/c/Users/Meta/AppData/Local/Programs/g16w/g16.exe")
+        return str(wsl_path) if wsl_path.exists() else None
 
 # =============================================================================
 # 配置类定义
@@ -411,7 +433,14 @@ def run_gaussian_job(gjf_file: str, run_dir: str = None) -> Optional[subprocess.
         if not exe:
             print("❌ 未找到 Gaussian 可执行文件")
             return None
+            
         cmd = [exe, local_gjf.name, local_log.name]
+        
+        # WSL 下执行 Windows exe 需要通过 cmd.exe /c 包装，否则会报 wsystem 错误
+        is_wsl = 'microsoft-standard' in open('/proc/version').read().lower() if os.path.exists('/proc/version') else False
+        if is_wsl and exe.endswith('.exe'):
+            cmd = ['cmd.exe', '/c', f'{exe} {local_gjf.name} {local_log.name}']
+            
         print(f"执行: {' '.join(cmd)} (PID 将被记录)")
         
         env = os.environ.copy()

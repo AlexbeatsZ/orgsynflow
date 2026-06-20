@@ -47,8 +47,22 @@ Nitrobenzene,-NO2,Cl2,Para,None,-1357.108845,-1357.025817,-1357.145179,硝基苯
 Benzene,None,Cl2,-,AlCl3,-2775.654210,-2775.634290,-2775.694369,AlCl3催化
 """
 
+# ---- 确保项目根目录在 sys.path 上，无论从哪里启动 ----
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(_PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_ROOT))
+
 # Set up OUT_DIR under workspace root
-OUT_DIR = Path(__file__).parent.parent / "out" / "eas"
+_out_dir_path = _PROJECT_ROOT / "out" / "eas"
+
+# WSL 兼容性处理：如果工作目录在 WSL 的 /home 下，将输出重定向到 /mnt/c 对应的映射目录
+# 以便 Windows 版的 g16.exe 能在原生 Windows 文件系统上正常运行，避免 UNC 路径报错
+if os.name == 'posix' and 'microsoft-standard' in open('/proc/version', 'r').read().lower() if os.path.exists('/proc/version') else False:
+    if "/home/" in str(_out_dir_path):
+        # 强制将结果保存到 C 盘对应的 Windows 目录 (如果可能的话)，这里直接写死该项目的 Windows 路径映射
+        _out_dir_path = Path("/mnt/c/Users/Meta/Project/Workspaces/orgsynflow/out/eas")
+
+OUT_DIR = _out_dir_path
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 from core.eas_ts_lib import *
@@ -2567,14 +2581,17 @@ def get_latest_convergence():
 def execute_all_tasks(run_name):
     """执行所有待执行任务"""
     if state.is_running:
-        return "⚠️ 已有任务在运行", state.get_log_text(), generate_task_table_md(), None
+        yield "⚠️ 已有任务在运行", state.get_log_text(), generate_task_table_md(), None
+        return
     
     pending = state.get_pending_tasks()
     if not pending:
-        return "无待执行任务", state.get_log_text(), generate_task_table_md(), None
+        yield "无待执行任务", state.get_log_text(), generate_task_table_md(), None
+        return
     
     if state.complex_mol is None and not state.is_loaded_project:
-        return "❌ 请先生成初始结构", state.get_log_text(), generate_task_table_md(), None
+        yield "❌ 请先生成初始结构", state.get_log_text(), generate_task_table_md(), None
+        return
     
     state.is_running = True
     state.stop_requested = False
@@ -2668,8 +2685,18 @@ def execute_all_tasks(run_name):
                     state.running_processes.append(process)
                     state.log(f"  📊 PID: {process.pid}")
                     
-                    # 等待进程完成
-                    return_code = process.wait()
+                    # 等待进程完成，同时更新UI
+                    import time
+                    while process.poll() is None:
+                        time.sleep(2)
+                        if state.stop_requested:
+                            try:
+                                process.terminate()
+                            except:
+                                pass
+                        yield f"▶️ 运行中: {task.description}", state.get_log_text(), generate_task_table_md(), create_reaction_profile_plot()
+                    
+                    return_code = process.returncode
                     state.running_processes.remove(process)
                     
                     if return_code == 0:
@@ -2777,7 +2804,16 @@ def execute_all_tasks(run_name):
                         state.running_processes.append(process)
                         state.log(f"  📊 PID: {process.pid}")
                         
-                        return_code = process.wait()
+                        import time
+                        while process.poll() is None:
+                            time.sleep(2)
+                            if state.stop_requested:
+                                try:
+                                    process.terminate()
+                                except:
+                                    pass
+                            yield f"▶️ 运行中: {task.description}", state.get_log_text(), generate_task_table_md(), create_reaction_profile_plot()
+                        return_code = process.returncode
                         state.running_processes.remove(process)
                         
                         if return_code == 0:
@@ -2887,7 +2923,16 @@ def execute_all_tasks(run_name):
                         state.running_processes.append(process)
                         state.log(f"  📊 PID: {process.pid}")
                         
-                        return_code = process.wait()
+                        import time
+                        while process.poll() is None:
+                            time.sleep(2)
+                            if state.stop_requested:
+                                try:
+                                    process.terminate()
+                                except:
+                                    pass
+                            yield f"▶️ 运行中: {task.description}", state.get_log_text(), generate_task_table_md(), create_reaction_profile_plot()
+                        return_code = process.returncode
                         state.running_processes.remove(process)
                         
                         if return_code == 0:
@@ -3100,7 +3145,16 @@ def execute_all_tasks(run_name):
                     state.running_processes.append(process)
                     state.log(f"  📊 PID: {process.pid}")
                     
-                    return_code = process.wait()
+                    import time
+                    while process.poll() is None:
+                        time.sleep(2)
+                        if state.stop_requested:
+                            try:
+                                process.terminate()
+                            except:
+                                pass
+                        yield f"▶️ 运行中: {task.description}", state.get_log_text(), generate_task_table_md(), create_reaction_profile_plot()
+                    return_code = process.returncode
                     state.running_processes.remove(process)
                     
                     if return_code == 0:
@@ -3181,7 +3235,16 @@ def execute_all_tasks(run_name):
                         state.running_processes.append(process)
                         state.log(f"  📊 PID: {process.pid}")
                         
-                        return_code = process.wait()
+                        import time
+                        while process.poll() is None:
+                            time.sleep(2)
+                            if state.stop_requested:
+                                try:
+                                    process.terminate()
+                                except:
+                                    pass
+                            yield f"▶️ 运行中: {task.description}", state.get_log_text(), generate_task_table_md(), create_reaction_profile_plot()
+                        return_code = process.returncode
                         state.running_processes.remove(process)
                         
                         if return_code == 0:
@@ -3254,7 +3317,16 @@ def execute_all_tasks(run_name):
                         state.running_processes.append(process)
                         state.log(f"  📊 PID: {process.pid}")
                         
-                        return_code = process.wait()
+                        import time
+                        while process.poll() is None:
+                            time.sleep(2)
+                            if state.stop_requested:
+                                try:
+                                    process.terminate()
+                                except:
+                                    pass
+                            yield f"▶️ 运行中: {task.description}", state.get_log_text(), generate_task_table_md(), create_reaction_profile_plot()
+                        return_code = process.returncode
                         state.running_processes.remove(process)
                         
                         if return_code == 0:
@@ -3835,8 +3907,8 @@ def create_ui():
         
         # 执行任务
         def on_execute(rn):
-            result = execute_all_tasks(rn)
-            return result[0], result[1], result[2], result[3]
+            for result in execute_all_tasks(rn):
+                yield result[0], result[1], result[2], result[3]
         
         execute_btn.click(
             fn=on_execute,
@@ -4005,14 +4077,24 @@ def create_ui():
 # =============================================================================
 
 if __name__ == "__main__":
+    # Fix Windows console encoding so UTF-8/emoji prints don't crash
+    import io
+    if hasattr(sys.stdout, "reconfigure"):
+        try:
+            sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+            sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+
     print("=" * 60)
-    print("🧪 过渡态搜索 v3")
-    print(f"📂 输出目录: {OUT_DIR}")
+    print("EAS Transition State Search v3")
+    print(f"Output directory: {OUT_DIR}")
     print("=" * 60)
-    
+
     app = create_ui()
     app.launch(
-        server_name="127.0.0.1",
+        server_name="0.0.0.0",
+        server_port=7861,
         share=False,
-        inbrowser=True
+        inbrowser=True,
     )
