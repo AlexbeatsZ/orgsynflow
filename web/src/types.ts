@@ -139,3 +139,28 @@ export interface ComputeBackendStatus {
 }
 
 export type ComputeStatus = Record<string, ComputeBackendStatus>;
+
+export interface TsCoordinate {
+  atom1: number;
+  atom2: number;
+  label?: string;
+  kind?: string;
+  start: number;
+  end: number;
+}
+
+export interface TsWorkflow {
+  workflow_id: string;
+  status: string;
+  stage: string;
+  validation_level: string;
+  error?: string;
+  warnings?: string[];
+  grid_points: Array<{ point_id: string; status: string; }>;
+  candidates: Array<{ candidate_id: string; label: string; xyz?: string; preoptimization?: string; energy_hartree?: number; }>;
+  coordinates?: TsCoordinate[];
+  config?: any;
+  ts_results?: Array<{ frequency_result?: { final_coordinates_xyz?: string; vibration_modes?: Array<{ frequency_cm1: number; displacements: number[][] }> } }>;
+  validation?: { frequency_ok?: boolean };
+  thermochemistry?: any;
+}

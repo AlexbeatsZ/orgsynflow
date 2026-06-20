@@ -3,7 +3,7 @@
   "id": "example-workspace",
   "title": "Example workspace",
   "created_at": "2026-06-14T00:00:00+00:00",
-  "updated_at": "2026-06-19T17:39:38.986Z",
+  "updated_at": "2026-06-20T07:15:59.477720+00:00",
   "cells": [
     {
       "id": "cell-example-molecule",
@@ -17,43 +17,122 @@
             "id": "mol-ethanol",
             "type": "molecule",
             "position": {
-              "x": 80,
-              "y": 80
+              "x": 1356.2502641023555,
+              "y": 331.2458413856554
             },
             "data": {
               "label": "Ethanol",
-              "smiles": "CCO"
-            }
+              "smiles": "CCO",
+              "selectedComponentId": null
+            },
+            "measured": {
+              "width": 190,
+              "height": 154
+            },
+            "selected": true,
+            "dragging": false
           },
           {
             "id": "route-example-aspirin-reactants",
             "type": "molecule",
             "position": {
-              "x": 120,
-              "y": 260
+              "x": 300,
+              "y": 237.21855217743308
             },
             "data": {
               "label": "Salicylic acid + Acetic anhydride",
               "smiles": "O=C(O)c1ccccc1O.CC(=O)OC(C)=O"
+            },
+            "measured": {
+              "width": 368,
+              "height": 175
             }
           },
           {
             "id": "route-example-aspirin-product",
             "type": "molecule",
             "position": {
-              "x": 430,
-              "y": 260
+              "x": 959.7229559978741,
+              "y": 111.91806331471133
             },
             "data": {
               "label": "Aspirin",
               "smiles": "CC(=O)Oc1ccccc1C(=O)O"
+            },
+            "measured": {
+              "width": 190,
+              "height": 154
+            }
+          },
+          {
+            "id": "route-1781939569292-aizynth-route-1-molecule-m2",
+            "type": "molecule",
+            "position": {
+              "x": -141.37838467169792,
+              "y": 65.94934711613197
+            },
+            "data": {
+              "label": "Mol 2",
+              "smiles": "COc1ccccc1C(=O)O"
+            },
+            "measured": {
+              "width": 190,
+              "height": 154
+            }
+          },
+          {
+            "id": "route-1781939592082-aizynth-route-2-molecule-m2",
+            "type": "molecule",
+            "position": {
+              "x": -171.09669388174927,
+              "y": 322.70399019566213
+            },
+            "data": {
+              "label": "Mol 2",
+              "smiles": "COC(=O)c1ccccc1O"
+            },
+            "measured": {
+              "width": 190,
+              "height": 154
+            }
+          },
+          {
+            "id": "route-1781939599832-aizynth-route-3-molecule-m2",
+            "type": "molecule",
+            "position": {
+              "x": -296.7079497452695,
+              "y": 628.0091259750516
+            },
+            "data": {
+              "label": "Mol 2",
+              "smiles": "O=C(O)c1ccccc1OCc1ccccc1"
+            },
+            "measured": {
+              "width": 190,
+              "height": 154
+            }
+          },
+          {
+            "id": "route-1781939635373-aizynth-route-1-step-s1-reactants",
+            "type": "molecule",
+            "position": {
+              "x": 429.1755544005628,
+              "y": 716.5163852552585
+            },
+            "data": {
+              "label": "CC(=O)O.CCC(=O)OC(C)=O",
+              "smiles": "CC(=O)O.CCC(=O)OC(C)=O"
+            },
+            "measured": {
+              "width": 368,
+              "height": 175
             }
           }
         ],
         "edges": [
           {
             "id": "rxn-route-example-aspirin-phenol-acetylation-edge",
-            "type": "straight",
+            "type": "orthogonal",
             "source": "route-example-aspirin-reactants",
             "target": "route-example-aspirin-product",
             "sourceHandle": "right",
@@ -61,6 +140,200 @@
             "label": "Phenol acetylation",
             "className": "canvas-edge",
             "interactionWidth": 18,
+            "style": {
+              "stroke": "#0f172a",
+              "strokeWidth": 3
+            },
+            "markerEnd": {
+              "type": "arrowclosed",
+              "width": 15,
+              "height": 15,
+              "color": "#0f172a"
+            },
+            "data": {
+              "routePoints": [
+                {
+                  "x": 668,
+                  "y": 308.2185521774331
+                },
+                {
+                  "x": 931.7229559978741,
+                  "y": 308.2185521774331
+                },
+                {
+                  "x": 931.7229559978741,
+                  "y": 182.91806331471133
+                },
+                {
+                  "x": 959.7229559978741,
+                  "y": 182.91806331471133
+                }
+              ]
+            }
+          },
+          {
+            "id": "rxn-route-1781939569292-aizynth-route-1-s1-0-edge",
+            "type": "orthogonal",
+            "source": "route-1781939569292-aizynth-route-1-molecule-m2",
+            "target": "route-example-aspirin-reactants",
+            "sourceHandle": "right",
+            "targetHandle": "left",
+            "label": "AiZynth step",
+            "data": {
+              "targetComponentIndex": 0,
+              "routePoints": [
+                {
+                  "x": 48.621615328302084,
+                  "y": 136.94934711613197
+                },
+                {
+                  "x": 280,
+                  "y": 136.94934711613197
+                },
+                {
+                  "x": 280,
+                  "y": 309.2185521774331
+                },
+                {
+                  "x": 308,
+                  "y": 309.2185521774331
+                }
+              ]
+            },
+            "className": "canvas-edge",
+            "interactionWidth": 18,
+            "markerEnd": {
+              "type": "arrowclosed",
+              "width": 15,
+              "height": 15,
+              "color": "#0f172a"
+            },
+            "style": {
+              "stroke": "#0f172a",
+              "strokeWidth": 3
+            }
+          },
+          {
+            "id": "rxn-route-1781939592082-aizynth-route-2-s1-0-edge",
+            "type": "orthogonal",
+            "source": "route-1781939592082-aizynth-route-2-molecule-m2",
+            "target": "route-example-aspirin-reactants",
+            "sourceHandle": "right",
+            "targetHandle": "left",
+            "label": "AiZynth step",
+            "data": {
+              "targetComponentIndex": 0,
+              "routePoints": [
+                {
+                  "x": 18.903306118250725,
+                  "y": 393.70399019566213
+                },
+                {
+                  "x": 280,
+                  "y": 393.70399019566213
+                },
+                {
+                  "x": 280,
+                  "y": 309.2185521774331
+                },
+                {
+                  "x": 308,
+                  "y": 309.2185521774331
+                }
+              ]
+            },
+            "className": "canvas-edge",
+            "interactionWidth": 18,
+            "markerEnd": {
+              "type": "arrowclosed",
+              "width": 15,
+              "height": 15,
+              "color": "#0f172a"
+            },
+            "style": {
+              "stroke": "#0f172a",
+              "strokeWidth": 3
+            }
+          },
+          {
+            "id": "rxn-route-1781939599832-aizynth-route-3-s1-0-edge",
+            "type": "orthogonal",
+            "source": "route-1781939599832-aizynth-route-3-molecule-m2",
+            "target": "route-example-aspirin-reactants",
+            "sourceHandle": "right",
+            "targetHandle": "left",
+            "label": "AiZynth step",
+            "data": {
+              "targetComponentIndex": 0,
+              "routePoints": [
+                {
+                  "x": -106.7079497452695,
+                  "y": 699.0091259750516
+                },
+                {
+                  "x": 280,
+                  "y": 699.0091259750516
+                },
+                {
+                  "x": 280,
+                  "y": 309.2185521774331
+                },
+                {
+                  "x": 308,
+                  "y": 309.2185521774331
+                }
+              ]
+            },
+            "className": "canvas-edge",
+            "interactionWidth": 18,
+            "markerEnd": {
+              "type": "arrowclosed",
+              "width": 15,
+              "height": 15,
+              "color": "#0f172a"
+            },
+            "style": {
+              "stroke": "#0f172a",
+              "strokeWidth": 3
+            }
+          },
+          {
+            "id": "rxn-route-1781939635373-aizynth-route-1-s1-0-edge",
+            "type": "orthogonal",
+            "source": "route-1781939635373-aizynth-route-1-step-s1-reactants",
+            "target": "route-example-aspirin-reactants",
+            "sourceHandle": "top",
+            "targetHandle": "bottom",
+            "label": "AiZynth step",
+            "data": {
+              "targetComponentIndex": 1,
+              "routePoints": [
+                {
+                  "x": 613.1755544005628,
+                  "y": 716.5163852552585
+                },
+                {
+                  "x": 613.1755544005628,
+                  "y": 688.5163852552585
+                },
+                {
+                  "x": 572,
+                  "y": 688.5163852552585
+                },
+                {
+                  "x": 572,
+                  "y": 373.2185521774331
+                }
+              ]
+            },
+            "className": "canvas-edge",
+            "interactionWidth": 18,
+            "markerEnd": {
+              "type": "arrowclosed",
+              "width": 15,
+              "height": 15,
+              "color": "#0f172a"
+            },
             "style": {
               "stroke": "#0f172a",
               "strokeWidth": 3
@@ -84,6 +357,26 @@
             "id": "route-example-aspirin-product",
             "label": "Aspirin",
             "smiles": "CC(=O)Oc1ccccc1C(=O)O"
+          },
+          {
+            "id": "route-1781939569292-aizynth-route-1-molecule-m2",
+            "label": "Mol 2",
+            "smiles": "COc1ccccc1C(=O)O"
+          },
+          {
+            "id": "route-1781939592082-aizynth-route-2-molecule-m2",
+            "label": "Mol 2",
+            "smiles": "COC(=O)c1ccccc1O"
+          },
+          {
+            "id": "route-1781939599832-aizynth-route-3-molecule-m2",
+            "label": "Mol 2",
+            "smiles": "O=C(O)c1ccccc1OCc1ccccc1"
+          },
+          {
+            "id": "route-1781939635373-aizynth-route-1-step-s1-reactants",
+            "label": "CC(=O)O.CCC(=O)OC(C)=O",
+            "smiles": "CC(=O)O.CCC(=O)OC(C)=O"
           }
         ],
         "reactions": [
@@ -92,6 +385,30 @@
             "label": "Phenol acetylation",
             "reaction_smiles": "O=C(O)c1ccccc1O.CC(=O)OC(C)=O>>CC(=O)Oc1ccccc1C(=O)O",
             "template": "Phenol acetylation"
+          },
+          {
+            "id": "rxn-route-1781939569292-aizynth-route-1-s1-0",
+            "label": "AiZynth step",
+            "reaction_smiles": "COc1ccccc1C(=O)O>>O=C(O)c1ccccc1O",
+            "template": "AiZynth step"
+          },
+          {
+            "id": "rxn-route-1781939592082-aizynth-route-2-s1-0",
+            "label": "AiZynth step",
+            "reaction_smiles": "COC(=O)c1ccccc1O>>O=C(O)c1ccccc1O",
+            "template": "AiZynth step"
+          },
+          {
+            "id": "rxn-route-1781939599832-aizynth-route-3-s1-0",
+            "label": "AiZynth step",
+            "reaction_smiles": "O=C(O)c1ccccc1OCc1ccccc1>>O=C(O)c1ccccc1O",
+            "template": "AiZynth step"
+          },
+          {
+            "id": "rxn-route-1781939635373-aizynth-route-1-s1-0",
+            "label": "AiZynth step",
+            "reaction_smiles": "CC(=O)O.CCC(=O)OC(C)=O>>CC(=O)OC(C)=O",
+            "template": "AiZynth step"
           }
         ],
         "routes": [
@@ -177,12 +494,3737 @@
                 ]
               }
             }
+          },
+          {
+            "id": "route-1781939569292-aizynth-route-1",
+            "label": "AiZynthFinder Route 1",
+            "route": {
+              "id": "aizynth-route-1",
+              "title": "AiZynthFinder Route 1",
+              "target_id": "m1",
+              "source": "aizynthfinder",
+              "depth": 1,
+              "precursor_count": 1,
+              "stock_count": 1,
+              "molecules": [
+                {
+                  "id": "m1",
+                  "name": "Target",
+                  "smiles": "O=C(O)c1ccccc1O",
+                  "in_stock": false
+                },
+                {
+                  "id": "m2",
+                  "name": "Mol 2",
+                  "smiles": "COc1ccccc1C(=O)O",
+                  "in_stock": true
+                }
+              ],
+              "steps": [
+                {
+                  "id": "s1",
+                  "product_id": "m1",
+                  "precursor_ids": [
+                    "m2"
+                  ],
+                  "reaction_smiles": "COc1ccccc1C(=O)O>>O=C(O)c1ccccc1O",
+                  "policy_score": 0.3034999966621399,
+                  "template": "AiZynth step"
+                }
+              ],
+              "layout": {
+                "nodes": {
+                  "m1": {
+                    "id": "m1",
+                    "label": "Target\nO=C(O)c1ccccc1O",
+                    "x": 300,
+                    "y": 40,
+                    "in_stock": false
+                  },
+                  "m2": {
+                    "id": "m2",
+                    "label": "Mol 2\nCOc1ccccc1C(=O)O",
+                    "x": 40,
+                    "y": 40,
+                    "in_stock": true
+                  }
+                },
+                "edges": [
+                  {
+                    "source_id": "m2",
+                    "target_id": "m1",
+                    "label": "AiZynth step"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "route-1781939592082-aizynth-route-2",
+            "label": "AiZynthFinder Route 2",
+            "route": {
+              "id": "aizynth-route-2",
+              "title": "AiZynthFinder Route 2",
+              "target_id": "m1",
+              "source": "aizynthfinder",
+              "depth": 1,
+              "precursor_count": 1,
+              "stock_count": 1,
+              "molecules": [
+                {
+                  "id": "m1",
+                  "name": "Target",
+                  "smiles": "O=C(O)c1ccccc1O",
+                  "in_stock": false
+                },
+                {
+                  "id": "m2",
+                  "name": "Mol 2",
+                  "smiles": "COC(=O)c1ccccc1O",
+                  "in_stock": true
+                }
+              ],
+              "steps": [
+                {
+                  "id": "s1",
+                  "product_id": "m1",
+                  "precursor_ids": [
+                    "m2"
+                  ],
+                  "reaction_smiles": "COC(=O)c1ccccc1O>>O=C(O)c1ccccc1O",
+                  "policy_score": 0.14350000023841858,
+                  "template": "AiZynth step"
+                }
+              ],
+              "layout": {
+                "nodes": {
+                  "m1": {
+                    "id": "m1",
+                    "label": "Target\nO=C(O)c1ccccc1O",
+                    "x": 300,
+                    "y": 40,
+                    "in_stock": false
+                  },
+                  "m2": {
+                    "id": "m2",
+                    "label": "Mol 2\nCOC(=O)c1ccccc1O",
+                    "x": 40,
+                    "y": 40,
+                    "in_stock": true
+                  }
+                },
+                "edges": [
+                  {
+                    "source_id": "m2",
+                    "target_id": "m1",
+                    "label": "AiZynth step"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "route-1781939599832-aizynth-route-3",
+            "label": "AiZynthFinder Route 3",
+            "route": {
+              "id": "aizynth-route-3",
+              "title": "AiZynthFinder Route 3",
+              "target_id": "m1",
+              "source": "aizynthfinder",
+              "depth": 1,
+              "precursor_count": 1,
+              "stock_count": 1,
+              "molecules": [
+                {
+                  "id": "m1",
+                  "name": "Target",
+                  "smiles": "O=C(O)c1ccccc1O",
+                  "in_stock": false
+                },
+                {
+                  "id": "m2",
+                  "name": "Mol 2",
+                  "smiles": "O=C(O)c1ccccc1OCc1ccccc1",
+                  "in_stock": true
+                }
+              ],
+              "steps": [
+                {
+                  "id": "s1",
+                  "product_id": "m1",
+                  "precursor_ids": [
+                    "m2"
+                  ],
+                  "reaction_smiles": "O=C(O)c1ccccc1OCc1ccccc1>>O=C(O)c1ccccc1O",
+                  "policy_score": 0.03240000084042549,
+                  "template": "AiZynth step"
+                }
+              ],
+              "layout": {
+                "nodes": {
+                  "m1": {
+                    "id": "m1",
+                    "label": "Target\nO=C(O)c1ccccc1O",
+                    "x": 300,
+                    "y": 40,
+                    "in_stock": false
+                  },
+                  "m2": {
+                    "id": "m2",
+                    "label": "Mol 2\nO=C(O)c1ccccc1OCc1ccccc1",
+                    "x": 40,
+                    "y": 40,
+                    "in_stock": true
+                  }
+                },
+                "edges": [
+                  {
+                    "source_id": "m2",
+                    "target_id": "m1",
+                    "label": "AiZynth step"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "route-1781939635373-aizynth-route-1",
+            "label": "AiZynthFinder Route 1",
+            "route": {
+              "id": "aizynth-route-1",
+              "title": "AiZynthFinder Route 1",
+              "target_id": "m1",
+              "source": "aizynthfinder",
+              "depth": 1,
+              "precursor_count": 2,
+              "stock_count": 2,
+              "molecules": [
+                {
+                  "id": "m1",
+                  "name": "Target",
+                  "smiles": "CC(=O)OC(C)=O",
+                  "in_stock": false
+                },
+                {
+                  "id": "m2",
+                  "name": "Mol 2",
+                  "smiles": "CC(=O)O",
+                  "in_stock": true
+                },
+                {
+                  "id": "m3",
+                  "name": "Mol 3",
+                  "smiles": "CCC(=O)OC(C)=O",
+                  "in_stock": true
+                }
+              ],
+              "steps": [
+                {
+                  "id": "s1",
+                  "product_id": "m1",
+                  "precursor_ids": [
+                    "m2",
+                    "m3"
+                  ],
+                  "reaction_smiles": "CC(=O)O.CCC(=O)OC(C)=O>>CC(=O)OC(C)=O",
+                  "policy_score": 0.0052999998442828655,
+                  "template": "AiZynth step"
+                }
+              ],
+              "layout": {
+                "nodes": {
+                  "m1": {
+                    "id": "m1",
+                    "label": "Target\nCC(=O)OC(C)=O",
+                    "x": 300,
+                    "y": 40,
+                    "in_stock": false
+                  },
+                  "m2": {
+                    "id": "m2",
+                    "label": "Mol 2\nCC(=O)O",
+                    "x": 40,
+                    "y": 40,
+                    "in_stock": true
+                  },
+                  "m3": {
+                    "id": "m3",
+                    "label": "Mol 3\nCCC(=O)OC(C)=O",
+                    "x": 40,
+                    "y": 150,
+                    "in_stock": true
+                  }
+                },
+                "edges": [
+                  {
+                    "source_id": "m2",
+                    "target_id": "m1",
+                    "label": "AiZynth step"
+                  },
+                  {
+                    "source_id": "m3",
+                    "target_id": "m1",
+                    "label": "AiZynth step"
+                  }
+                ]
+              }
+            }
           }
         ]
       },
-      "results": {}
+      "results": {
+        "molecule:route-example-aspirin-reactants:component:0:retrosynthesis": {
+          "task_id": "retrosynthesis",
+          "task_label": "预测逆合成路线（AiZynthFinder）",
+          "object_id": "route-example-aspirin-reactants:component:0",
+          "object_kind": "molecule",
+          "object_label": "组分 1",
+          "engine": "aizynthfinder",
+          "status": "succeeded",
+          "updated_at": "2026-06-20T07:11:25.504Z",
+          "payload": {
+            "available": true,
+            "status": "Loaded 3 route(s) from AiZynthFinder via WSL.",
+            "used_fallback": false,
+            "target_smiles": "O=C(O)c1ccccc1O",
+            "candidates": [
+              {
+                "id": "aizynth-route-1",
+                "title": "AiZynthFinder Route 1",
+                "target_id": "m1",
+                "source": "aizynthfinder",
+                "depth": 1,
+                "precursor_count": 1,
+                "stock_count": 1,
+                "molecules": [
+                  {
+                    "id": "m1",
+                    "name": "Target",
+                    "smiles": "O=C(O)c1ccccc1O",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "m2",
+                    "name": "Mol 2",
+                    "smiles": "COc1ccccc1C(=O)O",
+                    "in_stock": true
+                  }
+                ],
+                "steps": [
+                  {
+                    "id": "s1",
+                    "product_id": "m1",
+                    "precursor_ids": [
+                      "m2"
+                    ],
+                    "reaction_smiles": "COc1ccccc1C(=O)O>>O=C(O)c1ccccc1O",
+                    "policy_score": 0.3034999966621399,
+                    "template": "AiZynth step"
+                  }
+                ],
+                "layout": {
+                  "nodes": {
+                    "m1": {
+                      "id": "m1",
+                      "label": "Target\nO=C(O)c1ccccc1O",
+                      "x": 300,
+                      "y": 40,
+                      "in_stock": false
+                    },
+                    "m2": {
+                      "id": "m2",
+                      "label": "Mol 2\nCOc1ccccc1C(=O)O",
+                      "x": 40,
+                      "y": 40,
+                      "in_stock": true
+                    }
+                  },
+                  "edges": [
+                    {
+                      "source_id": "m2",
+                      "target_id": "m1",
+                      "label": "AiZynth step"
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "aizynth-route-2",
+                "title": "AiZynthFinder Route 2",
+                "target_id": "m1",
+                "source": "aizynthfinder",
+                "depth": 1,
+                "precursor_count": 1,
+                "stock_count": 1,
+                "molecules": [
+                  {
+                    "id": "m1",
+                    "name": "Target",
+                    "smiles": "O=C(O)c1ccccc1O",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "m2",
+                    "name": "Mol 2",
+                    "smiles": "COC(=O)c1ccccc1O",
+                    "in_stock": true
+                  }
+                ],
+                "steps": [
+                  {
+                    "id": "s1",
+                    "product_id": "m1",
+                    "precursor_ids": [
+                      "m2"
+                    ],
+                    "reaction_smiles": "COC(=O)c1ccccc1O>>O=C(O)c1ccccc1O",
+                    "policy_score": 0.14350000023841858,
+                    "template": "AiZynth step"
+                  }
+                ],
+                "layout": {
+                  "nodes": {
+                    "m1": {
+                      "id": "m1",
+                      "label": "Target\nO=C(O)c1ccccc1O",
+                      "x": 300,
+                      "y": 40,
+                      "in_stock": false
+                    },
+                    "m2": {
+                      "id": "m2",
+                      "label": "Mol 2\nCOC(=O)c1ccccc1O",
+                      "x": 40,
+                      "y": 40,
+                      "in_stock": true
+                    }
+                  },
+                  "edges": [
+                    {
+                      "source_id": "m2",
+                      "target_id": "m1",
+                      "label": "AiZynth step"
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "aizynth-route-3",
+                "title": "AiZynthFinder Route 3",
+                "target_id": "m1",
+                "source": "aizynthfinder",
+                "depth": 1,
+                "precursor_count": 1,
+                "stock_count": 1,
+                "molecules": [
+                  {
+                    "id": "m1",
+                    "name": "Target",
+                    "smiles": "O=C(O)c1ccccc1O",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "m2",
+                    "name": "Mol 2",
+                    "smiles": "O=C(O)c1ccccc1OCc1ccccc1",
+                    "in_stock": true
+                  }
+                ],
+                "steps": [
+                  {
+                    "id": "s1",
+                    "product_id": "m1",
+                    "precursor_ids": [
+                      "m2"
+                    ],
+                    "reaction_smiles": "O=C(O)c1ccccc1OCc1ccccc1>>O=C(O)c1ccccc1O",
+                    "policy_score": 0.03240000084042549,
+                    "template": "AiZynth step"
+                  }
+                ],
+                "layout": {
+                  "nodes": {
+                    "m1": {
+                      "id": "m1",
+                      "label": "Target\nO=C(O)c1ccccc1O",
+                      "x": 300,
+                      "y": 40,
+                      "in_stock": false
+                    },
+                    "m2": {
+                      "id": "m2",
+                      "label": "Mol 2\nO=C(O)c1ccccc1OCc1ccccc1",
+                      "x": 40,
+                      "y": 40,
+                      "in_stock": true
+                    }
+                  },
+                  "edges": [
+                    {
+                      "source_id": "m2",
+                      "target_id": "m1",
+                      "label": "AiZynth step"
+                    }
+                  ]
+                }
+              }
+            ],
+            "route_scores": {
+              "aizynth-route-1": {
+                "route_id": "aizynth-route-1",
+                "route_score": 0.687,
+                "model_score": 0.303,
+                "stock_score": 1,
+                "step_score": 1,
+                "explanation": "model=0.30, stock=1.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
+              },
+              "aizynth-route-2": {
+                "route_id": "aizynth-route-2",
+                "route_score": 0.615,
+                "model_score": 0.144,
+                "stock_score": 1,
+                "step_score": 1,
+                "explanation": "model=0.14, stock=1.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
+              },
+              "aizynth-route-3": {
+                "route_id": "aizynth-route-3",
+                "route_score": 0.565,
+                "model_score": 0.032,
+                "stock_score": 1,
+                "step_score": 1,
+                "explanation": "model=0.03, stock=1.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
+              }
+            },
+            "feasibility": {
+              "aizynth-route-1": {
+                "route_id": "aizynth-route-1",
+                "heuristic_overall_yield_percent": 57,
+                "heuristic_feasibility_score": 0.763,
+                "estimated_overall_yield_percent": 57,
+                "route_feasibility_score": 0.763,
+                "method": "heuristic_route_feasibility",
+                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "risk_flags": [
+                  "s1: 反应类型置信度低"
+                ],
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+              },
+              "aizynth-route-2": {
+                "route_id": "aizynth-route-2",
+                "heuristic_overall_yield_percent": 57,
+                "heuristic_feasibility_score": 0.763,
+                "estimated_overall_yield_percent": 57,
+                "route_feasibility_score": 0.763,
+                "method": "heuristic_route_feasibility",
+                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "risk_flags": [
+                  "s1: 反应类型置信度低"
+                ],
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+              },
+              "aizynth-route-3": {
+                "route_id": "aizynth-route-3",
+                "heuristic_overall_yield_percent": 57,
+                "heuristic_feasibility_score": 0.763,
+                "estimated_overall_yield_percent": 57,
+                "route_feasibility_score": 0.763,
+                "method": "heuristic_route_feasibility",
+                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "risk_flags": [
+                  "s1: 反应类型置信度低"
+                ],
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+              }
+            },
+            "engine": "aizynthfinder"
+          }
+        },
+        "molecule:route-example-aspirin-reactants:component:1:retrosynthesis": {
+          "task_id": "retrosynthesis",
+          "task_label": "预测逆合成路线（AiZynthFinder）",
+          "object_id": "route-example-aspirin-reactants:component:1",
+          "object_kind": "molecule",
+          "object_label": "组分 2",
+          "engine": "aizynthfinder",
+          "status": "succeeded",
+          "updated_at": "2026-06-20T07:13:44.684Z",
+          "payload": {
+            "available": true,
+            "status": "Loaded 3 route(s) from AiZynthFinder via WSL.",
+            "used_fallback": false,
+            "target_smiles": "CC(=O)OC(C)=O",
+            "candidates": [
+              {
+                "id": "aizynth-route-1",
+                "title": "AiZynthFinder Route 1",
+                "target_id": "m1",
+                "source": "aizynthfinder",
+                "depth": 1,
+                "precursor_count": 2,
+                "stock_count": 2,
+                "molecules": [
+                  {
+                    "id": "m1",
+                    "name": "Target",
+                    "smiles": "CC(=O)OC(C)=O",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "m2",
+                    "name": "Mol 2",
+                    "smiles": "CC(=O)O",
+                    "in_stock": true
+                  },
+                  {
+                    "id": "m3",
+                    "name": "Mol 3",
+                    "smiles": "CCC(=O)OC(C)=O",
+                    "in_stock": true
+                  }
+                ],
+                "steps": [
+                  {
+                    "id": "s1",
+                    "product_id": "m1",
+                    "precursor_ids": [
+                      "m2",
+                      "m3"
+                    ],
+                    "reaction_smiles": "CC(=O)O.CCC(=O)OC(C)=O>>CC(=O)OC(C)=O",
+                    "policy_score": 0.0052999998442828655,
+                    "template": "AiZynth step"
+                  }
+                ],
+                "layout": {
+                  "nodes": {
+                    "m1": {
+                      "id": "m1",
+                      "label": "Target\nCC(=O)OC(C)=O",
+                      "x": 300,
+                      "y": 40,
+                      "in_stock": false
+                    },
+                    "m2": {
+                      "id": "m2",
+                      "label": "Mol 2\nCC(=O)O",
+                      "x": 40,
+                      "y": 40,
+                      "in_stock": true
+                    },
+                    "m3": {
+                      "id": "m3",
+                      "label": "Mol 3\nCCC(=O)OC(C)=O",
+                      "x": 40,
+                      "y": 150,
+                      "in_stock": true
+                    }
+                  },
+                  "edges": [
+                    {
+                      "source_id": "m2",
+                      "target_id": "m1",
+                      "label": "AiZynth step"
+                    },
+                    {
+                      "source_id": "m3",
+                      "target_id": "m1",
+                      "label": "AiZynth step"
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "aizynth-route-2",
+                "title": "AiZynthFinder Route 2",
+                "target_id": "m1",
+                "source": "aizynthfinder",
+                "depth": 1,
+                "precursor_count": 2,
+                "stock_count": 2,
+                "molecules": [
+                  {
+                    "id": "m1",
+                    "name": "Target",
+                    "smiles": "CC(=O)OC(C)=O",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "m2",
+                    "name": "Mol 2",
+                    "smiles": "CC(=O)O",
+                    "in_stock": true
+                  },
+                  {
+                    "id": "m3",
+                    "name": "Mol 3",
+                    "smiles": "CCC(=O)OC(C)=O",
+                    "in_stock": true
+                  }
+                ],
+                "steps": [
+                  {
+                    "id": "s1",
+                    "product_id": "m1",
+                    "precursor_ids": [
+                      "m2",
+                      "m3"
+                    ],
+                    "reaction_smiles": "CC(=O)O.CCC(=O)OC(C)=O>>CC(=O)OC(C)=O",
+                    "policy_score": 0.0052999998442828655,
+                    "template": "AiZynth step"
+                  }
+                ],
+                "layout": {
+                  "nodes": {
+                    "m1": {
+                      "id": "m1",
+                      "label": "Target\nCC(=O)OC(C)=O",
+                      "x": 300,
+                      "y": 40,
+                      "in_stock": false
+                    },
+                    "m2": {
+                      "id": "m2",
+                      "label": "Mol 2\nCC(=O)O",
+                      "x": 40,
+                      "y": 40,
+                      "in_stock": true
+                    },
+                    "m3": {
+                      "id": "m3",
+                      "label": "Mol 3\nCCC(=O)OC(C)=O",
+                      "x": 40,
+                      "y": 150,
+                      "in_stock": true
+                    }
+                  },
+                  "edges": [
+                    {
+                      "source_id": "m2",
+                      "target_id": "m1",
+                      "label": "AiZynth step"
+                    },
+                    {
+                      "source_id": "m3",
+                      "target_id": "m1",
+                      "label": "AiZynth step"
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "aizynth-route-3",
+                "title": "AiZynthFinder Route 3",
+                "target_id": "m1",
+                "source": "aizynthfinder",
+                "depth": 0,
+                "precursor_count": 1,
+                "stock_count": 0,
+                "molecules": [
+                  {
+                    "id": "m1",
+                    "name": "Target",
+                    "smiles": "CC(=O)OC(C)=O",
+                    "in_stock": false
+                  }
+                ],
+                "steps": [],
+                "layout": {
+                  "nodes": {
+                    "m1": {
+                      "id": "m1",
+                      "label": "Target\nCC(=O)OC(C)=O",
+                      "x": 40,
+                      "y": 40,
+                      "in_stock": false
+                    }
+                  },
+                  "edges": []
+                }
+              }
+            ],
+            "route_scores": {
+              "aizynth-route-1": {
+                "route_id": "aizynth-route-1",
+                "route_score": 0.552,
+                "model_score": 0.005,
+                "stock_score": 1,
+                "step_score": 1,
+                "explanation": "model=0.01, stock=1.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
+              },
+              "aizynth-route-2": {
+                "route_id": "aizynth-route-2",
+                "route_score": 0.552,
+                "model_score": 0.005,
+                "stock_score": 1,
+                "step_score": 1,
+                "explanation": "model=0.01, stock=1.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
+              },
+              "aizynth-route-3": {
+                "route_id": "aizynth-route-3",
+                "route_score": 0.448,
+                "model_score": 0.55,
+                "stock_score": 0,
+                "step_score": 1,
+                "explanation": "model=0.55, stock=0.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
+              }
+            },
+            "feasibility": {
+              "aizynth-route-1": {
+                "route_id": "aizynth-route-1",
+                "heuristic_overall_yield_percent": 60,
+                "heuristic_feasibility_score": 0.78,
+                "estimated_overall_yield_percent": 60,
+                "route_feasibility_score": 0.78,
+                "method": "heuristic_route_feasibility",
+                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "risk_flags": [
+                  "s1: 反应类型置信度低"
+                ],
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+              },
+              "aizynth-route-2": {
+                "route_id": "aizynth-route-2",
+                "heuristic_overall_yield_percent": 60,
+                "heuristic_feasibility_score": 0.78,
+                "estimated_overall_yield_percent": 60,
+                "route_feasibility_score": 0.78,
+                "method": "heuristic_route_feasibility",
+                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "risk_flags": [
+                  "s1: 反应类型置信度低"
+                ],
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+              },
+              "aizynth-route-3": {
+                "route_id": "aizynth-route-3",
+                "heuristic_overall_yield_percent": 0,
+                "heuristic_feasibility_score": 0,
+                "estimated_overall_yield_percent": 0,
+                "route_feasibility_score": 0,
+                "method": "heuristic_route_feasibility",
+                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "risk_flags": [
+                  "路线没有反应步骤"
+                ],
+                "note": "无法评分。"
+              }
+            },
+            "engine": "aizynthfinder"
+          }
+        }
+      }
+    },
+    {
+      "id": "cell-b0c67d80",
+      "type": "chem",
+      "title": "Chem cell",
+      "created_at": "2026-06-20T07:14:21.582048+00:00",
+      "updated_at": "2026-06-20T07:14:21.582048+00:00",
+      "canvas": {
+        "nodes": [
+          {
+            "id": "mol-bc4de43a-adff-4595-a32b-98d8fe31e963",
+            "type": "molecule",
+            "position": {
+              "x": 1261.074517165594,
+              "y": 90
+            },
+            "data": {
+              "label": "c1ccccc1[Br]",
+              "smiles": "c1ccccc1[Br]"
+            }
+          },
+          {
+            "id": "route-1781939707005-aizynth-route-2-molecule-m1",
+            "type": "molecule",
+            "position": {
+              "x": 1261.074517165594,
+              "y": 90
+            },
+            "data": {
+              "label": "Target",
+              "smiles": "Brc1ccccc1"
+            }
+          },
+          {
+            "id": "route-1781939707005-aizynth-route-2-step-s1-reactants",
+            "type": "molecule",
+            "position": {
+              "x": 820,
+              "y": 237.27835970938912
+            },
+            "data": {
+              "label": "c1ccccc1.O=C1CCC(=O)N1Br",
+              "smiles": "c1ccccc1.O=C1CCC(=O)N1Br"
+            }
+          },
+          {
+            "id": "route-1781939759467-aizynth-route-1-molecule-m2",
+            "type": "molecule",
+            "position": {
+              "x": 560,
+              "y": 237.27835970938912
+            },
+            "data": {
+              "label": "Mol 2",
+              "smiles": "O=C1C=CC(=O)N1Br"
+            }
+          },
+          {
+            "id": "route-1781939759467-aizynth-route-1-molecule-m3",
+            "type": "molecule",
+            "position": {
+              "x": 300,
+              "y": 237.27835970938912
+            },
+            "data": {
+              "label": "Mol 3",
+              "smiles": "O=C(O)C=CC(=O)NBr"
+            }
+          },
+          {
+            "id": "route-1781939759467-aizynth-route-1-step-s1-reactants",
+            "type": "molecule",
+            "position": {
+              "x": 40,
+              "y": 292.2783597093891
+            },
+            "data": {
+              "label": "O=CC(=O)O.CC(=O)NBr",
+              "smiles": "O=CC(=O)O.CC(=O)NBr"
+            }
+          }
+        ],
+        "edges": [
+          {
+            "id": "rxn-route-1781939707005-aizynth-route-2-s1-0-edge",
+            "type": "orthogonal",
+            "source": "route-1781939707005-aizynth-route-2-step-s1-reactants",
+            "target": "route-1781939707005-aizynth-route-2-molecule-m1",
+            "sourceHandle": "right",
+            "targetHandle": "left",
+            "label": "AiZynth step",
+            "className": "canvas-edge",
+            "interactionWidth": 18,
+            "markerEnd": {
+              "type": "arrowclosed",
+              "width": 15,
+              "height": 15,
+              "color": "#0f172a"
+            },
+            "style": {
+              "stroke": "#0f172a",
+              "strokeWidth": 3
+            },
+            "data": {
+              "routePoints": [
+                {
+                  "x": 226.92548283440615,
+                  "y": 308.2783597093891
+                },
+                {
+                  "x": 272,
+                  "y": 308.2783597093891
+                },
+                {
+                  "x": 272,
+                  "y": 161
+                },
+                {
+                  "x": 300,
+                  "y": 161
+                }
+              ]
+            }
+          },
+          {
+            "id": "rxn-route-1781939759467-aizynth-route-1-s1-0-edge",
+            "type": "orthogonal",
+            "source": "route-1781939759467-aizynth-route-1-step-s1-reactants",
+            "target": "route-1781939759467-aizynth-route-1-molecule-m3",
+            "sourceHandle": "right",
+            "targetHandle": "bottom",
+            "label": "AiZynth step",
+            "className": "canvas-edge",
+            "interactionWidth": 18,
+            "markerEnd": {
+              "type": "arrowclosed",
+              "width": 15,
+              "height": 15,
+              "color": "#0f172a"
+            },
+            "style": {
+              "stroke": "#0f172a",
+              "strokeWidth": 3
+            }
+          },
+          {
+            "id": "rxn-route-1781939759467-aizynth-route-1-s2-1-edge",
+            "type": "orthogonal",
+            "source": "route-1781939759467-aizynth-route-1-molecule-m3",
+            "target": "route-1781939759467-aizynth-route-1-molecule-m2",
+            "sourceHandle": "right",
+            "targetHandle": "left",
+            "label": "AiZynth step",
+            "className": "canvas-edge",
+            "interactionWidth": 18,
+            "markerEnd": {
+              "type": "arrowclosed",
+              "width": 15,
+              "height": 15,
+              "color": "#0f172a"
+            },
+            "style": {
+              "stroke": "#0f172a",
+              "strokeWidth": 3
+            }
+          },
+          {
+            "id": "rxn-route-1781939759467-aizynth-route-1-s3-2-edge",
+            "type": "orthogonal",
+            "source": "route-1781939759467-aizynth-route-1-molecule-m2",
+            "target": "route-1781939707005-aizynth-route-2-step-s1-reactants",
+            "sourceHandle": "right",
+            "targetHandle": "left",
+            "label": "AiZynth step",
+            "data": {
+              "targetComponentIndex": 1
+            },
+            "className": "canvas-edge",
+            "interactionWidth": 18,
+            "markerEnd": {
+              "type": "arrowclosed",
+              "width": 15,
+              "height": 15,
+              "color": "#0f172a"
+            },
+            "style": {
+              "stroke": "#0f172a",
+              "strokeWidth": 3
+            }
+          }
+        ]
+      },
+      "objects": {
+        "molecules": [
+          {
+            "id": "mol-bc4de43a-adff-4595-a32b-98d8fe31e963",
+            "label": "c1ccccc1[Br]",
+            "smiles": "c1ccccc1[Br]"
+          },
+          {
+            "id": "route-1781939707005-aizynth-route-2-molecule-m1",
+            "label": "Target",
+            "smiles": "Brc1ccccc1"
+          },
+          {
+            "id": "route-1781939707005-aizynth-route-2-step-s1-reactants",
+            "label": "c1ccccc1.O=C1CCC(=O)N1Br",
+            "smiles": "c1ccccc1.O=C1CCC(=O)N1Br"
+          },
+          {
+            "id": "route-1781939759467-aizynth-route-1-molecule-m2",
+            "label": "Mol 2",
+            "smiles": "O=C1C=CC(=O)N1Br"
+          },
+          {
+            "id": "route-1781939759467-aizynth-route-1-molecule-m3",
+            "label": "Mol 3",
+            "smiles": "O=C(O)C=CC(=O)NBr"
+          },
+          {
+            "id": "route-1781939759467-aizynth-route-1-step-s1-reactants",
+            "label": "O=CC(=O)O.CC(=O)NBr",
+            "smiles": "O=CC(=O)O.CC(=O)NBr"
+          }
+        ],
+        "reactions": [
+          {
+            "id": "rxn-route-1781939707005-aizynth-route-2-s1-0",
+            "label": "AiZynth step",
+            "reaction_smiles": "c1ccccc1.O=C1CCC(=O)N1Br>>Brc1ccccc1",
+            "template": "AiZynth step"
+          },
+          {
+            "id": "rxn-route-1781939759467-aizynth-route-1-s1-0",
+            "label": "AiZynth step",
+            "reaction_smiles": "O=CC(=O)O.CC(=O)NBr>>O=C(O)C=CC(=O)NBr",
+            "template": "AiZynth step"
+          },
+          {
+            "id": "rxn-route-1781939759467-aizynth-route-1-s2-1",
+            "label": "AiZynth step",
+            "reaction_smiles": "O=C(O)C=CC(=O)NBr>>O=C1C=CC(=O)N1Br",
+            "template": "AiZynth step"
+          },
+          {
+            "id": "rxn-route-1781939759467-aizynth-route-1-s3-2",
+            "label": "AiZynth step",
+            "reaction_smiles": "O=C1C=CC(=O)N1Br>>O=C1CCC(=O)N1Br",
+            "template": "AiZynth step"
+          }
+        ],
+        "routes": [
+          {
+            "id": "route-1781939707005-aizynth-route-2",
+            "label": "AiZynthFinder Route 2",
+            "route": {
+              "id": "aizynth-route-2",
+              "title": "AiZynthFinder Route 2",
+              "target_id": "m1",
+              "source": "aizynthfinder",
+              "depth": 1,
+              "precursor_count": 2,
+              "stock_count": 2,
+              "molecules": [
+                {
+                  "id": "m1",
+                  "name": "Target",
+                  "smiles": "Brc1ccccc1",
+                  "in_stock": false
+                },
+                {
+                  "id": "m2",
+                  "name": "Mol 2",
+                  "smiles": "c1ccccc1",
+                  "in_stock": true
+                },
+                {
+                  "id": "m3",
+                  "name": "Mol 3",
+                  "smiles": "O=C1CCC(=O)N1Br",
+                  "in_stock": true
+                }
+              ],
+              "steps": [
+                {
+                  "id": "s1",
+                  "product_id": "m1",
+                  "precursor_ids": [
+                    "m2",
+                    "m3"
+                  ],
+                  "reaction_smiles": "c1ccccc1.O=C1CCC(=O)N1Br>>Brc1ccccc1",
+                  "policy_score": 0.041600000113248825,
+                  "template": "AiZynth step"
+                }
+              ],
+              "layout": {
+                "nodes": {
+                  "m1": {
+                    "id": "m1",
+                    "label": "Target\nBrc1ccccc1",
+                    "x": 300,
+                    "y": 40,
+                    "in_stock": false
+                  },
+                  "m2": {
+                    "id": "m2",
+                    "label": "Mol 2\nc1ccccc1",
+                    "x": 40,
+                    "y": 40,
+                    "in_stock": true
+                  },
+                  "m3": {
+                    "id": "m3",
+                    "label": "Mol 3\nO=C1CCC(=O)N1Br",
+                    "x": 40,
+                    "y": 150,
+                    "in_stock": true
+                  }
+                },
+                "edges": [
+                  {
+                    "source_id": "m2",
+                    "target_id": "m1",
+                    "label": "AiZynth step"
+                  },
+                  {
+                    "source_id": "m3",
+                    "target_id": "m1",
+                    "label": "AiZynth step"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "route-1781939759467-aizynth-route-1",
+            "label": "AiZynthFinder Route 1",
+            "route": {
+              "id": "aizynth-route-1",
+              "title": "AiZynthFinder Route 1",
+              "target_id": "m1",
+              "source": "aizynthfinder",
+              "depth": 3,
+              "precursor_count": 2,
+              "stock_count": 2,
+              "molecules": [
+                {
+                  "id": "m1",
+                  "name": "Target",
+                  "smiles": "O=C1CCC(=O)N1Br",
+                  "in_stock": false
+                },
+                {
+                  "id": "m2",
+                  "name": "Mol 2",
+                  "smiles": "O=C1C=CC(=O)N1Br",
+                  "in_stock": false
+                },
+                {
+                  "id": "m3",
+                  "name": "Mol 3",
+                  "smiles": "O=C(O)C=CC(=O)NBr",
+                  "in_stock": false
+                },
+                {
+                  "id": "m4",
+                  "name": "Mol 4",
+                  "smiles": "O=CC(=O)O",
+                  "in_stock": true
+                },
+                {
+                  "id": "m5",
+                  "name": "Mol 5",
+                  "smiles": "CC(=O)NBr",
+                  "in_stock": true
+                }
+              ],
+              "steps": [
+                {
+                  "id": "s1",
+                  "product_id": "m3",
+                  "precursor_ids": [
+                    "m4",
+                    "m5"
+                  ],
+                  "reaction_smiles": "O=CC(=O)O.CC(=O)NBr>>O=C(O)C=CC(=O)NBr",
+                  "policy_score": 0.004600000102072954,
+                  "template": "AiZynth step"
+                },
+                {
+                  "id": "s2",
+                  "product_id": "m2",
+                  "precursor_ids": [
+                    "m3"
+                  ],
+                  "reaction_smiles": "O=C(O)C=CC(=O)NBr>>O=C1C=CC(=O)N1Br",
+                  "policy_score": 0.004399999976158142,
+                  "template": "AiZynth step"
+                },
+                {
+                  "id": "s3",
+                  "product_id": "m1",
+                  "precursor_ids": [
+                    "m2"
+                  ],
+                  "reaction_smiles": "O=C1C=CC(=O)N1Br>>O=C1CCC(=O)N1Br",
+                  "policy_score": 0.00279999990016222,
+                  "template": "AiZynth step"
+                }
+              ],
+              "layout": {
+                "nodes": {
+                  "m1": {
+                    "id": "m1",
+                    "label": "Target\nO=C1CCC(=O)N1Br",
+                    "x": 820,
+                    "y": 40,
+                    "in_stock": false
+                  },
+                  "m2": {
+                    "id": "m2",
+                    "label": "Mol 2\nO=C1C=CC(=O)N1Br",
+                    "x": 560,
+                    "y": 40,
+                    "in_stock": false
+                  },
+                  "m3": {
+                    "id": "m3",
+                    "label": "Mol 3\nO=C(O)C=CC(=O)NBr",
+                    "x": 300,
+                    "y": 40,
+                    "in_stock": false
+                  },
+                  "m4": {
+                    "id": "m4",
+                    "label": "Mol 4\nO=CC(=O)O",
+                    "x": 40,
+                    "y": 40,
+                    "in_stock": true
+                  },
+                  "m5": {
+                    "id": "m5",
+                    "label": "Mol 5\nCC(=O)NBr",
+                    "x": 40,
+                    "y": 150,
+                    "in_stock": true
+                  }
+                },
+                "edges": [
+                  {
+                    "source_id": "m4",
+                    "target_id": "m3",
+                    "label": "AiZynth step"
+                  },
+                  {
+                    "source_id": "m5",
+                    "target_id": "m3",
+                    "label": "AiZynth step"
+                  },
+                  {
+                    "source_id": "m3",
+                    "target_id": "m2",
+                    "label": "AiZynth step"
+                  },
+                  {
+                    "source_id": "m2",
+                    "target_id": "m1",
+                    "label": "AiZynth step"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "results": {
+        "molecule:mol-bc4de43a-adff-4595-a32b-98d8fe31e963:retrosynthesis": {
+          "task_id": "retrosynthesis",
+          "task_label": "预测逆合成路线（AiZynthFinder）",
+          "object_id": "mol-bc4de43a-adff-4595-a32b-98d8fe31e963",
+          "object_kind": "molecule",
+          "object_label": "c1ccccc1[Br]",
+          "engine": "aizynthfinder",
+          "status": "succeeded",
+          "updated_at": "2026-06-20T07:15:02.711Z",
+          "payload": {
+            "available": true,
+            "status": "Loaded 3 route(s) from AiZynthFinder via WSL.",
+            "used_fallback": false,
+            "target_smiles": "c1ccccc1[Br]",
+            "candidates": [
+              {
+                "id": "aizynth-route-1",
+                "title": "AiZynthFinder Route 1",
+                "target_id": "m1",
+                "source": "aizynthfinder",
+                "depth": 1,
+                "precursor_count": 1,
+                "stock_count": 1,
+                "molecules": [
+                  {
+                    "id": "m1",
+                    "name": "Target",
+                    "smiles": "Brc1ccccc1",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "m2",
+                    "name": "Mol 2",
+                    "smiles": "Nc1ccccc1Br",
+                    "in_stock": true
+                  }
+                ],
+                "steps": [
+                  {
+                    "id": "s1",
+                    "product_id": "m1",
+                    "precursor_ids": [
+                      "m2"
+                    ],
+                    "reaction_smiles": "Nc1ccccc1Br>>Brc1ccccc1",
+                    "policy_score": 0.07109999656677246,
+                    "template": "AiZynth step"
+                  }
+                ],
+                "layout": {
+                  "nodes": {
+                    "m1": {
+                      "id": "m1",
+                      "label": "Target\nBrc1ccccc1",
+                      "x": 300,
+                      "y": 40,
+                      "in_stock": false
+                    },
+                    "m2": {
+                      "id": "m2",
+                      "label": "Mol 2\nNc1ccccc1Br",
+                      "x": 40,
+                      "y": 40,
+                      "in_stock": true
+                    }
+                  },
+                  "edges": [
+                    {
+                      "source_id": "m2",
+                      "target_id": "m1",
+                      "label": "AiZynth step"
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "aizynth-route-2",
+                "title": "AiZynthFinder Route 2",
+                "target_id": "m1",
+                "source": "aizynthfinder",
+                "depth": 1,
+                "precursor_count": 2,
+                "stock_count": 2,
+                "molecules": [
+                  {
+                    "id": "m1",
+                    "name": "Target",
+                    "smiles": "Brc1ccccc1",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "m2",
+                    "name": "Mol 2",
+                    "smiles": "c1ccccc1",
+                    "in_stock": true
+                  },
+                  {
+                    "id": "m3",
+                    "name": "Mol 3",
+                    "smiles": "O=C1CCC(=O)N1Br",
+                    "in_stock": true
+                  }
+                ],
+                "steps": [
+                  {
+                    "id": "s1",
+                    "product_id": "m1",
+                    "precursor_ids": [
+                      "m2",
+                      "m3"
+                    ],
+                    "reaction_smiles": "c1ccccc1.O=C1CCC(=O)N1Br>>Brc1ccccc1",
+                    "policy_score": 0.041600000113248825,
+                    "template": "AiZynth step"
+                  }
+                ],
+                "layout": {
+                  "nodes": {
+                    "m1": {
+                      "id": "m1",
+                      "label": "Target\nBrc1ccccc1",
+                      "x": 300,
+                      "y": 40,
+                      "in_stock": false
+                    },
+                    "m2": {
+                      "id": "m2",
+                      "label": "Mol 2\nc1ccccc1",
+                      "x": 40,
+                      "y": 40,
+                      "in_stock": true
+                    },
+                    "m3": {
+                      "id": "m3",
+                      "label": "Mol 3\nO=C1CCC(=O)N1Br",
+                      "x": 40,
+                      "y": 150,
+                      "in_stock": true
+                    }
+                  },
+                  "edges": [
+                    {
+                      "source_id": "m2",
+                      "target_id": "m1",
+                      "label": "AiZynth step"
+                    },
+                    {
+                      "source_id": "m3",
+                      "target_id": "m1",
+                      "label": "AiZynth step"
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "aizynth-route-3",
+                "title": "AiZynthFinder Route 3",
+                "target_id": "m1",
+                "source": "aizynthfinder",
+                "depth": 1,
+                "precursor_count": 1,
+                "stock_count": 1,
+                "molecules": [
+                  {
+                    "id": "m1",
+                    "name": "Target",
+                    "smiles": "Brc1ccccc1",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "m2",
+                    "name": "Mol 2",
+                    "smiles": "Brc1ccccc1Br",
+                    "in_stock": true
+                  }
+                ],
+                "steps": [
+                  {
+                    "id": "s1",
+                    "product_id": "m1",
+                    "precursor_ids": [
+                      "m2"
+                    ],
+                    "reaction_smiles": "Brc1ccccc1Br>>Brc1ccccc1",
+                    "policy_score": 0.009399999864399433,
+                    "template": "AiZynth step"
+                  }
+                ],
+                "layout": {
+                  "nodes": {
+                    "m1": {
+                      "id": "m1",
+                      "label": "Target\nBrc1ccccc1",
+                      "x": 300,
+                      "y": 40,
+                      "in_stock": false
+                    },
+                    "m2": {
+                      "id": "m2",
+                      "label": "Mol 2\nBrc1ccccc1Br",
+                      "x": 40,
+                      "y": 40,
+                      "in_stock": true
+                    }
+                  },
+                  "edges": [
+                    {
+                      "source_id": "m2",
+                      "target_id": "m1",
+                      "label": "AiZynth step"
+                    }
+                  ]
+                }
+              }
+            ],
+            "route_scores": {
+              "aizynth-route-1": {
+                "route_id": "aizynth-route-1",
+                "route_score": 0.582,
+                "model_score": 0.071,
+                "stock_score": 1,
+                "step_score": 1,
+                "explanation": "model=0.07, stock=1.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
+              },
+              "aizynth-route-2": {
+                "route_id": "aizynth-route-2",
+                "route_score": 0.569,
+                "model_score": 0.042,
+                "stock_score": 1,
+                "step_score": 1,
+                "explanation": "model=0.04, stock=1.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
+              },
+              "aizynth-route-3": {
+                "route_id": "aizynth-route-3",
+                "route_score": 0.554,
+                "model_score": 0.009,
+                "stock_score": 1,
+                "step_score": 1,
+                "explanation": "model=0.01, stock=1.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
+              }
+            },
+            "feasibility": {
+              "aizynth-route-1": {
+                "route_id": "aizynth-route-1",
+                "heuristic_overall_yield_percent": 57,
+                "heuristic_feasibility_score": 0.763,
+                "estimated_overall_yield_percent": 57,
+                "route_feasibility_score": 0.763,
+                "method": "heuristic_route_feasibility",
+                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "risk_flags": [
+                  "s1: 反应类型置信度低"
+                ],
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+              },
+              "aizynth-route-2": {
+                "route_id": "aizynth-route-2",
+                "heuristic_overall_yield_percent": 60,
+                "heuristic_feasibility_score": 0.78,
+                "estimated_overall_yield_percent": 60,
+                "route_feasibility_score": 0.78,
+                "method": "heuristic_route_feasibility",
+                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "risk_flags": [
+                  "s1: 反应类型置信度低"
+                ],
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+              },
+              "aizynth-route-3": {
+                "route_id": "aizynth-route-3",
+                "heuristic_overall_yield_percent": 57,
+                "heuristic_feasibility_score": 0.763,
+                "estimated_overall_yield_percent": 57,
+                "route_feasibility_score": 0.763,
+                "method": "heuristic_route_feasibility",
+                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "risk_flags": [
+                  "s1: 反应类型置信度低"
+                ],
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+              }
+            },
+            "engine": "aizynthfinder"
+          }
+        },
+        "molecule:route-1781939707005-aizynth-route-2-step-s1-reactants:component:1:retrosynthesis": {
+          "task_id": "retrosynthesis",
+          "task_label": "预测逆合成路线（AiZynthFinder）",
+          "object_id": "route-1781939707005-aizynth-route-2-step-s1-reactants:component:1",
+          "object_kind": "molecule",
+          "object_label": "组分 2",
+          "engine": "aizynthfinder",
+          "status": "succeeded",
+          "updated_at": "2026-06-20T07:15:53.746Z",
+          "payload": {
+            "available": true,
+            "status": "Loaded 3 route(s) from AiZynthFinder via WSL.",
+            "used_fallback": false,
+            "target_smiles": "O=C1CCC(=O)N1Br",
+            "candidates": [
+              {
+                "id": "aizynth-route-1",
+                "title": "AiZynthFinder Route 1",
+                "target_id": "m1",
+                "source": "aizynthfinder",
+                "depth": 3,
+                "precursor_count": 2,
+                "stock_count": 2,
+                "molecules": [
+                  {
+                    "id": "m1",
+                    "name": "Target",
+                    "smiles": "O=C1CCC(=O)N1Br",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "m2",
+                    "name": "Mol 2",
+                    "smiles": "O=C1C=CC(=O)N1Br",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "m3",
+                    "name": "Mol 3",
+                    "smiles": "O=C(O)C=CC(=O)NBr",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "m4",
+                    "name": "Mol 4",
+                    "smiles": "O=CC(=O)O",
+                    "in_stock": true
+                  },
+                  {
+                    "id": "m5",
+                    "name": "Mol 5",
+                    "smiles": "CC(=O)NBr",
+                    "in_stock": true
+                  }
+                ],
+                "steps": [
+                  {
+                    "id": "s1",
+                    "product_id": "m3",
+                    "precursor_ids": [
+                      "m4",
+                      "m5"
+                    ],
+                    "reaction_smiles": "O=CC(=O)O.CC(=O)NBr>>O=C(O)C=CC(=O)NBr",
+                    "policy_score": 0.004600000102072954,
+                    "template": "AiZynth step"
+                  },
+                  {
+                    "id": "s2",
+                    "product_id": "m2",
+                    "precursor_ids": [
+                      "m3"
+                    ],
+                    "reaction_smiles": "O=C(O)C=CC(=O)NBr>>O=C1C=CC(=O)N1Br",
+                    "policy_score": 0.004399999976158142,
+                    "template": "AiZynth step"
+                  },
+                  {
+                    "id": "s3",
+                    "product_id": "m1",
+                    "precursor_ids": [
+                      "m2"
+                    ],
+                    "reaction_smiles": "O=C1C=CC(=O)N1Br>>O=C1CCC(=O)N1Br",
+                    "policy_score": 0.00279999990016222,
+                    "template": "AiZynth step"
+                  }
+                ],
+                "layout": {
+                  "nodes": {
+                    "m1": {
+                      "id": "m1",
+                      "label": "Target\nO=C1CCC(=O)N1Br",
+                      "x": 820,
+                      "y": 40,
+                      "in_stock": false
+                    },
+                    "m2": {
+                      "id": "m2",
+                      "label": "Mol 2\nO=C1C=CC(=O)N1Br",
+                      "x": 560,
+                      "y": 40,
+                      "in_stock": false
+                    },
+                    "m3": {
+                      "id": "m3",
+                      "label": "Mol 3\nO=C(O)C=CC(=O)NBr",
+                      "x": 300,
+                      "y": 40,
+                      "in_stock": false
+                    },
+                    "m4": {
+                      "id": "m4",
+                      "label": "Mol 4\nO=CC(=O)O",
+                      "x": 40,
+                      "y": 40,
+                      "in_stock": true
+                    },
+                    "m5": {
+                      "id": "m5",
+                      "label": "Mol 5\nCC(=O)NBr",
+                      "x": 40,
+                      "y": 150,
+                      "in_stock": true
+                    }
+                  },
+                  "edges": [
+                    {
+                      "source_id": "m4",
+                      "target_id": "m3",
+                      "label": "AiZynth step"
+                    },
+                    {
+                      "source_id": "m5",
+                      "target_id": "m3",
+                      "label": "AiZynth step"
+                    },
+                    {
+                      "source_id": "m3",
+                      "target_id": "m2",
+                      "label": "AiZynth step"
+                    },
+                    {
+                      "source_id": "m2",
+                      "target_id": "m1",
+                      "label": "AiZynth step"
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "aizynth-route-2",
+                "title": "AiZynthFinder Route 2",
+                "target_id": "m1",
+                "source": "aizynthfinder",
+                "depth": 5,
+                "precursor_count": 3,
+                "stock_count": 2,
+                "molecules": [
+                  {
+                    "id": "m1",
+                    "name": "Target",
+                    "smiles": "O=C1CCC(=O)N1Br",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "m2",
+                    "name": "Mol 2",
+                    "smiles": "O=C(O)CCC(=O)NBr",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "m3",
+                    "name": "Mol 3",
+                    "smiles": "O=C(CCC(=O)OCc1ccccc1)NBr",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "m4",
+                    "name": "Mol 4",
+                    "smiles": "OCc1ccccc1",
+                    "in_stock": true
+                  },
+                  {
+                    "id": "m5",
+                    "name": "Mol 5",
+                    "smiles": "CCOC(=O)CCC(=O)NBr",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "m6",
+                    "name": "Mol 6",
+                    "smiles": "CCO",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "m7",
+                    "name": "Mol 7",
+                    "smiles": "CC(=O)O",
+                    "in_stock": true
+                  },
+                  {
+                    "id": "m8",
+                    "name": "Mol 8",
+                    "smiles": "COC(=O)CCC(=O)NBr",
+                    "in_stock": false
+                  }
+                ],
+                "steps": [
+                  {
+                    "id": "s1",
+                    "product_id": "m6",
+                    "precursor_ids": [
+                      "m7"
+                    ],
+                    "reaction_smiles": "CC(=O)O>>CCO",
+                    "policy_score": 0.09149999916553497,
+                    "template": "AiZynth step"
+                  },
+                  {
+                    "id": "s2",
+                    "product_id": "m5",
+                    "precursor_ids": [
+                      "m6",
+                      "m8"
+                    ],
+                    "reaction_smiles": "CCO.COC(=O)CCC(=O)NBr>>CCOC(=O)CCC(=O)NBr",
+                    "policy_score": 0.0015999999595806003,
+                    "template": "AiZynth step"
+                  },
+                  {
+                    "id": "s3",
+                    "product_id": "m3",
+                    "precursor_ids": [
+                      "m4",
+                      "m5"
+                    ],
+                    "reaction_smiles": "OCc1ccccc1.CCOC(=O)CCC(=O)NBr>>O=C(CCC(=O)OCc1ccccc1)NBr",
+                    "policy_score": 0.00430000014603138,
+                    "template": "AiZynth step"
+                  },
+                  {
+                    "id": "s4",
+                    "product_id": "m2",
+                    "precursor_ids": [
+                      "m3"
+                    ],
+                    "reaction_smiles": "O=C(CCC(=O)OCc1ccccc1)NBr>>O=C(O)CCC(=O)NBr",
+                    "policy_score": 0.08150000125169754,
+                    "template": "AiZynth step"
+                  },
+                  {
+                    "id": "s5",
+                    "product_id": "m1",
+                    "precursor_ids": [
+                      "m2"
+                    ],
+                    "reaction_smiles": "O=C(O)CCC(=O)NBr>>O=C1CCC(=O)N1Br",
+                    "policy_score": 0.03610000014305115,
+                    "template": "AiZynth step"
+                  }
+                ],
+                "layout": {
+                  "nodes": {
+                    "m1": {
+                      "id": "m1",
+                      "label": "Target\nO=C1CCC(=O)N1Br",
+                      "x": 1340,
+                      "y": 40,
+                      "in_stock": false
+                    },
+                    "m2": {
+                      "id": "m2",
+                      "label": "Mol 2\nO=C(O)CCC(=O)NBr",
+                      "x": 1080,
+                      "y": 40,
+                      "in_stock": false
+                    },
+                    "m3": {
+                      "id": "m3",
+                      "label": "Mol 3\nO=C(CCC(=O)OCc1ccccc1)NBr",
+                      "x": 820,
+                      "y": 40,
+                      "in_stock": false
+                    },
+                    "m4": {
+                      "id": "m4",
+                      "label": "Mol 4\nOCc1ccccc1",
+                      "x": 560,
+                      "y": 40,
+                      "in_stock": true
+                    },
+                    "m5": {
+                      "id": "m5",
+                      "label": "Mol 5\nCCOC(=O)CCC(=O)NBr",
+                      "x": 560,
+                      "y": 150,
+                      "in_stock": false
+                    },
+                    "m6": {
+                      "id": "m6",
+                      "label": "Mol 6\nCCO",
+                      "x": 300,
+                      "y": 40,
+                      "in_stock": false
+                    },
+                    "m8": {
+                      "id": "m8",
+                      "label": "Mol 8\nCOC(=O)CCC(=O)NBr",
+                      "x": 300,
+                      "y": 150,
+                      "in_stock": false
+                    },
+                    "m7": {
+                      "id": "m7",
+                      "label": "Mol 7\nCC(=O)O",
+                      "x": 40,
+                      "y": 40,
+                      "in_stock": true
+                    }
+                  },
+                  "edges": [
+                    {
+                      "source_id": "m7",
+                      "target_id": "m6",
+                      "label": "AiZynth step"
+                    },
+                    {
+                      "source_id": "m6",
+                      "target_id": "m5",
+                      "label": "AiZynth step"
+                    },
+                    {
+                      "source_id": "m8",
+                      "target_id": "m5",
+                      "label": "AiZynth step"
+                    },
+                    {
+                      "source_id": "m4",
+                      "target_id": "m3",
+                      "label": "AiZynth step"
+                    },
+                    {
+                      "source_id": "m5",
+                      "target_id": "m3",
+                      "label": "AiZynth step"
+                    },
+                    {
+                      "source_id": "m3",
+                      "target_id": "m2",
+                      "label": "AiZynth step"
+                    },
+                    {
+                      "source_id": "m2",
+                      "target_id": "m1",
+                      "label": "AiZynth step"
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "aizynth-route-3",
+                "title": "AiZynthFinder Route 3",
+                "target_id": "m1",
+                "source": "aizynthfinder",
+                "depth": 6,
+                "precursor_count": 3,
+                "stock_count": 2,
+                "molecules": [
+                  {
+                    "id": "m1",
+                    "name": "Target",
+                    "smiles": "O=C1CCC(=O)N1Br",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "m2",
+                    "name": "Mol 2",
+                    "smiles": "O=C(O)CCC(=O)NBr",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "m3",
+                    "name": "Mol 3",
+                    "smiles": "O=C(CCC(=O)OCc1ccccc1)NBr",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "m4",
+                    "name": "Mol 4",
+                    "smiles": "OCc1ccccc1",
+                    "in_stock": true
+                  },
+                  {
+                    "id": "m5",
+                    "name": "Mol 5",
+                    "smiles": "CCOC(=O)CCC(=O)NBr",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "m6",
+                    "name": "Mol 6",
+                    "smiles": "CCO",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "m7",
+                    "name": "Mol 7",
+                    "smiles": "CC(=O)O",
+                    "in_stock": true
+                  },
+                  {
+                    "id": "m8",
+                    "name": "Mol 8",
+                    "smiles": "COC(=O)CCC(=O)NBr",
+                    "in_stock": false
+                  },
+                  {
+                    "id": "m9",
+                    "name": "Mol 9",
+                    "smiles": "COC(=O)C=CC(=O)NBr",
+                    "in_stock": false
+                  }
+                ],
+                "steps": [
+                  {
+                    "id": "s1",
+                    "product_id": "m6",
+                    "precursor_ids": [
+                      "m7"
+                    ],
+                    "reaction_smiles": "CC(=O)O>>CCO",
+                    "policy_score": 0.09149999916553497,
+                    "template": "AiZynth step"
+                  },
+                  {
+                    "id": "s2",
+                    "product_id": "m8",
+                    "precursor_ids": [
+                      "m9"
+                    ],
+                    "reaction_smiles": "COC(=O)C=CC(=O)NBr>>COC(=O)CCC(=O)NBr",
+                    "policy_score": 0.003800000064074993,
+                    "template": "AiZynth step"
+                  },
+                  {
+                    "id": "s3",
+                    "product_id": "m5",
+                    "precursor_ids": [
+                      "m6",
+                      "m8"
+                    ],
+                    "reaction_smiles": "CCO.COC(=O)CCC(=O)NBr>>CCOC(=O)CCC(=O)NBr",
+                    "policy_score": 0.0015999999595806003,
+                    "template": "AiZynth step"
+                  },
+                  {
+                    "id": "s4",
+                    "product_id": "m3",
+                    "precursor_ids": [
+                      "m4",
+                      "m5"
+                    ],
+                    "reaction_smiles": "OCc1ccccc1.CCOC(=O)CCC(=O)NBr>>O=C(CCC(=O)OCc1ccccc1)NBr",
+                    "policy_score": 0.00430000014603138,
+                    "template": "AiZynth step"
+                  },
+                  {
+                    "id": "s5",
+                    "product_id": "m2",
+                    "precursor_ids": [
+                      "m3"
+                    ],
+                    "reaction_smiles": "O=C(CCC(=O)OCc1ccccc1)NBr>>O=C(O)CCC(=O)NBr",
+                    "policy_score": 0.08150000125169754,
+                    "template": "AiZynth step"
+                  },
+                  {
+                    "id": "s6",
+                    "product_id": "m1",
+                    "precursor_ids": [
+                      "m2"
+                    ],
+                    "reaction_smiles": "O=C(O)CCC(=O)NBr>>O=C1CCC(=O)N1Br",
+                    "policy_score": 0.03610000014305115,
+                    "template": "AiZynth step"
+                  }
+                ],
+                "layout": {
+                  "nodes": {
+                    "m1": {
+                      "id": "m1",
+                      "label": "Target\nO=C1CCC(=O)N1Br",
+                      "x": 1340,
+                      "y": 40,
+                      "in_stock": false
+                    },
+                    "m2": {
+                      "id": "m2",
+                      "label": "Mol 2\nO=C(O)CCC(=O)NBr",
+                      "x": 1080,
+                      "y": 40,
+                      "in_stock": false
+                    },
+                    "m3": {
+                      "id": "m3",
+                      "label": "Mol 3\nO=C(CCC(=O)OCc1ccccc1)NBr",
+                      "x": 820,
+                      "y": 40,
+                      "in_stock": false
+                    },
+                    "m4": {
+                      "id": "m4",
+                      "label": "Mol 4\nOCc1ccccc1",
+                      "x": 560,
+                      "y": 40,
+                      "in_stock": true
+                    },
+                    "m5": {
+                      "id": "m5",
+                      "label": "Mol 5\nCCOC(=O)CCC(=O)NBr",
+                      "x": 560,
+                      "y": 150,
+                      "in_stock": false
+                    },
+                    "m6": {
+                      "id": "m6",
+                      "label": "Mol 6\nCCO",
+                      "x": 300,
+                      "y": 40,
+                      "in_stock": false
+                    },
+                    "m8": {
+                      "id": "m8",
+                      "label": "Mol 8\nCOC(=O)CCC(=O)NBr",
+                      "x": 300,
+                      "y": 150,
+                      "in_stock": false
+                    },
+                    "m7": {
+                      "id": "m7",
+                      "label": "Mol 7\nCC(=O)O",
+                      "x": 40,
+                      "y": 40,
+                      "in_stock": true
+                    },
+                    "m9": {
+                      "id": "m9",
+                      "label": "Mol 9\nCOC(=O)C=CC(=O)NBr",
+                      "x": 40,
+                      "y": 150,
+                      "in_stock": false
+                    }
+                  },
+                  "edges": [
+                    {
+                      "source_id": "m7",
+                      "target_id": "m6",
+                      "label": "AiZynth step"
+                    },
+                    {
+                      "source_id": "m9",
+                      "target_id": "m8",
+                      "label": "AiZynth step"
+                    },
+                    {
+                      "source_id": "m6",
+                      "target_id": "m5",
+                      "label": "AiZynth step"
+                    },
+                    {
+                      "source_id": "m8",
+                      "target_id": "m5",
+                      "label": "AiZynth step"
+                    },
+                    {
+                      "source_id": "m4",
+                      "target_id": "m3",
+                      "label": "AiZynth step"
+                    },
+                    {
+                      "source_id": "m5",
+                      "target_id": "m3",
+                      "label": "AiZynth step"
+                    },
+                    {
+                      "source_id": "m3",
+                      "target_id": "m2",
+                      "label": "AiZynth step"
+                    },
+                    {
+                      "source_id": "m2",
+                      "target_id": "m1",
+                      "label": "AiZynth step"
+                    }
+                  ]
+                }
+              }
+            ],
+            "route_scores": {
+              "aizynth-route-1": {
+                "route_id": "aizynth-route-1",
+                "route_score": 0.418,
+                "model_score": 0.004,
+                "stock_score": 1,
+                "step_score": 0.333,
+                "explanation": "model=0.00, stock=1.00, steps=0.33; V1 score uses model confidence, purchasable precursors, and route length."
+              },
+              "aizynth-route-2": {
+                "route_id": "aizynth-route-2",
+                "route_score": 0.293,
+                "model_score": 0.043,
+                "stock_score": 0.667,
+                "step_score": 0.2,
+                "explanation": "model=0.04, stock=0.67, steps=0.20; V1 score uses model confidence, purchasable precursors, and route length."
+              },
+              "aizynth-route-3": {
+                "route_id": "aizynth-route-3",
+                "route_score": 0.283,
+                "model_score": 0.036,
+                "stock_score": 0.667,
+                "step_score": 0.167,
+                "explanation": "model=0.04, stock=0.67, steps=0.17; V1 score uses model confidence, purchasable precursors, and route length."
+              }
+            },
+            "feasibility": {
+              "aizynth-route-1": {
+                "route_id": "aizynth-route-1",
+                "heuristic_overall_yield_percent": 19.5,
+                "heuristic_feasibility_score": 0.457,
+                "estimated_overall_yield_percent": 19.5,
+                "route_feasibility_score": 0.457,
+                "method": "heuristic_route_feasibility",
+                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "risk_flags": [
+                  "s1: 反应类型置信度低",
+                  "s2: 反应类型置信度低",
+                  "s3: 反应类型置信度低"
+                ],
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+              },
+              "aizynth-route-2": {
+                "route_id": "aizynth-route-2",
+                "heuristic_overall_yield_percent": 6.7,
+                "heuristic_feasibility_score": 0.267,
+                "estimated_overall_yield_percent": 6.7,
+                "route_feasibility_score": 0.267,
+                "method": "heuristic_route_feasibility",
+                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "risk_flags": [
+                  "s1: 反应类型置信度低",
+                  "s2: 反应类型置信度低",
+                  "s3: 反应类型置信度低",
+                  "s4: 反应类型置信度低",
+                  "s5: 反应类型置信度低"
+                ],
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+              },
+              "aizynth-route-3": {
+                "route_id": "aizynth-route-3",
+                "heuristic_overall_yield_percent": 3.8,
+                "heuristic_feasibility_score": 0.246,
+                "estimated_overall_yield_percent": 3.8,
+                "route_feasibility_score": 0.246,
+                "method": "heuristic_route_feasibility",
+                "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+                "risk_flags": [
+                  "s1: 反应类型置信度低",
+                  "s2: 反应类型置信度低",
+                  "s3: 反应类型置信度低",
+                  "s4: 反应类型置信度低",
+                  "s5: 反应类型置信度低",
+                  "s6: 反应类型置信度低"
+                ],
+                "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+              }
+            },
+            "engine": "aizynthfinder"
+          }
+        }
+      }
     }
   ],
-  "route_candidate_sets": [],
+  "route_candidate_sets": [
+    {
+      "id": "rcs-1781939485447",
+      "target_smiles": "O=C(O)c1ccccc1O",
+      "status": "Loaded 3 route(s) from AiZynthFinder via WSL.",
+      "created_at": "2026-06-20T07:11:25.447Z",
+      "candidates": [
+        {
+          "id": "aizynth-route-1",
+          "title": "AiZynthFinder Route 1",
+          "target_id": "m1",
+          "source": "aizynthfinder",
+          "depth": 1,
+          "precursor_count": 1,
+          "stock_count": 1,
+          "molecules": [
+            {
+              "id": "m1",
+              "name": "Target",
+              "smiles": "O=C(O)c1ccccc1O",
+              "in_stock": false
+            },
+            {
+              "id": "m2",
+              "name": "Mol 2",
+              "smiles": "COc1ccccc1C(=O)O",
+              "in_stock": true
+            }
+          ],
+          "steps": [
+            {
+              "id": "s1",
+              "product_id": "m1",
+              "precursor_ids": [
+                "m2"
+              ],
+              "reaction_smiles": "COc1ccccc1C(=O)O>>O=C(O)c1ccccc1O",
+              "policy_score": 0.3034999966621399,
+              "template": "AiZynth step"
+            }
+          ],
+          "layout": {
+            "nodes": {
+              "m1": {
+                "id": "m1",
+                "label": "Target\nO=C(O)c1ccccc1O",
+                "x": 300,
+                "y": 40,
+                "in_stock": false
+              },
+              "m2": {
+                "id": "m2",
+                "label": "Mol 2\nCOc1ccccc1C(=O)O",
+                "x": 40,
+                "y": 40,
+                "in_stock": true
+              }
+            },
+            "edges": [
+              {
+                "source_id": "m2",
+                "target_id": "m1",
+                "label": "AiZynth step"
+              }
+            ]
+          }
+        },
+        {
+          "id": "aizynth-route-2",
+          "title": "AiZynthFinder Route 2",
+          "target_id": "m1",
+          "source": "aizynthfinder",
+          "depth": 1,
+          "precursor_count": 1,
+          "stock_count": 1,
+          "molecules": [
+            {
+              "id": "m1",
+              "name": "Target",
+              "smiles": "O=C(O)c1ccccc1O",
+              "in_stock": false
+            },
+            {
+              "id": "m2",
+              "name": "Mol 2",
+              "smiles": "COC(=O)c1ccccc1O",
+              "in_stock": true
+            }
+          ],
+          "steps": [
+            {
+              "id": "s1",
+              "product_id": "m1",
+              "precursor_ids": [
+                "m2"
+              ],
+              "reaction_smiles": "COC(=O)c1ccccc1O>>O=C(O)c1ccccc1O",
+              "policy_score": 0.14350000023841858,
+              "template": "AiZynth step"
+            }
+          ],
+          "layout": {
+            "nodes": {
+              "m1": {
+                "id": "m1",
+                "label": "Target\nO=C(O)c1ccccc1O",
+                "x": 300,
+                "y": 40,
+                "in_stock": false
+              },
+              "m2": {
+                "id": "m2",
+                "label": "Mol 2\nCOC(=O)c1ccccc1O",
+                "x": 40,
+                "y": 40,
+                "in_stock": true
+              }
+            },
+            "edges": [
+              {
+                "source_id": "m2",
+                "target_id": "m1",
+                "label": "AiZynth step"
+              }
+            ]
+          }
+        },
+        {
+          "id": "aizynth-route-3",
+          "title": "AiZynthFinder Route 3",
+          "target_id": "m1",
+          "source": "aizynthfinder",
+          "depth": 1,
+          "precursor_count": 1,
+          "stock_count": 1,
+          "molecules": [
+            {
+              "id": "m1",
+              "name": "Target",
+              "smiles": "O=C(O)c1ccccc1O",
+              "in_stock": false
+            },
+            {
+              "id": "m2",
+              "name": "Mol 2",
+              "smiles": "O=C(O)c1ccccc1OCc1ccccc1",
+              "in_stock": true
+            }
+          ],
+          "steps": [
+            {
+              "id": "s1",
+              "product_id": "m1",
+              "precursor_ids": [
+                "m2"
+              ],
+              "reaction_smiles": "O=C(O)c1ccccc1OCc1ccccc1>>O=C(O)c1ccccc1O",
+              "policy_score": 0.03240000084042549,
+              "template": "AiZynth step"
+            }
+          ],
+          "layout": {
+            "nodes": {
+              "m1": {
+                "id": "m1",
+                "label": "Target\nO=C(O)c1ccccc1O",
+                "x": 300,
+                "y": 40,
+                "in_stock": false
+              },
+              "m2": {
+                "id": "m2",
+                "label": "Mol 2\nO=C(O)c1ccccc1OCc1ccccc1",
+                "x": 40,
+                "y": 40,
+                "in_stock": true
+              }
+            },
+            "edges": [
+              {
+                "source_id": "m2",
+                "target_id": "m1",
+                "label": "AiZynth step"
+              }
+            ]
+          }
+        }
+      ],
+      "route_scores": {
+        "aizynth-route-1": {
+          "route_id": "aizynth-route-1",
+          "route_score": 0.687,
+          "model_score": 0.303,
+          "stock_score": 1,
+          "step_score": 1,
+          "explanation": "model=0.30, stock=1.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
+        },
+        "aizynth-route-2": {
+          "route_id": "aizynth-route-2",
+          "route_score": 0.615,
+          "model_score": 0.144,
+          "stock_score": 1,
+          "step_score": 1,
+          "explanation": "model=0.14, stock=1.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
+        },
+        "aizynth-route-3": {
+          "route_id": "aizynth-route-3",
+          "route_score": 0.565,
+          "model_score": 0.032,
+          "stock_score": 1,
+          "step_score": 1,
+          "explanation": "model=0.03, stock=1.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
+        }
+      },
+      "feasibility": {
+        "aizynth-route-1": {
+          "route_id": "aizynth-route-1",
+          "heuristic_overall_yield_percent": 57,
+          "heuristic_feasibility_score": 0.763,
+          "estimated_overall_yield_percent": 57,
+          "route_feasibility_score": 0.763,
+          "method": "heuristic_route_feasibility",
+          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "risk_flags": [
+            "s1: 反应类型置信度低"
+          ],
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+        },
+        "aizynth-route-2": {
+          "route_id": "aizynth-route-2",
+          "heuristic_overall_yield_percent": 57,
+          "heuristic_feasibility_score": 0.763,
+          "estimated_overall_yield_percent": 57,
+          "route_feasibility_score": 0.763,
+          "method": "heuristic_route_feasibility",
+          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "risk_flags": [
+            "s1: 反应类型置信度低"
+          ],
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+        },
+        "aizynth-route-3": {
+          "route_id": "aizynth-route-3",
+          "heuristic_overall_yield_percent": 57,
+          "heuristic_feasibility_score": 0.763,
+          "estimated_overall_yield_percent": 57,
+          "route_feasibility_score": 0.763,
+          "method": "heuristic_route_feasibility",
+          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "risk_flags": [
+            "s1: 反应类型置信度低"
+          ],
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+        }
+      },
+      "used_fallback": false
+    },
+    {
+      "id": "rcs-1781939624595",
+      "target_smiles": "CC(=O)OC(C)=O",
+      "status": "Loaded 3 route(s) from AiZynthFinder via WSL.",
+      "created_at": "2026-06-20T07:13:44.595Z",
+      "candidates": [
+        {
+          "id": "aizynth-route-1",
+          "title": "AiZynthFinder Route 1",
+          "target_id": "m1",
+          "source": "aizynthfinder",
+          "depth": 1,
+          "precursor_count": 2,
+          "stock_count": 2,
+          "molecules": [
+            {
+              "id": "m1",
+              "name": "Target",
+              "smiles": "CC(=O)OC(C)=O",
+              "in_stock": false
+            },
+            {
+              "id": "m2",
+              "name": "Mol 2",
+              "smiles": "CC(=O)O",
+              "in_stock": true
+            },
+            {
+              "id": "m3",
+              "name": "Mol 3",
+              "smiles": "CCC(=O)OC(C)=O",
+              "in_stock": true
+            }
+          ],
+          "steps": [
+            {
+              "id": "s1",
+              "product_id": "m1",
+              "precursor_ids": [
+                "m2",
+                "m3"
+              ],
+              "reaction_smiles": "CC(=O)O.CCC(=O)OC(C)=O>>CC(=O)OC(C)=O",
+              "policy_score": 0.0052999998442828655,
+              "template": "AiZynth step"
+            }
+          ],
+          "layout": {
+            "nodes": {
+              "m1": {
+                "id": "m1",
+                "label": "Target\nCC(=O)OC(C)=O",
+                "x": 300,
+                "y": 40,
+                "in_stock": false
+              },
+              "m2": {
+                "id": "m2",
+                "label": "Mol 2\nCC(=O)O",
+                "x": 40,
+                "y": 40,
+                "in_stock": true
+              },
+              "m3": {
+                "id": "m3",
+                "label": "Mol 3\nCCC(=O)OC(C)=O",
+                "x": 40,
+                "y": 150,
+                "in_stock": true
+              }
+            },
+            "edges": [
+              {
+                "source_id": "m2",
+                "target_id": "m1",
+                "label": "AiZynth step"
+              },
+              {
+                "source_id": "m3",
+                "target_id": "m1",
+                "label": "AiZynth step"
+              }
+            ]
+          }
+        },
+        {
+          "id": "aizynth-route-2",
+          "title": "AiZynthFinder Route 2",
+          "target_id": "m1",
+          "source": "aizynthfinder",
+          "depth": 1,
+          "precursor_count": 2,
+          "stock_count": 2,
+          "molecules": [
+            {
+              "id": "m1",
+              "name": "Target",
+              "smiles": "CC(=O)OC(C)=O",
+              "in_stock": false
+            },
+            {
+              "id": "m2",
+              "name": "Mol 2",
+              "smiles": "CC(=O)O",
+              "in_stock": true
+            },
+            {
+              "id": "m3",
+              "name": "Mol 3",
+              "smiles": "CCC(=O)OC(C)=O",
+              "in_stock": true
+            }
+          ],
+          "steps": [
+            {
+              "id": "s1",
+              "product_id": "m1",
+              "precursor_ids": [
+                "m2",
+                "m3"
+              ],
+              "reaction_smiles": "CC(=O)O.CCC(=O)OC(C)=O>>CC(=O)OC(C)=O",
+              "policy_score": 0.0052999998442828655,
+              "template": "AiZynth step"
+            }
+          ],
+          "layout": {
+            "nodes": {
+              "m1": {
+                "id": "m1",
+                "label": "Target\nCC(=O)OC(C)=O",
+                "x": 300,
+                "y": 40,
+                "in_stock": false
+              },
+              "m2": {
+                "id": "m2",
+                "label": "Mol 2\nCC(=O)O",
+                "x": 40,
+                "y": 40,
+                "in_stock": true
+              },
+              "m3": {
+                "id": "m3",
+                "label": "Mol 3\nCCC(=O)OC(C)=O",
+                "x": 40,
+                "y": 150,
+                "in_stock": true
+              }
+            },
+            "edges": [
+              {
+                "source_id": "m2",
+                "target_id": "m1",
+                "label": "AiZynth step"
+              },
+              {
+                "source_id": "m3",
+                "target_id": "m1",
+                "label": "AiZynth step"
+              }
+            ]
+          }
+        },
+        {
+          "id": "aizynth-route-3",
+          "title": "AiZynthFinder Route 3",
+          "target_id": "m1",
+          "source": "aizynthfinder",
+          "depth": 0,
+          "precursor_count": 1,
+          "stock_count": 0,
+          "molecules": [
+            {
+              "id": "m1",
+              "name": "Target",
+              "smiles": "CC(=O)OC(C)=O",
+              "in_stock": false
+            }
+          ],
+          "steps": [],
+          "layout": {
+            "nodes": {
+              "m1": {
+                "id": "m1",
+                "label": "Target\nCC(=O)OC(C)=O",
+                "x": 40,
+                "y": 40,
+                "in_stock": false
+              }
+            },
+            "edges": []
+          }
+        }
+      ],
+      "route_scores": {
+        "aizynth-route-1": {
+          "route_id": "aizynth-route-1",
+          "route_score": 0.552,
+          "model_score": 0.005,
+          "stock_score": 1,
+          "step_score": 1,
+          "explanation": "model=0.01, stock=1.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
+        },
+        "aizynth-route-2": {
+          "route_id": "aizynth-route-2",
+          "route_score": 0.552,
+          "model_score": 0.005,
+          "stock_score": 1,
+          "step_score": 1,
+          "explanation": "model=0.01, stock=1.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
+        },
+        "aizynth-route-3": {
+          "route_id": "aizynth-route-3",
+          "route_score": 0.448,
+          "model_score": 0.55,
+          "stock_score": 0,
+          "step_score": 1,
+          "explanation": "model=0.55, stock=0.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
+        }
+      },
+      "feasibility": {
+        "aizynth-route-1": {
+          "route_id": "aizynth-route-1",
+          "heuristic_overall_yield_percent": 60,
+          "heuristic_feasibility_score": 0.78,
+          "estimated_overall_yield_percent": 60,
+          "route_feasibility_score": 0.78,
+          "method": "heuristic_route_feasibility",
+          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "risk_flags": [
+            "s1: 反应类型置信度低"
+          ],
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+        },
+        "aizynth-route-2": {
+          "route_id": "aizynth-route-2",
+          "heuristic_overall_yield_percent": 60,
+          "heuristic_feasibility_score": 0.78,
+          "estimated_overall_yield_percent": 60,
+          "route_feasibility_score": 0.78,
+          "method": "heuristic_route_feasibility",
+          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "risk_flags": [
+            "s1: 反应类型置信度低"
+          ],
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+        },
+        "aizynth-route-3": {
+          "route_id": "aizynth-route-3",
+          "heuristic_overall_yield_percent": 0,
+          "heuristic_feasibility_score": 0,
+          "estimated_overall_yield_percent": 0,
+          "route_feasibility_score": 0,
+          "method": "heuristic_route_feasibility",
+          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "risk_flags": [
+            "路线没有反应步骤"
+          ],
+          "note": "无法评分。"
+        }
+      },
+      "used_fallback": false
+    },
+    {
+      "id": "rcs-1781939702640",
+      "target_smiles": "c1ccccc1[Br]",
+      "status": "Loaded 3 route(s) from AiZynthFinder via WSL.",
+      "created_at": "2026-06-20T07:15:02.640Z",
+      "candidates": [
+        {
+          "id": "aizynth-route-1",
+          "title": "AiZynthFinder Route 1",
+          "target_id": "m1",
+          "source": "aizynthfinder",
+          "depth": 1,
+          "precursor_count": 1,
+          "stock_count": 1,
+          "molecules": [
+            {
+              "id": "m1",
+              "name": "Target",
+              "smiles": "Brc1ccccc1",
+              "in_stock": false
+            },
+            {
+              "id": "m2",
+              "name": "Mol 2",
+              "smiles": "Nc1ccccc1Br",
+              "in_stock": true
+            }
+          ],
+          "steps": [
+            {
+              "id": "s1",
+              "product_id": "m1",
+              "precursor_ids": [
+                "m2"
+              ],
+              "reaction_smiles": "Nc1ccccc1Br>>Brc1ccccc1",
+              "policy_score": 0.07109999656677246,
+              "template": "AiZynth step"
+            }
+          ],
+          "layout": {
+            "nodes": {
+              "m1": {
+                "id": "m1",
+                "label": "Target\nBrc1ccccc1",
+                "x": 300,
+                "y": 40,
+                "in_stock": false
+              },
+              "m2": {
+                "id": "m2",
+                "label": "Mol 2\nNc1ccccc1Br",
+                "x": 40,
+                "y": 40,
+                "in_stock": true
+              }
+            },
+            "edges": [
+              {
+                "source_id": "m2",
+                "target_id": "m1",
+                "label": "AiZynth step"
+              }
+            ]
+          }
+        },
+        {
+          "id": "aizynth-route-2",
+          "title": "AiZynthFinder Route 2",
+          "target_id": "m1",
+          "source": "aizynthfinder",
+          "depth": 1,
+          "precursor_count": 2,
+          "stock_count": 2,
+          "molecules": [
+            {
+              "id": "m1",
+              "name": "Target",
+              "smiles": "Brc1ccccc1",
+              "in_stock": false
+            },
+            {
+              "id": "m2",
+              "name": "Mol 2",
+              "smiles": "c1ccccc1",
+              "in_stock": true
+            },
+            {
+              "id": "m3",
+              "name": "Mol 3",
+              "smiles": "O=C1CCC(=O)N1Br",
+              "in_stock": true
+            }
+          ],
+          "steps": [
+            {
+              "id": "s1",
+              "product_id": "m1",
+              "precursor_ids": [
+                "m2",
+                "m3"
+              ],
+              "reaction_smiles": "c1ccccc1.O=C1CCC(=O)N1Br>>Brc1ccccc1",
+              "policy_score": 0.041600000113248825,
+              "template": "AiZynth step"
+            }
+          ],
+          "layout": {
+            "nodes": {
+              "m1": {
+                "id": "m1",
+                "label": "Target\nBrc1ccccc1",
+                "x": 300,
+                "y": 40,
+                "in_stock": false
+              },
+              "m2": {
+                "id": "m2",
+                "label": "Mol 2\nc1ccccc1",
+                "x": 40,
+                "y": 40,
+                "in_stock": true
+              },
+              "m3": {
+                "id": "m3",
+                "label": "Mol 3\nO=C1CCC(=O)N1Br",
+                "x": 40,
+                "y": 150,
+                "in_stock": true
+              }
+            },
+            "edges": [
+              {
+                "source_id": "m2",
+                "target_id": "m1",
+                "label": "AiZynth step"
+              },
+              {
+                "source_id": "m3",
+                "target_id": "m1",
+                "label": "AiZynth step"
+              }
+            ]
+          }
+        },
+        {
+          "id": "aizynth-route-3",
+          "title": "AiZynthFinder Route 3",
+          "target_id": "m1",
+          "source": "aizynthfinder",
+          "depth": 1,
+          "precursor_count": 1,
+          "stock_count": 1,
+          "molecules": [
+            {
+              "id": "m1",
+              "name": "Target",
+              "smiles": "Brc1ccccc1",
+              "in_stock": false
+            },
+            {
+              "id": "m2",
+              "name": "Mol 2",
+              "smiles": "Brc1ccccc1Br",
+              "in_stock": true
+            }
+          ],
+          "steps": [
+            {
+              "id": "s1",
+              "product_id": "m1",
+              "precursor_ids": [
+                "m2"
+              ],
+              "reaction_smiles": "Brc1ccccc1Br>>Brc1ccccc1",
+              "policy_score": 0.009399999864399433,
+              "template": "AiZynth step"
+            }
+          ],
+          "layout": {
+            "nodes": {
+              "m1": {
+                "id": "m1",
+                "label": "Target\nBrc1ccccc1",
+                "x": 300,
+                "y": 40,
+                "in_stock": false
+              },
+              "m2": {
+                "id": "m2",
+                "label": "Mol 2\nBrc1ccccc1Br",
+                "x": 40,
+                "y": 40,
+                "in_stock": true
+              }
+            },
+            "edges": [
+              {
+                "source_id": "m2",
+                "target_id": "m1",
+                "label": "AiZynth step"
+              }
+            ]
+          }
+        }
+      ],
+      "route_scores": {
+        "aizynth-route-1": {
+          "route_id": "aizynth-route-1",
+          "route_score": 0.582,
+          "model_score": 0.071,
+          "stock_score": 1,
+          "step_score": 1,
+          "explanation": "model=0.07, stock=1.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
+        },
+        "aizynth-route-2": {
+          "route_id": "aizynth-route-2",
+          "route_score": 0.569,
+          "model_score": 0.042,
+          "stock_score": 1,
+          "step_score": 1,
+          "explanation": "model=0.04, stock=1.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
+        },
+        "aizynth-route-3": {
+          "route_id": "aizynth-route-3",
+          "route_score": 0.554,
+          "model_score": 0.009,
+          "stock_score": 1,
+          "step_score": 1,
+          "explanation": "model=0.01, stock=1.00, steps=1.00; V1 score uses model confidence, purchasable precursors, and route length."
+        }
+      },
+      "feasibility": {
+        "aizynth-route-1": {
+          "route_id": "aizynth-route-1",
+          "heuristic_overall_yield_percent": 57,
+          "heuristic_feasibility_score": 0.763,
+          "estimated_overall_yield_percent": 57,
+          "route_feasibility_score": 0.763,
+          "method": "heuristic_route_feasibility",
+          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "risk_flags": [
+            "s1: 反应类型置信度低"
+          ],
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+        },
+        "aizynth-route-2": {
+          "route_id": "aizynth-route-2",
+          "heuristic_overall_yield_percent": 60,
+          "heuristic_feasibility_score": 0.78,
+          "estimated_overall_yield_percent": 60,
+          "route_feasibility_score": 0.78,
+          "method": "heuristic_route_feasibility",
+          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "risk_flags": [
+            "s1: 反应类型置信度低"
+          ],
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+        },
+        "aizynth-route-3": {
+          "route_id": "aizynth-route-3",
+          "heuristic_overall_yield_percent": 57,
+          "heuristic_feasibility_score": 0.763,
+          "estimated_overall_yield_percent": 57,
+          "route_feasibility_score": 0.763,
+          "method": "heuristic_route_feasibility",
+          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "risk_flags": [
+            "s1: 反应类型置信度低"
+          ],
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+        }
+      },
+      "used_fallback": false
+    },
+    {
+      "id": "rcs-1781939753691",
+      "target_smiles": "O=C1CCC(=O)N1Br",
+      "status": "Loaded 3 route(s) from AiZynthFinder via WSL.",
+      "created_at": "2026-06-20T07:15:53.691Z",
+      "candidates": [
+        {
+          "id": "aizynth-route-1",
+          "title": "AiZynthFinder Route 1",
+          "target_id": "m1",
+          "source": "aizynthfinder",
+          "depth": 3,
+          "precursor_count": 2,
+          "stock_count": 2,
+          "molecules": [
+            {
+              "id": "m1",
+              "name": "Target",
+              "smiles": "O=C1CCC(=O)N1Br",
+              "in_stock": false
+            },
+            {
+              "id": "m2",
+              "name": "Mol 2",
+              "smiles": "O=C1C=CC(=O)N1Br",
+              "in_stock": false
+            },
+            {
+              "id": "m3",
+              "name": "Mol 3",
+              "smiles": "O=C(O)C=CC(=O)NBr",
+              "in_stock": false
+            },
+            {
+              "id": "m4",
+              "name": "Mol 4",
+              "smiles": "O=CC(=O)O",
+              "in_stock": true
+            },
+            {
+              "id": "m5",
+              "name": "Mol 5",
+              "smiles": "CC(=O)NBr",
+              "in_stock": true
+            }
+          ],
+          "steps": [
+            {
+              "id": "s1",
+              "product_id": "m3",
+              "precursor_ids": [
+                "m4",
+                "m5"
+              ],
+              "reaction_smiles": "O=CC(=O)O.CC(=O)NBr>>O=C(O)C=CC(=O)NBr",
+              "policy_score": 0.004600000102072954,
+              "template": "AiZynth step"
+            },
+            {
+              "id": "s2",
+              "product_id": "m2",
+              "precursor_ids": [
+                "m3"
+              ],
+              "reaction_smiles": "O=C(O)C=CC(=O)NBr>>O=C1C=CC(=O)N1Br",
+              "policy_score": 0.004399999976158142,
+              "template": "AiZynth step"
+            },
+            {
+              "id": "s3",
+              "product_id": "m1",
+              "precursor_ids": [
+                "m2"
+              ],
+              "reaction_smiles": "O=C1C=CC(=O)N1Br>>O=C1CCC(=O)N1Br",
+              "policy_score": 0.00279999990016222,
+              "template": "AiZynth step"
+            }
+          ],
+          "layout": {
+            "nodes": {
+              "m1": {
+                "id": "m1",
+                "label": "Target\nO=C1CCC(=O)N1Br",
+                "x": 820,
+                "y": 40,
+                "in_stock": false
+              },
+              "m2": {
+                "id": "m2",
+                "label": "Mol 2\nO=C1C=CC(=O)N1Br",
+                "x": 560,
+                "y": 40,
+                "in_stock": false
+              },
+              "m3": {
+                "id": "m3",
+                "label": "Mol 3\nO=C(O)C=CC(=O)NBr",
+                "x": 300,
+                "y": 40,
+                "in_stock": false
+              },
+              "m4": {
+                "id": "m4",
+                "label": "Mol 4\nO=CC(=O)O",
+                "x": 40,
+                "y": 40,
+                "in_stock": true
+              },
+              "m5": {
+                "id": "m5",
+                "label": "Mol 5\nCC(=O)NBr",
+                "x": 40,
+                "y": 150,
+                "in_stock": true
+              }
+            },
+            "edges": [
+              {
+                "source_id": "m4",
+                "target_id": "m3",
+                "label": "AiZynth step"
+              },
+              {
+                "source_id": "m5",
+                "target_id": "m3",
+                "label": "AiZynth step"
+              },
+              {
+                "source_id": "m3",
+                "target_id": "m2",
+                "label": "AiZynth step"
+              },
+              {
+                "source_id": "m2",
+                "target_id": "m1",
+                "label": "AiZynth step"
+              }
+            ]
+          }
+        },
+        {
+          "id": "aizynth-route-2",
+          "title": "AiZynthFinder Route 2",
+          "target_id": "m1",
+          "source": "aizynthfinder",
+          "depth": 5,
+          "precursor_count": 3,
+          "stock_count": 2,
+          "molecules": [
+            {
+              "id": "m1",
+              "name": "Target",
+              "smiles": "O=C1CCC(=O)N1Br",
+              "in_stock": false
+            },
+            {
+              "id": "m2",
+              "name": "Mol 2",
+              "smiles": "O=C(O)CCC(=O)NBr",
+              "in_stock": false
+            },
+            {
+              "id": "m3",
+              "name": "Mol 3",
+              "smiles": "O=C(CCC(=O)OCc1ccccc1)NBr",
+              "in_stock": false
+            },
+            {
+              "id": "m4",
+              "name": "Mol 4",
+              "smiles": "OCc1ccccc1",
+              "in_stock": true
+            },
+            {
+              "id": "m5",
+              "name": "Mol 5",
+              "smiles": "CCOC(=O)CCC(=O)NBr",
+              "in_stock": false
+            },
+            {
+              "id": "m6",
+              "name": "Mol 6",
+              "smiles": "CCO",
+              "in_stock": false
+            },
+            {
+              "id": "m7",
+              "name": "Mol 7",
+              "smiles": "CC(=O)O",
+              "in_stock": true
+            },
+            {
+              "id": "m8",
+              "name": "Mol 8",
+              "smiles": "COC(=O)CCC(=O)NBr",
+              "in_stock": false
+            }
+          ],
+          "steps": [
+            {
+              "id": "s1",
+              "product_id": "m6",
+              "precursor_ids": [
+                "m7"
+              ],
+              "reaction_smiles": "CC(=O)O>>CCO",
+              "policy_score": 0.09149999916553497,
+              "template": "AiZynth step"
+            },
+            {
+              "id": "s2",
+              "product_id": "m5",
+              "precursor_ids": [
+                "m6",
+                "m8"
+              ],
+              "reaction_smiles": "CCO.COC(=O)CCC(=O)NBr>>CCOC(=O)CCC(=O)NBr",
+              "policy_score": 0.0015999999595806003,
+              "template": "AiZynth step"
+            },
+            {
+              "id": "s3",
+              "product_id": "m3",
+              "precursor_ids": [
+                "m4",
+                "m5"
+              ],
+              "reaction_smiles": "OCc1ccccc1.CCOC(=O)CCC(=O)NBr>>O=C(CCC(=O)OCc1ccccc1)NBr",
+              "policy_score": 0.00430000014603138,
+              "template": "AiZynth step"
+            },
+            {
+              "id": "s4",
+              "product_id": "m2",
+              "precursor_ids": [
+                "m3"
+              ],
+              "reaction_smiles": "O=C(CCC(=O)OCc1ccccc1)NBr>>O=C(O)CCC(=O)NBr",
+              "policy_score": 0.08150000125169754,
+              "template": "AiZynth step"
+            },
+            {
+              "id": "s5",
+              "product_id": "m1",
+              "precursor_ids": [
+                "m2"
+              ],
+              "reaction_smiles": "O=C(O)CCC(=O)NBr>>O=C1CCC(=O)N1Br",
+              "policy_score": 0.03610000014305115,
+              "template": "AiZynth step"
+            }
+          ],
+          "layout": {
+            "nodes": {
+              "m1": {
+                "id": "m1",
+                "label": "Target\nO=C1CCC(=O)N1Br",
+                "x": 1340,
+                "y": 40,
+                "in_stock": false
+              },
+              "m2": {
+                "id": "m2",
+                "label": "Mol 2\nO=C(O)CCC(=O)NBr",
+                "x": 1080,
+                "y": 40,
+                "in_stock": false
+              },
+              "m3": {
+                "id": "m3",
+                "label": "Mol 3\nO=C(CCC(=O)OCc1ccccc1)NBr",
+                "x": 820,
+                "y": 40,
+                "in_stock": false
+              },
+              "m4": {
+                "id": "m4",
+                "label": "Mol 4\nOCc1ccccc1",
+                "x": 560,
+                "y": 40,
+                "in_stock": true
+              },
+              "m5": {
+                "id": "m5",
+                "label": "Mol 5\nCCOC(=O)CCC(=O)NBr",
+                "x": 560,
+                "y": 150,
+                "in_stock": false
+              },
+              "m6": {
+                "id": "m6",
+                "label": "Mol 6\nCCO",
+                "x": 300,
+                "y": 40,
+                "in_stock": false
+              },
+              "m8": {
+                "id": "m8",
+                "label": "Mol 8\nCOC(=O)CCC(=O)NBr",
+                "x": 300,
+                "y": 150,
+                "in_stock": false
+              },
+              "m7": {
+                "id": "m7",
+                "label": "Mol 7\nCC(=O)O",
+                "x": 40,
+                "y": 40,
+                "in_stock": true
+              }
+            },
+            "edges": [
+              {
+                "source_id": "m7",
+                "target_id": "m6",
+                "label": "AiZynth step"
+              },
+              {
+                "source_id": "m6",
+                "target_id": "m5",
+                "label": "AiZynth step"
+              },
+              {
+                "source_id": "m8",
+                "target_id": "m5",
+                "label": "AiZynth step"
+              },
+              {
+                "source_id": "m4",
+                "target_id": "m3",
+                "label": "AiZynth step"
+              },
+              {
+                "source_id": "m5",
+                "target_id": "m3",
+                "label": "AiZynth step"
+              },
+              {
+                "source_id": "m3",
+                "target_id": "m2",
+                "label": "AiZynth step"
+              },
+              {
+                "source_id": "m2",
+                "target_id": "m1",
+                "label": "AiZynth step"
+              }
+            ]
+          }
+        },
+        {
+          "id": "aizynth-route-3",
+          "title": "AiZynthFinder Route 3",
+          "target_id": "m1",
+          "source": "aizynthfinder",
+          "depth": 6,
+          "precursor_count": 3,
+          "stock_count": 2,
+          "molecules": [
+            {
+              "id": "m1",
+              "name": "Target",
+              "smiles": "O=C1CCC(=O)N1Br",
+              "in_stock": false
+            },
+            {
+              "id": "m2",
+              "name": "Mol 2",
+              "smiles": "O=C(O)CCC(=O)NBr",
+              "in_stock": false
+            },
+            {
+              "id": "m3",
+              "name": "Mol 3",
+              "smiles": "O=C(CCC(=O)OCc1ccccc1)NBr",
+              "in_stock": false
+            },
+            {
+              "id": "m4",
+              "name": "Mol 4",
+              "smiles": "OCc1ccccc1",
+              "in_stock": true
+            },
+            {
+              "id": "m5",
+              "name": "Mol 5",
+              "smiles": "CCOC(=O)CCC(=O)NBr",
+              "in_stock": false
+            },
+            {
+              "id": "m6",
+              "name": "Mol 6",
+              "smiles": "CCO",
+              "in_stock": false
+            },
+            {
+              "id": "m7",
+              "name": "Mol 7",
+              "smiles": "CC(=O)O",
+              "in_stock": true
+            },
+            {
+              "id": "m8",
+              "name": "Mol 8",
+              "smiles": "COC(=O)CCC(=O)NBr",
+              "in_stock": false
+            },
+            {
+              "id": "m9",
+              "name": "Mol 9",
+              "smiles": "COC(=O)C=CC(=O)NBr",
+              "in_stock": false
+            }
+          ],
+          "steps": [
+            {
+              "id": "s1",
+              "product_id": "m6",
+              "precursor_ids": [
+                "m7"
+              ],
+              "reaction_smiles": "CC(=O)O>>CCO",
+              "policy_score": 0.09149999916553497,
+              "template": "AiZynth step"
+            },
+            {
+              "id": "s2",
+              "product_id": "m8",
+              "precursor_ids": [
+                "m9"
+              ],
+              "reaction_smiles": "COC(=O)C=CC(=O)NBr>>COC(=O)CCC(=O)NBr",
+              "policy_score": 0.003800000064074993,
+              "template": "AiZynth step"
+            },
+            {
+              "id": "s3",
+              "product_id": "m5",
+              "precursor_ids": [
+                "m6",
+                "m8"
+              ],
+              "reaction_smiles": "CCO.COC(=O)CCC(=O)NBr>>CCOC(=O)CCC(=O)NBr",
+              "policy_score": 0.0015999999595806003,
+              "template": "AiZynth step"
+            },
+            {
+              "id": "s4",
+              "product_id": "m3",
+              "precursor_ids": [
+                "m4",
+                "m5"
+              ],
+              "reaction_smiles": "OCc1ccccc1.CCOC(=O)CCC(=O)NBr>>O=C(CCC(=O)OCc1ccccc1)NBr",
+              "policy_score": 0.00430000014603138,
+              "template": "AiZynth step"
+            },
+            {
+              "id": "s5",
+              "product_id": "m2",
+              "precursor_ids": [
+                "m3"
+              ],
+              "reaction_smiles": "O=C(CCC(=O)OCc1ccccc1)NBr>>O=C(O)CCC(=O)NBr",
+              "policy_score": 0.08150000125169754,
+              "template": "AiZynth step"
+            },
+            {
+              "id": "s6",
+              "product_id": "m1",
+              "precursor_ids": [
+                "m2"
+              ],
+              "reaction_smiles": "O=C(O)CCC(=O)NBr>>O=C1CCC(=O)N1Br",
+              "policy_score": 0.03610000014305115,
+              "template": "AiZynth step"
+            }
+          ],
+          "layout": {
+            "nodes": {
+              "m1": {
+                "id": "m1",
+                "label": "Target\nO=C1CCC(=O)N1Br",
+                "x": 1340,
+                "y": 40,
+                "in_stock": false
+              },
+              "m2": {
+                "id": "m2",
+                "label": "Mol 2\nO=C(O)CCC(=O)NBr",
+                "x": 1080,
+                "y": 40,
+                "in_stock": false
+              },
+              "m3": {
+                "id": "m3",
+                "label": "Mol 3\nO=C(CCC(=O)OCc1ccccc1)NBr",
+                "x": 820,
+                "y": 40,
+                "in_stock": false
+              },
+              "m4": {
+                "id": "m4",
+                "label": "Mol 4\nOCc1ccccc1",
+                "x": 560,
+                "y": 40,
+                "in_stock": true
+              },
+              "m5": {
+                "id": "m5",
+                "label": "Mol 5\nCCOC(=O)CCC(=O)NBr",
+                "x": 560,
+                "y": 150,
+                "in_stock": false
+              },
+              "m6": {
+                "id": "m6",
+                "label": "Mol 6\nCCO",
+                "x": 300,
+                "y": 40,
+                "in_stock": false
+              },
+              "m8": {
+                "id": "m8",
+                "label": "Mol 8\nCOC(=O)CCC(=O)NBr",
+                "x": 300,
+                "y": 150,
+                "in_stock": false
+              },
+              "m7": {
+                "id": "m7",
+                "label": "Mol 7\nCC(=O)O",
+                "x": 40,
+                "y": 40,
+                "in_stock": true
+              },
+              "m9": {
+                "id": "m9",
+                "label": "Mol 9\nCOC(=O)C=CC(=O)NBr",
+                "x": 40,
+                "y": 150,
+                "in_stock": false
+              }
+            },
+            "edges": [
+              {
+                "source_id": "m7",
+                "target_id": "m6",
+                "label": "AiZynth step"
+              },
+              {
+                "source_id": "m9",
+                "target_id": "m8",
+                "label": "AiZynth step"
+              },
+              {
+                "source_id": "m6",
+                "target_id": "m5",
+                "label": "AiZynth step"
+              },
+              {
+                "source_id": "m8",
+                "target_id": "m5",
+                "label": "AiZynth step"
+              },
+              {
+                "source_id": "m4",
+                "target_id": "m3",
+                "label": "AiZynth step"
+              },
+              {
+                "source_id": "m5",
+                "target_id": "m3",
+                "label": "AiZynth step"
+              },
+              {
+                "source_id": "m3",
+                "target_id": "m2",
+                "label": "AiZynth step"
+              },
+              {
+                "source_id": "m2",
+                "target_id": "m1",
+                "label": "AiZynth step"
+              }
+            ]
+          }
+        }
+      ],
+      "route_scores": {
+        "aizynth-route-1": {
+          "route_id": "aizynth-route-1",
+          "route_score": 0.418,
+          "model_score": 0.004,
+          "stock_score": 1,
+          "step_score": 0.333,
+          "explanation": "model=0.00, stock=1.00, steps=0.33; V1 score uses model confidence, purchasable precursors, and route length."
+        },
+        "aizynth-route-2": {
+          "route_id": "aizynth-route-2",
+          "route_score": 0.293,
+          "model_score": 0.043,
+          "stock_score": 0.667,
+          "step_score": 0.2,
+          "explanation": "model=0.04, stock=0.67, steps=0.20; V1 score uses model confidence, purchasable precursors, and route length."
+        },
+        "aizynth-route-3": {
+          "route_id": "aizynth-route-3",
+          "route_score": 0.283,
+          "model_score": 0.036,
+          "stock_score": 0.667,
+          "step_score": 0.167,
+          "explanation": "model=0.04, stock=0.67, steps=0.17; V1 score uses model confidence, purchasable precursors, and route length."
+        }
+      },
+      "feasibility": {
+        "aizynth-route-1": {
+          "route_id": "aizynth-route-1",
+          "heuristic_overall_yield_percent": 19.5,
+          "heuristic_feasibility_score": 0.457,
+          "estimated_overall_yield_percent": 19.5,
+          "route_feasibility_score": 0.457,
+          "method": "heuristic_route_feasibility",
+          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "risk_flags": [
+            "s1: 反应类型置信度低",
+            "s2: 反应类型置信度低",
+            "s3: 反应类型置信度低"
+          ],
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+        },
+        "aizynth-route-2": {
+          "route_id": "aizynth-route-2",
+          "heuristic_overall_yield_percent": 6.7,
+          "heuristic_feasibility_score": 0.267,
+          "estimated_overall_yield_percent": 6.7,
+          "route_feasibility_score": 0.267,
+          "method": "heuristic_route_feasibility",
+          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "risk_flags": [
+            "s1: 反应类型置信度低",
+            "s2: 反应类型置信度低",
+            "s3: 反应类型置信度低",
+            "s4: 反应类型置信度低",
+            "s5: 反应类型置信度低"
+          ],
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+        },
+        "aizynth-route-3": {
+          "route_id": "aizynth-route-3",
+          "heuristic_overall_yield_percent": 3.8,
+          "heuristic_feasibility_score": 0.246,
+          "estimated_overall_yield_percent": 3.8,
+          "route_feasibility_score": 0.246,
+          "method": "heuristic_route_feasibility",
+          "applicability_domain": "规则启发式；未使用 HTE 或专用反应族产率模型。",
+          "risk_flags": [
+            "s1: 反应类型置信度低",
+            "s2: 反应类型置信度低",
+            "s3: 反应类型置信度低",
+            "s4: 反应类型置信度低",
+            "s5: 反应类型置信度低",
+            "s6: 反应类型置信度低"
+          ],
+          "note": "规则可行性评分综合了规则估计产率、叶子前体可购买性和路线步数；不是物理化学或机器学习精确结论。"
+        }
+      },
+      "used_fallback": false
+    }
+  ],
   "jobs": []
 }

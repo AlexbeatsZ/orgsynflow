@@ -195,3 +195,33 @@ export async function getMoleculeCoordinates(smiles: string): Promise<{
   const { data } = await http.post("/chem/molecule-coordinates", { smiles });
   return data;
 }
+
+export async function createTsWorkflow(reactionSmiles: string, workspaceId?: string, cellId?: string, reactionId?: string, agents?: string[]): Promise<import("./types").TsWorkflow> {
+  const { data } = await http.post("/ts/workflow", {
+    reaction_smiles: reactionSmiles,
+    workspace_id: workspaceId,
+    cell_id: cellId,
+    reaction_id: reactionId,
+    agents,
+  });
+  return data;
+}
+
+export async function getTsWorkflow(workflowId: string): Promise<import("./types").TsWorkflow> {
+  const { data } = await http.get(`/ts/workflow/${workflowId}`);
+  return data;
+}
+
+export async function confirmTsWorkflow(workflowId: string, candidateId: string, coordinates: import("./types").TsCoordinate[], config: any): Promise<import("./types").TsWorkflow> {
+  const { data } = await http.post(`/ts/workflow/${workflowId}/confirm`, {
+    candidate_id: candidateId,
+    coordinates,
+    config,
+  });
+  return data;
+}
+
+export async function actOnTsWorkflow(workflowId: string, action: string): Promise<import("./types").TsWorkflow> {
+  const { data } = await http.post(`/ts/workflow/${workflowId}/action`, { action });
+  return data;
+}

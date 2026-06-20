@@ -1269,7 +1269,6 @@ function CellDetail({
           connectionMode={ConnectionMode.Loose}
           deleteKeyCode={["Backspace", "Delete"]}
           fitView
-          onNodeClick={(_, node) => handleNodeClick(node)}
           onNodesDelete={(deletedNodes) => removeNodes(deletedNodes.map((node) => node.id))}
           onEdgeClick={(_, edge) => {
             setSelectedEdgeId(edge.id);
@@ -1301,7 +1300,7 @@ function CellDetail({
   );
 }
 
-function MoleculeNode({ data }: NodeProps) {
+function MoleculeNode({ id, data }: NodeProps) {
   const smiles = String(data.smiles ?? "");
   const label = String(data.label ?? smiles);
   const onActivate = typeof data.onActivate === "function" ? data.onActivate : null;
@@ -1313,8 +1312,10 @@ function MoleculeNode({ data }: NodeProps) {
     <div
       className="molecule-node"
       onClick={(event) => {
-        event.stopPropagation();
-        if (componentSmiles.length <= 1) onActivate?.();
+        const target = event.target as HTMLElement;
+        if (!target.closest('.molecule-component')) {
+          onActivate?.();
+        }
       }}
     >
       {moleculeHandles.map((handle) => (
@@ -1338,14 +1339,13 @@ function MoleculeNode({ data }: NodeProps) {
       {componentSmiles.length > 1 ? (
         <div className="molecule-components" aria-label="多分子组分">
           {componentSmiles.map((component, index) => {
-            const componentId = `${String(data.id ?? "")}:component:${index}`;
+            const componentId = `${id}:component:${index}`;
             return (
               <button
                 type="button"
-                className={`molecule-component nodrag nowheel ${selectedComponentId.endsWith(`:component:${index}`) ? "selected" : ""}`}
+                className={`molecule-component nodrag nowheel ${selectedComponentId === componentId ? "selected" : ""}`}
                 key={`${component}-${index}`}
-                onClick={(event) => {
-                  event.stopPropagation();
+                onClick={() => {
                   onActivateComponent?.(index);
                 }}
                 title={`选择组分 ${index + 1}：${component}`}
@@ -2346,7 +2346,7 @@ function TransitionStateConfigModal({
   useEffect(() => {
     if (!workflow || ["completed", "partial", "failed", "cancelled"].includes(workflow.status)) return;
     const timer = window.setInterval(() => {
-      void getTsWorkflow(workflow.workflow_id).then((next) => {
+      void getTsWorkflow(workflow.workflow_id).then((next: any) => {
         setWorkflow(next);
         if (next.status === "awaiting_confirmation") {
           setCoordinates(next.coordinates ?? []);
@@ -2361,7 +2361,7 @@ function TransitionStateConfigModal({
           setTemperatureK(Number(next.config?.temperature_k ?? 298.15));
           setImaginaryThreshold(Number(next.config?.imaginary_threshold_cm1 ?? -50));
         }
-      }).catch((err) => setError(errorMessage(err)));
+      }).catch((err: any) => setError(errorMessage(err)));
     }, 2000);
     return () => window.clearInterval(timer);
   }, [workflow?.workflow_id, workflow?.status]);
@@ -2391,7 +2391,7 @@ function TransitionStateConfigModal({
   }, [loading, mol3dReady, components]);
 
   const getCombinedXyz = useCallback(() => {
-    const selectedCandidate = workflow?.candidates?.find((candidate) => candidate.candidate_id === selectedCandidateId);
+    const selectedCandidate = workflow?.candidates?.find((candidate: any) => candidate.candidate_id === selectedCandidateId);
     if (selectedCandidate?.xyz) {
       const lines = selectedCandidate.xyz.trim().split(/\r?\n/);
       return /^\d+$/.test(lines[0] ?? "") ? lines.slice(2).join("\n") : selectedCandidate.xyz;
@@ -2574,12 +2574,12 @@ function TransitionStateConfigModal({
                     <strong>工作流：{workflow.workflow_id}</strong>
                     <span className={`ts-stage-badge status-${workflow.status}`}>{workflow.stage} · {workflow.validation_level}</span>
                     {workflow.error && <p className="error-box">{workflow.error}</p>}
-                    {workflow.warnings?.map((warning) => <p className="warning-box" key={warning}>{warning}</p>)}
+                    {workflow.warnings?.map((warning: string) => <p className="warning-box" key={warning}>{warning}</p>)}
                     {workflow.grid_points.length > 0 && (
                       <div className="ts-grid-summary">
                         <span>扫描点 {workflow.grid_points.length}</span>
-                        <span>完成 {workflow.grid_points.filter((point) => point.status === "succeeded").length}</span>
-                        <span>失败 {workflow.grid_points.filter((point) => point.status === "failed").length}</span>
+                        <span>完成 {workflow.grid_points.filter((point: any) => point.status === "succeeded").length}</span>
+                        <span>失败 {workflow.grid_points.filter((point: any) => point.status === "failed").length}</span>
                       </div>
                     )}
                   </div>
@@ -2600,7 +2600,7 @@ function TransitionStateConfigModal({
                     )}
                     <h4>初始构象候选</h4>
                     <div className="ts-candidate-list">
-                      {workflow.candidates.map((candidate) => (
+                      {workflow.candidates.map((candidate: any) => (
                         <button
                           type="button"
                           key={candidate.candidate_id}
@@ -2744,7 +2744,7 @@ function TransitionStateConfigModal({
                   <>
                     <h4>扫描能量面</h4>
                     <div className="ts-energy-grid">
-                      {workflow.grid_points.map((point) => (
+                      {workflow.grid_points.map((point: any) => (
                         <span
                           key={point.point_id}
                           className={`ts-energy-point status-${point.status}`}
