@@ -161,7 +161,7 @@ def _run_wsl(
         wsl_work_dir = work_dir
     cmd_args = shlex.quote(executable)
     if kind == "crest_jobs":
-        cmd_args += " input.xyz --gfn2 --chrg 0"
+        cmd_args = f"stdbuf -oL -eL {cmd_args} input.xyz --gfn2 --chrg 0"
     else:
         cmd_args += " input.xyz"
 

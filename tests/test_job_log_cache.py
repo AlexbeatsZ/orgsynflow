@@ -32,10 +32,21 @@ def test_windows_temp_root_uses_agents_directory() -> None:
 
 
 def test_crest_progress_parser_extracts_recent_optimization_energies() -> None:
-    progress = parse_crest_log_progress("Etot= -5.10\nnoise\nEtot= -5.20\n")
+    progress = parse_crest_log_progress(
+        "Etot= -5.10\n"
+        "Estimated runtime for one MTD (5.0 ps) on a single thread: 1 min 17 sec\n"
+        "Estimated runtime for a batch of 14 MTDs on 1 threads: 17 min 57 sec\n"
+        "Etot= -5.20\n"
+    )
 
     assert progress["summary"] == "正在进行构象搜索与采样，当前已提取 2 步能量计算。"
     assert progress["optimization_steps"] == [
         {"step": 1, "energy_hartree": -5.1, "max_force": None},
         {"step": 2, "energy_hartree": -5.2, "max_force": None},
     ]
+    assert progress["estimated_runtime"] == {
+        "one_mtd_seconds": 77,
+        "batch_seconds": 1077,
+        "batch_mtd_count": 14,
+        "threads": 1,
+    }

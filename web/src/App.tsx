@@ -257,6 +257,26 @@ export function App() {
   }, [hasActiveGaussianJobs]);
 
   useEffect(() => {
+    if (modal?.kind !== "result") return;
+    const modalJob = asGaussianJob(modal.result);
+    if (!modalJob) return;
+    const liveJob = jobs.find((job) => job.job_id === modalJob.job_id);
+    if (!liveJob || jobSnapshotsEqual(modalJob, liveJob)) return;
+    setModal((current) => {
+      if (current?.kind !== "result") return current;
+      const currentJob = asGaussianJob(current.result);
+      if (currentJob?.job_id !== liveJob.job_id) return current;
+      return {
+        ...current,
+        result: {
+          ...(isPlainObject(current.result) ? current.result : {}),
+          ...liveJob,
+        },
+      };
+    });
+  }, [jobs]);
+
+  useEffect(() => {
     const timer = window.setInterval(refreshComputeStatus, 30000);
     return () => window.clearInterval(timer);
   }, []);
@@ -347,8 +367,8 @@ export function App() {
         const job = currentJobs.find((item) => item.job_id === record.job_id);
         if (!job) continue;
         const nextStatus = taskStatus(job.status);
-        const payloadStatus = (record.payload as GaussianJob | null)?.status;
-        if (taskStatus(record.status) === nextStatus && payloadStatus === job.status) continue;
+        const previousJob = asGaussianJob(record.payload);
+        if (taskStatus(record.status) === nextStatus && previousJob && jobSnapshotsEqual(previousJob, job)) continue;
         const nextRecord = taskRecordFromJob(record, job);
         await persistTaskRecord(cell.id, key, nextRecord);
       }
@@ -1227,7 +1247,7 @@ function GaussianJobView({ job }: { job: GaussianJob }) {
           <div key={String(key)}><span>{String(key)}</span><strong>{formatResultValue(value)}</strong></div>
         ))}
       </div>
-      {progress && <GaussianProgressView progress={progress} />}
+      {progress && <GaussianProgressView progress={progress} logTail={logTail} />}
       {job.work_dir && <code>{job.work_dir}</code>}
       {result?.input_path && <code>{String(result.input_path)}</code>}
       {(payload.log_path || result?.log_path) && <code>{String(payload.log_path ?? result?.log_path)}</code>}
@@ -1251,7 +1271,7 @@ function GaussianJobView({ job }: { job: GaussianJob }) {
   );
 }
 
-function GaussianProgressView({ progress }: { progress: any }) {
+function GaussianProgressView({ progress, logTail = "" }: { progress: any; logTail?: string }) {
   const scfCycles = Array.isArray(progress?.scf_cycles) ? progress.scf_cycles : [];
   const optimizationSteps = Array.isArray(progress?.optimization_steps) ? progress.optimization_steps : [];
   const convergenceTables = Array.isArray(progress?.convergence_tables) ? progress.convergence_tables : [];
@@ -1259,12 +1279,33 @@ function GaussianProgressView({ progress }: { progress: any }) {
   const issues = isPlainObject(progress?.issues) ? progress.issues : {};
   const errors = Array.isArray(issues.errors) ? issues.errors : [];
   const warnings = Array.isArray(issues.warnings) ? issues.warnings : [];
+  const estimatedRuntime = crestRuntimeEstimate(progress, logTail);
   return (
     <div className="gaussian-progress">
       <div className="result-block">
         <strong>输出预览 / 计算进度</strong>
         <p>{String(progress?.summary ?? "等待 Gaussian 写入日志。")}</p>
       </div>
+      {estimatedRuntime && (
+        <div className="result-block">
+          <strong>CREST 预计耗时</strong>
+          <div className="metric-grid">
+            {estimatedRuntime.one_mtd_seconds !== undefined && (
+              <div><span>单个 MTD</span><strong>约 {formatDuration(estimatedRuntime.one_mtd_seconds)}</strong></div>
+            )}
+            {estimatedRuntime.batch_seconds !== undefined && (
+              <div>
+                <span>本批 {estimatedRuntime.batch_mtd_count ?? "-"} 个 MTD</span>
+                <strong>约 {formatDuration(estimatedRuntime.batch_seconds)}</strong>
+              </div>
+            )}
+            {estimatedRuntime.threads !== undefined && (
+              <div><span>CREST 估算线程数</span><strong>{estimatedRuntime.threads}</strong></div>
+            )}
+          </div>
+          <small>该时间来自 CREST 试运行估算，实际耗时会随体系和系统负载变化。</small>
+        </div>
+      )}
       {scfCycles.length > 0 && (
         <div className="result-block">
           <strong>SCF 迭代 ({scfCycles.length})</strong>
@@ -4924,6 +4965,54 @@ function taskRecordFromJob(record: CachedResult, job: GaussianJob): CachedResult
     error: status === "failed" ? job.error ?? "Gaussian 计算失败。" : undefined,
     job_id: job.job_id,
   };
+}
+
+function jobSnapshotsEqual(left: GaussianJob, right: GaussianJob): boolean {
+  return left.status === right.status
+    && left.finished_at === right.finished_at
+    && left.error === right.error
+    && left.log_tail === right.log_tail
+    && JSON.stringify(left.log_progress ?? null) === JSON.stringify(right.log_progress ?? null)
+    && JSON.stringify(left.result ?? null) === JSON.stringify(right.result ?? null);
+}
+
+function crestRuntimeEstimate(progress: any, logTail: string): {
+  one_mtd_seconds?: number;
+  batch_seconds?: number;
+  batch_mtd_count?: number;
+  threads?: number;
+} | null {
+  if (isPlainObject(progress?.estimated_runtime)) {
+    return progress.estimated_runtime as {
+      one_mtd_seconds?: number;
+      batch_seconds?: number;
+      batch_mtd_count?: number;
+      threads?: number;
+    };
+  }
+  const durationSeconds = (minutes: string | undefined, seconds: string) =>
+    Math.round(Number(minutes ?? 0) * 60 + Number(seconds));
+  const oneMtd = logTail.match(/Estimated runtime for one MTD .*?:\s*(?:(\d+)\s*min\s*)?(\d+(?:\.\d+)?)\s*sec/);
+  const batch = logTail.match(/Estimated runtime for a batch of (\d+) MTDs on (\d+) threads?:\s*(?:(\d+)\s*min\s*)?(\d+(?:\.\d+)?)\s*sec/);
+  if (!oneMtd && !batch) return null;
+  return {
+    one_mtd_seconds: oneMtd ? durationSeconds(oneMtd[1], oneMtd[2]) : undefined,
+    batch_seconds: batch ? durationSeconds(batch[3], batch[4]) : undefined,
+    batch_mtd_count: batch ? Number(batch[1]) : undefined,
+    threads: batch ? Number(batch[2]) : undefined,
+  };
+}
+
+function formatDuration(totalSeconds: number): string {
+  const seconds = Math.max(0, Math.round(totalSeconds));
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remainder = seconds % 60;
+  return [
+    hours ? `${hours} 小时` : "",
+    minutes ? `${minutes} 分` : "",
+    remainder || (!hours && !minutes) ? `${remainder} 秒` : "",
+  ].filter(Boolean).join(" ");
 }
 
 function bindSelection(selected: SelectedObject, workspace: Workspace | null): SelectedObject {

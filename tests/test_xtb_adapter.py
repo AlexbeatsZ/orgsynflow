@@ -63,6 +63,7 @@ def test_wsl_crest_runs_inside_unique_workdir_and_returns_lowest_conformer(monke
     script = processes[0].command[-1]
     assert processes[0].command[:5] == ["wsl", "-e", "setsid", "--wait", "bash"]
     assert 'cd "$work_dir"' in script
+    assert "stdbuf -oL -eL /opt/crest input.xyz" in script
     assert first.work_dir != second.work_dir
     assert first.data["lowest_conformer_xyz"].startswith("2\nlowest conformer")
 

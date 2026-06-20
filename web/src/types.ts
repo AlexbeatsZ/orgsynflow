@@ -191,6 +191,12 @@ export interface GaussianOptimizationStep {
 
 export interface GaussianLogProgress {
   summary?: string;
+  estimated_runtime?: {
+    one_mtd_seconds?: number;
+    batch_seconds?: number;
+    batch_mtd_count?: number;
+    threads?: number;
+  };
   scf_cycles?: GaussianScfCycle[];
   convergence_tables?: GaussianConvergenceTable[];
   optimization_steps?: GaussianOptimizationStep[];
