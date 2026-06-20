@@ -83,11 +83,11 @@ type SelectedObject =
   | null;
 
 type ModalState =
-  | { kind: "result"; title: string; result: unknown }
+  | { kind: "result"; title: string; result: unknown; onRecompute?: () => void; onConfigure?: () => void }
   | { kind: "task-error"; title: string; record: CachedResult; onRetry?: () => void; onConfigure?: () => void }
   | { kind: "backend"; status: ComputeStatus | null }
   | { kind: "jobs"; jobs: GaussianJob[]; refresh: () => Promise<void> }
-  | { kind: "routes"; sets: RouteCandidateSet[]; workspace: Workspace; selected: SelectedObject; onSave: (workspace?: Workspace | null) => Promise<void> }
+  | { kind: "routes"; sets: RouteCandidateSet[]; workspace: Workspace; selected: SelectedObject; onSave: (workspace?: Workspace | null) => Promise<void>; onRecompute?: () => void }
   | { kind: "engine-select"; onSelect: (engine: string) => void; backendStatus: ComputeStatus | null }
   | null;
 
@@ -1458,7 +1458,13 @@ function TaskPanel({
           onConfigure: options?.onConfigure,
         });
       } else if (options?.openResult !== false) {
-        openModal({ kind: "result", title: options?.title ?? "任务结果", result: resultForRecord(completedRecord) });
+        openModal({
+          kind: "result",
+          title: options?.title ?? "任务结果",
+          result: resultForRecord(completedRecord),
+          onRecompute: () => void runTask(definition, task, options),
+          onConfigure: options?.onConfigure,
+        });
       }
       return nextResult;
     } catch (error) {
@@ -1687,6 +1693,18 @@ function AppModal({
             />
           )}
         </div>
+        {(modal.kind === "result" || modal.kind === "routes") && (modal.onRecompute || (modal.kind === "result" && modal.onConfigure)) && (
+          <div className="osf-modal-footer task-error-actions">
+            {modal.kind === "result" && modal.onConfigure && (
+              <button className="ghost-button" onClick={() => { onClose(); modal.onConfigure?.(); }}>修改配置</button>
+            )}
+            {modal.onRecompute && (
+              <button className="primary-button" onClick={() => { onClose(); modal.onRecompute?.(); }}>
+                <RotateCcw size={14} /> 重新计算
+              </button>
+            )}
+          </div>
+        )}
         {modal.kind === "task-error" && (modal.onRetry || modal.onConfigure) && (
           <div className="osf-modal-footer task-error-actions">
             {modal.onConfigure && (
@@ -1787,7 +1805,13 @@ function TaskButton({
       onViewResult();
       return;
     }
-    openModal({ kind: "result", title: definition.label, result: resultForRecord(record) });
+    openModal({
+      kind: "result",
+      title: definition.label,
+      result: resultForRecord(record),
+      onRecompute: onRetry ?? onRun,
+      onConfigure,
+    });
   }
 
   return (
@@ -1900,9 +1924,9 @@ function MoleculeTasks({
     }, { openResult: false, title: customRouteTask.label });
     if (!prediction) return;
     if (routeSet && nextWorkspace) {
-      openModal({ kind: "routes", sets: [routeSet], workspace: nextWorkspace, selected, onSave });
+      openModal({ kind: "routes", sets: [routeSet], workspace: nextWorkspace, selected, onSave, onRecompute: () => void predictRoute() });
     } else {
-      openModal({ kind: "result", title: customRouteTask.label, result: prediction });
+      openModal({ kind: "result", title: customRouteTask.label, result: prediction, onRecompute: () => void predictRoute() });
     }
   }
 
@@ -1947,14 +1971,15 @@ function MoleculeTasks({
         definition={routeTask}
         record={recordFor(routeTask)}
         onRun={() => void predictRoute()}
+        onRetry={() => void predictRoute()}
         openModal={openModal}
         onViewResult={() => {
           if (workspace && moleculeRouteSets.length > 0) {
-            openModal({ kind: "routes", sets: moleculeRouteSets, workspace, selected, onSave });
+            openModal({ kind: "routes", sets: moleculeRouteSets, workspace, selected, onSave, onRecompute: () => void predictRoute() });
           } else {
             const record = recordFor(routeTask);
             if (record) {
-              openModal({ kind: "result", title: routeTask.label, result: resultForRecord(record) });
+              openModal({ kind: "result", title: routeTask.label, result: resultForRecord(record), onRecompute: () => void predictRoute() });
             }
           }
         }}

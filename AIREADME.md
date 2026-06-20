@@ -151,6 +151,7 @@ WSL 临时文件必须放在：
 - 路线候选中同一步的多个前体必须放进同一个反应物块，SMILES 用点号连接，例如 `O=C(O)c1ccccc1O.CC(=O)OC(C)=O` 作为一个节点连接到产物，不能拆成两条平行边。单纯用户手动输入多个独立分子时仍可按多行创建多个节点。
 - 前端改动后应尽量用浏览器/Playwright 检查真实 UI，而不只看 `npm run build`。
 - 任务面板中常驻的“查看计算队列（Gaussian）”和“查看路线候选”按钮已被移除。计算队列状态与结果已统一收拢到底部任务日志抽屉；路线预测成功后，点击绿色状态的预测路线任务按钮或任务日志中对应的成功记录，均能直接调起带交互操作（“加入当前画布”/“新建路线单元”）的路线候选弹窗，而不是无操作的静态展示。
+- 绿色“已完成”任务按钮不应只能查看旧结果；从任务面板点击已完成任务打开结果/路线候选窗口时，应在窗口底部保留“重新计算”入口，复用该任务原来的运行/重试逻辑。Gaussian 等需要参数的任务仍应保留“修改配置”入口。
 - Ketcher 引入的 `ketcher-react/dist/index.css` 含有大量全局样式，与项目自带的通用弹窗样式（如 `.modal-backdrop`、`.modal-header` 等）易发生类名冲突，导致弹窗不居中且 Wasm 交互错位。已将项目中所有 Modal 相关基础类名加前缀升级（如 `.osf-modal-backdrop`）。同时，对嵌入了复杂第三方组件的 Modal 容器，应避免使用 CSS Grid 布局，因为 Grid 布局会将第三方组件在运行时动态生成的 style/div 辅助节点强行作为网格项目进行排位，从而摧毁行高比例。必须统一使用 Flexbox 布局，并通过 `flex: 1` 和 `position: relative` 规范子容器的高度撑满与 Containing Block 定位基准。
 - TS 参数窗口曾使用未定义的 `osf-modal-window` 类，导致计算样式背景为完全透明，同时缺少阴影、裁剪和相对定位。TS 窗口应复用 `osf-config-modal` 基类，再由 `ts-config-modal` 覆盖尺寸和网格布局；不要新增没有基础视觉契约的 modal 类名。
 
@@ -205,6 +206,7 @@ WSL 临时文件必须放在：
 
 - [done] 2026-06-20 增加 SMILES 块删除：选中块后可显式删除，同时清理相邻箭头、关联反应及选中/连线状态；保存工作区后刷新不会复活。
 - [done] 2026-06-20 修复组合节点组分级逆合成插入：AiZynthFinder reaction 节点不再误作分子；多个前体拆为独立结构；复用所选目标节点；路线和原反应箭头均保持前体到产物的正向顺序；多组分宽度与下游间距已校正。
+- [done] 2026-06-20 优化任务面板已完成任务：点击绿色完成态任务打开结果或路线候选窗口时，窗口底部提供“重新计算”按钮，失败态仍沿用错误窗口重试逻辑。
 - [done] 三阶段计划已写入 `plan.md`。
 - [done] 基础 CLI、适配器、API、测试面已建立。
 - [done] OPERA 已由用户下载并安装到 WSL 本地 opt 路径，且可被全局引用。
@@ -307,6 +309,7 @@ WSL 临时文件必须放在：
 - 2026-06-20 TS 白色背景回归：修复前浏览器计算样式为 `background=rgba(0,0,0,0)`、`overflow=visible`、`position=static`；改用 `osf-config-modal ts-config-modal` 后为 `background=rgb(255,255,255)`、`overflow=hidden`、`position=relative`，并恢复 modal 阴影，1000×648 视口内截图确认白色内容层完整覆盖。
 - 2026-06-20 公开权重恢复验证：重启 `WslService` 后，`/compute/status` 中 AiZynthFinder、OPERA、RXNMapper、DRFP 及 WSL 计算后端全部 available；`/route/predict` 对 aspirin 返回 `Loaded 2 route(s) from AiZynthFinder via WSL.`、`used_fallback=false`；RXNMapper 映射 `CCO>>CC=O` 得到 `[CH3:1][CH2:2][OH:3]>>[CH3:1][CH:2]=[O:3]`、confidence `0.998663`；OPERA 对 CCO 返回 melting point `-114`、boiling point `78`、LogP `-0.31`、water solubility `1.26`、vapor pressure `1.77`，对应 AD 均为 `1`。
 - 2026-06-20 WSL 挂起事故恢复验证：停止 OrgSynFlow 服务后，发现 API 派生的 CREST 与 `/compute/status` WSL 探测残留 `wsl.exe`；`wsl --terminate Ubuntu-24.04` 与 `wsl --shutdown` 均超时，非管理员 shell 无法 `Restart-Service WslService`。精确停止 10 个命令行含 `/tmp/codex/orgsynflow` / `orgsynflow-chem` 的残留 `wsl.exe` 后，`wsl -e true` 恢复为 exit code 0；重启 OrgSynFlow 后，`/route/predict` 对 aspirin 返回 `used_fallback=false`、`available=true`，OPERA 对 CCO 返回 melting point `-114`、boiling point `78`、LogP `-0.31`、water solubility `1.26`、vapor pressure `1.77`，`/compute/status` 中 AiZynthFinder、OPERA、RXNMapper、DRFP、CREST 均 available。
+- 2026-06-20 已完成任务重新计算入口验证：`cd web; npm run build` 成功（仅 Vite 大 chunk warning）；使用本机 Chrome headless 打开 `http://127.0.0.1:5173/`，临时添加 CCO 节点并运行“计算分子描述符（RDKit）”，任务按钮变为 `task-status-succeeded`，首次结果弹窗和再次点击绿色按钮打开的结果弹窗均出现“重新计算”。测试前后已从 `%LOCALAPPDATA%\Temp\.agents\orgsynflow\example-workspace.before-recompute-ui.json` 恢复 `data/workspaces/example-workspace.json`，SHA256 均为 `0D7CA51DD36D940DFDAC7CAE89722F0298C6AE6155A44F3B7B0F1A36B8F2756F`。
 
 ## 4. New Issues
 
