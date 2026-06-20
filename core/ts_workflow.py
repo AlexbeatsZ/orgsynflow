@@ -106,7 +106,12 @@ class TsWorkflowManager:
         coordinates = payload.get("coordinates") or workflow.get("coordinates") or []
         if not 1 <= len(coordinates) <= 2:
             raise ValueError("TS 工作流需要确认一到两个反应坐标。")
-        selected_candidate_id = payload.get("selected_candidate_id") or workflow.get("candidates", [{}])[0].get("candidate_id")
+        selected_candidate_id = (
+            payload.get("selected_candidate_id")
+            or payload.get("candidate_id")
+            or workflow.get("selected_candidate_id")
+            or workflow.get("candidates", [{}])[0].get("candidate_id")
+        )
         if not any(item.get("candidate_id") == selected_candidate_id for item in workflow.get("candidates", [])):
             raise ValueError("未找到选中的初始构象。")
         if workflow["status"] != "awaiting_confirmation":

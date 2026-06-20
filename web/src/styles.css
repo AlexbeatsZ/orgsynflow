@@ -1318,6 +1318,16 @@ button {
   line-height: 1.45;
 }
 
+.ts-gjf-editor {
+  min-height: 220px;
+}
+
+.footer-warning {
+  color: #b45309;
+  font-size: 12px;
+  margin-right: auto;
+}
+
 .gaussian-error,
 .task-error-content .error-box {
   margin: 0;

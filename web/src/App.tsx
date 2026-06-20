@@ -2553,6 +2553,9 @@ function TransitionStateConfigModal({
   const [moleculeTransforms, setMoleculeTransforms] = useState<MoleculeTransform[]>([]);
   const [showAtomLabels, setShowAtomLabels] = useState(false);
   const [fitViewNonce, setFitViewNonce] = useState(0);
+  const [tsGjfText, setTsGjfText] = useState("");
+  const [tsAutoPreview, setTsAutoPreview] = useState(true);
+  const hydratedWorkflowDefaultsRef = useRef("");
   const availableAgents = useMemo(() => {
     const parts = reactionSmiles.split(">");
     return parts.length === 3 ? splitSmilesComponents(parts[1]).filter(Boolean) : [];
@@ -2573,6 +2576,28 @@ function TransitionStateConfigModal({
   const viewerRef = useRef<HTMLDivElement>(null);
   const [viewer, setViewer] = useState<any>(null);
   const canConfigureWorkflow = !!workflow && ["awaiting_confirmation", "paused", "failed", "partial"].includes(workflow.status);
+
+  function hydrateWorkflowDefaults(nextWorkflow: any) {
+    if (!nextWorkflow || !["awaiting_confirmation", "paused", "failed", "partial"].includes(nextWorkflow.status)) return;
+    const hydrationKey = `${nextWorkflow.workflow_id}:${nextWorkflow.status}`;
+    if (hydratedWorkflowDefaultsRef.current === hydrationKey) return;
+    hydratedWorkflowDefaultsRef.current = hydrationKey;
+    setCoordinates(nextWorkflow.coordinates ?? []);
+    setSelectedCandidateId(String(nextWorkflow.selected_candidate_id || nextWorkflow.candidates?.[0]?.candidate_id || ""));
+    setCharge(Number(nextWorkflow.config?.charge ?? 0));
+    setMultiplicity(Number(nextWorkflow.config?.multiplicity ?? 1));
+    setMethod(String(nextWorkflow.config?.method ?? "wB97XD"));
+    setBasis(String(nextWorkflow.config?.basis ?? "def2SVP"));
+    setNproc(Number(nextWorkflow.config?.nproc ?? 4));
+    setMemory(String(nextWorkflow.config?.memory ?? "4GB"));
+    setSolvent(String(nextWorkflow.config?.solvent ?? ""));
+    setTemperatureK(Number(nextWorkflow.config?.temperature_k ?? 298.15));
+    setImaginaryThreshold(Number(nextWorkflow.config?.imaginary_threshold_cm1 ?? -50));
+    if (typeof nextWorkflow.config?.gjf_preview_text === "string") {
+      setTsGjfText(nextWorkflow.config.gjf_preview_text);
+      setTsAutoPreview(!nextWorkflow.config?.gjf_preview_manual);
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -2596,6 +2621,7 @@ function TransitionStateConfigModal({
           setComponents(res.components);
           setPlan(nextPlan);
           setWorkflow(nextWorkflow);
+          hydrateWorkflowDefaults(nextWorkflow);
           setLoading(false);
         }
       })
@@ -2615,19 +2641,7 @@ function TransitionStateConfigModal({
     const timer = window.setInterval(() => {
       void getTsWorkflow(workflow.workflow_id).then((next: any) => {
         setWorkflow(next);
-        if (next.status === "awaiting_confirmation") {
-          setCoordinates(next.coordinates ?? []);
-          setSelectedCandidateId((current) => current || next.candidates?.[0]?.candidate_id || "");
-          setCharge(Number(next.config?.charge ?? 0));
-          setMultiplicity(Number(next.config?.multiplicity ?? 1));
-          setMethod(String(next.config?.method ?? "wB97XD"));
-          setBasis(String(next.config?.basis ?? "def2SVP"));
-          setNproc(Number(next.config?.nproc ?? 4));
-          setMemory(String(next.config?.memory ?? "4GB"));
-          setSolvent(String(next.config?.solvent ?? ""));
-          setTemperatureK(Number(next.config?.temperature_k ?? 298.15));
-          setImaginaryThreshold(Number(next.config?.imaginary_threshold_cm1 ?? -50));
-        }
+        hydrateWorkflowDefaults(next);
       }).catch((err: any) => setError(errorMessage(err)));
     }, 2000);
     return () => window.clearInterval(timer);
@@ -2865,11 +2879,34 @@ function TransitionStateConfigModal({
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
   }
 
-  const gjfText = useMemo(() => {
+  const generatedTsGjfText = useMemo(() => {
     const coords = getCombinedXyz();
     const solventRoute = solvent ? ` scrf=(smd,solvent=${solvent})` : "";
     return `%nprocshared=${nproc}\n%mem=${memory}\n# ${jobType} ${method}/${basis}${solventRoute}\n\nOrgSynFlow TS Search Job\n\n${charge} ${multiplicity}\n${coords}\n\n`;
   }, [jobType, method, basis, charge, multiplicity, nproc, memory, solvent, getCombinedXyz]);
+
+  useEffect(() => {
+    if (!tsAutoPreview) return;
+    setTsGjfText(generatedTsGjfText);
+  }, [generatedTsGjfText, tsAutoPreview]);
+
+  function restoreTsAutoPreview() {
+    setTsAutoPreview(true);
+    setTsGjfText(generatedTsGjfText);
+  }
+
+  const hasTsRunContext = !!workflow && (
+    !!workflow.gaussian_progress?.log_path
+    || !!workflow.gaussian_progress?.log_tail
+    || !!workflow.gaussian_progress?.progress
+    || (workflow.grid_points?.length ?? 0) > 0
+    || (workflow.ts_results?.length ?? 0) > 0
+    || !!workflow.thermochemistry
+  );
+  const shouldShowTsOutputPreview = !!workflow
+    && ["scanning", "refining", "ts_optimizing", "irc", "thermochemistry", "completed", "failed", "partial", "cancelled"].includes(workflow.status)
+    && hasTsRunContext;
+  const missingTsCoordinates = canConfigureWorkflow && coordinates.length === 0;
 
   async function handleSubmit() {
     if (!workflow || !canConfigureWorkflow || !selectedCandidateId || coordinates.length === 0) {
@@ -2877,18 +2914,32 @@ function TransitionStateConfigModal({
       return;
     }
     terminalRecordedRef.current = false;
+    const tsConfig = {
+      method,
+      basis,
+      charge,
+      multiplicity,
+      nproc,
+      memory,
+      solvent: solvent || null,
+      temperature_k: temperatureK,
+      imaginary_threshold_cm1: imaginaryThreshold,
+      gjf_preview_text: tsGjfText,
+      gjf_preview_manual: !tsAutoPreview,
+      gjf_preview_note: "TS 自动闭环会按 workflow 参数、扫描点坐标和 ModRedundant 约束逐点生成 Gaussian 输入；此字段用于记录用户在 UI 中看到或编辑过的预览模板。",
+    };
     await runTask(
       definition,
       () => confirmTsWorkflow(
         workflow.workflow_id,
         selectedCandidateId,
         coordinates,
-        { method, basis, charge, multiplicity, nproc, memory, solvent: solvent || null, temperature_k: temperatureK, imaginary_threshold_cm1: imaginaryThreshold },
+        tsConfig,
       ),
       {
         openResult: false,
         title: definition.label,
-        config: { workflow_id: workflow.workflow_id, method, basis, charge, multiplicity },
+        config: { workflow_id: workflow.workflow_id, ...tsConfig },
         statusFromResult: () => "running",
       }
     );
@@ -2911,6 +2962,7 @@ function TransitionStateConfigModal({
     setError("");
     try {
       const next = await createTsWorkflow(reactionSmiles, workspaceId, cellId, reactionId, includedAgents);
+      hydratedWorkflowDefaultsRef.current = "";
       setWorkflow(next);
       setCoordinates([]);
       setSelectedCandidateId("");
@@ -2990,6 +3042,9 @@ function TransitionStateConfigModal({
                         <button type="button" className="icon-button danger" title="删除坐标" onClick={() => setCoordinates((current) => current.filter((_, itemIndex) => itemIndex !== index))}>×</button>
                       </div>
                     ))}
+                    {missingTsCoordinates && (
+                      <p className="warning-box">缺少反应坐标，请添加人工反应坐标或重新选择反应。</p>
+                    )}
                     {coordinates.length < 2 && (
                       <button
                         type="button"
@@ -3152,17 +3207,34 @@ function TransitionStateConfigModal({
                     <p>标准态：{String(workflow.thermochemistry.standard_state ?? "-")}</p>
                   </div>
                 )}
-                {workflow && workflow.status !== "awaiting_confirmation" ? (
+                {shouldShowTsOutputPreview ? (
                   <>
                     <h4>Gaussian 输出预览</h4>
                     <TsGaussianOutputPreview workflow={workflow} />
                   </>
                 ) : (
                   <>
-                    <h4>Gaussian 输入预览 (GJF)</h4>
-                    <pre className="gaussian-preview-block">
-                      {gjfText}
-                    </pre>
+                    <div className="gaussian-input-heading">
+                      <strong>Gaussian 输入预览 (GJF)</strong>
+                      <div className="gaussian-input-actions">
+                        <span className={`preview-sync-status ${tsAutoPreview ? "active" : ""}`}>{tsAutoPreview ? "自动预览已开启" : "已手动编辑"}</span>
+                        <button className="ghost-button compact" type="button" onClick={restoreTsAutoPreview}>
+                          <RotateCcw size={14} /> 恢复自动预览
+                        </button>
+                      </div>
+                    </div>
+                    <textarea
+                      className="gaussian-input-editor ts-gjf-editor"
+                      value={tsGjfText}
+                      onChange={(event) => {
+                        setTsAutoPreview(false);
+                        setTsGjfText(event.target.value);
+                      }}
+                      aria-label="TS Gaussian 输入预览"
+                    />
+                    <p className="result-hint">
+                      这是当前候选构象与参数生成的预览模板。自动闭环启动后，会按参数、扫描点坐标和 ModRedundant 约束为每个扫描点重新生成 Gaussian 输入；手动编辑内容会记录到任务配置中，但本轮不直接覆盖每个扫描点输入。
+                    </p>
                   </>
                 )}
               </div>
@@ -3177,8 +3249,17 @@ function TransitionStateConfigModal({
           {workflow && ["paused", "partial", "failed"].includes(workflow.status) && (
             <button className="secondary-button" onClick={() => void handleWorkflowAction(workflow.status === "failed" ? "retry" : "resume")}>续算</button>
           )}
-          {workflow && ["scanning", "refining", "ts_optimizing", "irc", "thermochemistry", "queued", "paused"].includes(workflow.status) && (
-            <button className="secondary-button danger" onClick={() => void handleWorkflowAction("cancel")}>强制结束进程</button>
+          {workflow && ["queued", "scanning", "refining", "ts_optimizing", "irc", "thermochemistry", "paused"].includes(workflow.status) && (
+            <button
+              className="secondary-button danger"
+              title="停止当前 TS workflow 和正在运行的 Gaussian 子进程；不会删除历史记录。"
+              onClick={() => void handleWorkflowAction("cancel")}
+            >
+              强制结束进程
+            </button>
+          )}
+          {missingTsCoordinates && (
+            <span className="footer-warning">缺少反应坐标，请添加人工反应坐标或重新选择反应。</span>
           )}
           <button className="primary-button" disabled={loading || !!error || !canConfigureWorkflow || !selectedCandidateId || coordinates.length === 0} onClick={handleSubmit}>确认参数并启动自动闭环</button>
         </div>

@@ -148,6 +148,8 @@ WSL 临时文件必须放在：
 - 用户对分子块之间的连接线更偏好几何直觉：当 B 在 A 上方时，应从 A 顶部中心连到 B 底部中心并画成一条直线；左右关系也应使用左右中心锚点。React Flow 边应使用 `straight` 类型，旧的 `top-a/right-a/...` 等边 handle 需要归一到中心 `top/right/bottom/left`，避免历史数据继续画出多弯折线。
 - 合成路线/反应关系线必须显示明确箭头。当前 React Flow 边使用 `MarkerType.ArrowClosed`；旧边加载时按当前节点中心重新计算最近的上下/左右 handle，而不是保留历史错误端点。Edge label 默认隐藏，只在选中边时显示，避免文字压在线和分子块上。
 - 2026-06-20 后，画布边不再使用 React Flow `straight` 路径，而是自定义 `orthogonal` edge：起点和终点必须落在 SMILES 块上下左右正中间；路径只允许水平/垂直折线；路由会把其它 SMILES 块作为障碍扩展矩形避开；四侧端点自动选择按“总路径最短 → 弯折最少 → 第一次拐弯前路径最长 → 后续段依次最长”的优先级比较。
+- TS 配置窗口不能在轮询 `awaiting_confirmation` 时持续覆盖前端参数/反应坐标；否则用户正在编辑的 GJF 预览、坐标和资源参数会每 2 秒被后端初始值重置。应按 workflow id/status 初始化一次，之后由用户编辑态驱动预览。
+- TS 前端提交的候选字段是 `candidate_id`，后端历史上只读 `selected_candidate_id` 会导致用户选中的初始构象被忽略并回退到第一个候选；后端 confirm 需同时兼容两个字段。
 - 计算后端状态不应常驻占用右侧任务面板。右上角只保留紧凑“后端”入口，点击后弹窗查看；Gaussian 队列和路线候选属于当前分子/反应的二级窗口入口，不应与分子任务平级常驻展示。
 - 任务结果应通过独立 modal 展示；中间区域不再常驻“结果/日志”面板，右侧任务面板只承载当前选中对象的操作。点击路线预测后应直接打开候选 modal，窗口内提供查看、加入当前画布和新建路线单元。
 - 计算任务按钮必须绑定到当前单元 `results` 中的稳定任务记录，键格式为“对象类型:对象 ID:任务 ID”。蓝色表示未计算、黄色表示运行中、绿色表示成功、红色表示失败；绿色点击查看结果，红色点击先看错误再重试。任务记录通过单独 API 原子更新，不能为写一个结果而回存整份旧工作区。
@@ -359,6 +361,7 @@ WSL 临时文件必须放在：
 - 2026-06-20 重复目标节点回归验证：`cd web; npm run build` 成功（仅 Vite 大 chunk warning）；`uv run pytest -q tests/test_route_layout.py tests/test_workspace_api.py` 为 5 passed。Chrome/Playwright 使用临时工作区构造 route 中 `target` 与 `dup` 两个 molecule id 共享 `O=C1CCC(=O)N1Br` 的候选路线；插入后 `targetStandaloneNodes=[]`，只保留原组合块中的目标组分，edge path 为 `M 468,297.5L 678,297.5L 678,252L 706,252`；截图在 `%LOCALAPPDATA%\Temp\.agents\orgsynflow-no-duplicate-target.png`，临时工作区已删除。
 - 2026-06-20 Gaussian/TS 输出预览验证：`uv run pytest -q tests/test_v3_gaussian.py tests/test_gaussian_runner.py tests/test_ts_workflow.py tests/test_workspace_api.py` 为 17 passed；`cd web; npm run build` 成功（仅 3Dmol eval 与大 chunk 既有警告）。Gaussian parser 现在解析 SCF cycles、优化收敛表、warning/error、最终坐标和虚频位移；`/jobs` 与 `/ts/workflow/{id}` 会返回最新 log tail/progress；TS 窗口提交后从 GJF 输入预览切换为输出预览；TS 候选生成会分离重叠碎片，`CBr.[Cl-]` 候选最小碎片距离回归通过。
 - 2026-06-20 Gaussian 强制结束与实时输入预览验证：`uv run pytest -q tests/test_gaussian_job_queue.py tests/test_gaussian_runner.py tests/test_v3_gaussian.py tests/test_ts_workflow.py tests/test_workspace_api.py` 为 18 passed；`cd web; npm run build` 成功（仅既有 3Dmol eval 与大 chunk 警告）。普通 Gaussian 队列 running job 可通过 cancel event 强制结束并记录为 `cancelled`；分子任务面板 running 状态显示“强制结束 Gaussian 进程”；TS 活跃工作流 footer 显示“强制结束进程”；普通 Gaussian 参数变化会自动刷新 GJF，手动编辑后暂停自动覆盖。
+- 2026-06-20 TS 输入预览与可用性修复验证：`uv run pytest -q tests/test_ts_workflow.py tests/test_gaussian_runner.py tests/test_gaussian_job_queue.py` 为 12 passed；`cd web; npm run build` 成功（仅既有 3Dmol eval 与大 chunk 警告）。TS 配置窗口现在有可编辑 GJF textarea、`自动预览已开启/已手动编辑` 状态和“恢复自动预览”；手动编辑后参数变化不覆盖文本，恢复后按当前 B3LYP/def2SVP 重新生成。`preparing/queued` 等未产生 Gaussian 运行上下文时继续显示输入预览；输出预览只在已有运行上下文后显示。TS footer 恢复“强制结束进程”，说明其停止 workflow/Gaussian 子进程但不删除历史。后端已重启并通过 `/health`。
 
 ## 4. New Issues
 

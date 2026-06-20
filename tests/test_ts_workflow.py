@@ -123,6 +123,35 @@ def test_recovery_preserves_manifest_and_marks_active_workflow_paused(tmp_path: 
     assert recovered["stage"] == "interrupted"
 
 
+def test_confirm_accepts_frontend_candidate_id_and_preview_config(tmp_path: Path, monkeypatch) -> None:
+    manager = TsWorkflowManager(tmp_path)
+    monkeypatch.setattr(manager, "_spawn", lambda *args, **kwargs: None)
+    manager._save({
+        "workflow_id": "ts-confirm1",
+        "status": "awaiting_confirmation",
+        "stage": "awaiting_confirmation",
+        "created_at": "2026-01-01",
+        "warnings": [],
+        "coordinates": [],
+        "candidates": [
+            {"candidate_id": "candidate-1", "label": "first"},
+            {"candidate_id": "candidate-2", "label": "second"},
+        ],
+        "grid_points": [],
+        "config": {},
+    })
+
+    confirmed = manager.confirm("ts-confirm1", {
+        "candidate_id": "candidate-2",
+        "coordinates": [{"atom1": 1, "atom2": 2, "kind": "formed", "start": 3.0, "end": 1.5}],
+        "config": {"gjf_preview_text": "%chk=preview.chk\n", "gjf_preview_manual": True},
+    })
+
+    assert confirmed["selected_candidate_id"] == "candidate-2"
+    assert confirmed["config"]["gjf_preview_text"] == "%chk=preview.chk\n"
+    assert confirmed["config"]["gjf_preview_manual"] is True
+
+
 def test_ts_workflow_api_contract(monkeypatch) -> None:
     prepared = {
         "workflow_id": "ts-api1",
