@@ -143,6 +143,11 @@ type TransitionStatePlanResult = {
 type Point = { x: number; y: number };
 type Side = "top" | "right" | "bottom" | "left";
 type NodeRect = { id: string; left: number; right: number; top: number; bottom: number };
+type RouteEndpointOverrides = {
+  sourceRect?: NodeRect;
+  targetRect?: NodeRect;
+  obstacles?: NodeRect[];
+};
 
 const moleculeHandles = [
   { id: "top", position: Position.Top, style: { left: "50%", top: "-8px" } },
@@ -2587,8 +2592,11 @@ async function fetchTsPlan(reactionSmiles: string): Promise<TransitionStatePlanR
 function normalizeEdge(edge: Edge, nodeMap?: Map<string, Node>): Edge {
   const sourceNode = nodeMap?.get(edge.source);
   const targetNode = nodeMap?.get(edge.target);
+  const endpointOverrides = sourceNode && targetNode
+    ? endpointOverridesForEdge(edge, targetNode)
+    : {};
   const route = nodeMap && sourceNode && targetNode
-    ? chooseBestOrthogonalRoute(sourceNode, targetNode, [...nodeMap.values()])
+    ? chooseBestOrthogonalRoute(sourceNode, targetNode, [...nodeMap.values()], endpointOverrides)
     : {
         sourceHandle: normalizeMoleculeHandleId(edge.sourceHandle, "right"),
         targetHandle: normalizeMoleculeHandleId(edge.targetHandle, "left"),
@@ -2621,6 +2629,7 @@ function makeCanvasEdge(edge: Partial<Edge> & { source: string; target: string }
     sourceHandle: edge.sourceHandle,
     targetHandle: edge.targetHandle,
     label: edge.label,
+    data: edge.data,
     className: "canvas-edge",
     interactionWidth: 18,
     markerEnd: {
@@ -2642,12 +2651,16 @@ function chooseBestOrthogonalRoute(
   source: Node,
   target: Node,
   nodes: Node[],
+  endpointOverrides: RouteEndpointOverrides = {},
 ): { sourceHandle: string; targetHandle: string; points: Point[] } {
-  const sourceRect = nodeRect(source);
-  const targetRect = nodeRect(target);
+  const sourceNodeRect = nodeRect(source);
+  const targetNodeRect = nodeRect(target);
+  const sourceRect = endpointOverrides.sourceRect ?? sourceNodeRect;
+  const targetRect = endpointOverrides.targetRect ?? targetNodeRect;
   const obstacles = nodes
     .filter((node) => node.id !== source.id && node.id !== target.id)
-    .map((node) => expandRect(nodeRect(node), 18));
+    .map((node) => expandRect(nodeRect(node), 18))
+    .concat(endpointOverrides.obstacles ?? []);
   const candidates: Array<{ sourceHandle: Side; targetHandle: Side; points: Point[] }> = [];
 
   for (const sourceHandle of sideOrder(sourceRect, targetRect)) {
@@ -2858,6 +2871,47 @@ function nodeRect(node: Node): NodeRect {
   };
 }
 
+function endpointOverridesForEdge(edge: Pick<Edge, "data">, targetNode: Node): RouteEndpointOverrides {
+  const targetComponentIndex = Number(edge.data?.targetComponentIndex);
+  const targetComponentRect = Number.isInteger(targetComponentIndex)
+    ? componentRectForNode(targetNode, targetComponentIndex)
+    : null;
+  if (!targetComponentRect) return {};
+  return {
+    targetRect: targetComponentRect,
+    obstacles: componentObstacleRects(targetNode, targetComponentIndex),
+  };
+}
+
+function componentRectForNode(node: Node, componentIndex: number): NodeRect | null {
+  const parts = splitSmilesComponents(String(node.data?.smiles ?? ""));
+  if (parts.length <= 1 || componentIndex < 0 || componentIndex >= parts.length) return null;
+  const rect = nodeRect(node);
+  const componentWidth = 172;
+  const componentGap = 6;
+  const componentHeight = 128;
+  const left = rect.left + 8 + componentIndex * (componentWidth + componentGap);
+  const top = rect.top + 8;
+  return {
+    id: `${node.id}:component:${componentIndex}`,
+    left,
+    right: left + componentWidth,
+    top,
+    bottom: top + componentHeight,
+  };
+}
+
+function componentObstacleRects(node: Node, targetComponentIndex: number): NodeRect[] {
+  const parts = splitSmilesComponents(String(node.data?.smiles ?? ""));
+  if (parts.length <= 1) return [];
+  return parts
+    .map((_, index) => index)
+    .filter((index) => index !== targetComponentIndex)
+    .map((index) => componentRectForNode(node, index))
+    .filter((rect): rect is NodeRect => !!rect)
+    .map((rect) => expandRect(rect, 14));
+}
+
 function estimatedNodeWidth(node: Node): number {
   const componentCount = splitSmilesComponents(String(node.data?.smiles ?? "")).length;
   return componentCount > 1
@@ -3041,7 +3095,7 @@ function addRouteCandidateToCell(
   cell: WorkspaceCell,
   route: RouteCandidate,
   anchorMolecule: MoleculeObject | null,
-  _anchorComponent: MoleculeComponent | null = null,
+  anchorComponent: MoleculeComponent | null = null,
 ): WorkspaceCell {
   const stamp = Date.now();
   let existingNodes = toNodes(cell);
@@ -3102,6 +3156,9 @@ function addRouteCandidateToCell(
   const routeReactions: ReactionObject[] = [];
   const routeEdges: Edge[] = [];
   const routeNodeIdByMoleculeId = new Map<string, string>();
+  const targetComponentIndex = shiftedAnchorNode && anchorComponent?.parent_molecule_id === shiftedAnchorNode.id
+    ? anchorComponent.component_index
+    : null;
 
   const productIds = new Set(route.steps.map((step) => step.product_id));
   const individualMoleculeIds = new Set<string>([route.target_id, ...productIds]);
@@ -3182,8 +3239,14 @@ function addRouteCandidateToCell(
     if (sourceNodeId) {
       const sourceNode = allRouteNodes.find((node) => node.id === sourceNodeId);
       const targetNode = allRouteNodes.find((node) => node.id === productNodeId);
+      const edgeData = targetComponentIndex !== null && productNodeId === shiftedAnchorNode?.id && step.product_id === route.target_id
+        ? { targetComponentIndex }
+        : undefined;
+      const endpointOverrides = targetNode && edgeData
+        ? endpointOverridesForEdge({ data: edgeData }, targetNode)
+        : {};
       const routePath = sourceNode && targetNode
-        ? chooseBestOrthogonalRoute(sourceNode, targetNode, allRouteNodes)
+        ? chooseBestOrthogonalRoute(sourceNode, targetNode, allRouteNodes, endpointOverrides)
         : null;
       routeEdges.push(makeCanvasEdge({
         id: `${rxnId}-edge`,
@@ -3192,6 +3255,7 @@ function addRouteCandidateToCell(
         sourceHandle: routePath?.sourceHandle ?? "right",
         targetHandle: routePath?.targetHandle ?? "left",
         label: step.template || `Step ${stepIndex + 1}`,
+        data: edgeData,
       }));
     }
   });

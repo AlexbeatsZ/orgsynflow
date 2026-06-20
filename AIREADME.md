@@ -150,6 +150,7 @@ WSL 临时文件必须放在：
 - 左侧单元卡只显示类型、标题和删除入口；分子/反应数量及反应式预览会挤占空间且信息价值低，不应恢复。
 - 路线候选中同一步的多个前体必须放进同一个反应物块，SMILES 用点号连接，例如 `O=C(O)c1ccccc1O.CC(=O)OC(C)=O` 作为一个节点连接到产物，不能拆成两条平行边。单纯用户手动输入多个独立分子时仍可按多行创建多个节点。
 - 从某个现有 SMILES 块发起逆合成预测后，插入候选路线必须把预测 target 绑定回这个现有块；不要再新建一个同产物的 `C` 块。对于 `A+B>>C` 这类单步结果，画布应创建一个 `A.B` 点式反应物块并用一条箭头指向现有 `C` 块，这样才能区分“一个合成反应的多个反应物”和“两条独立路线”。
+- 如果用户从点式多分子块里的某个内层组分发起逆合成预测，插入路线时反应箭头仍属于外层组合节点，但 SVG path 的终点应穿过外层容器并落到该内层组分卡片的边缘；同一组合块里的其它组分卡片要作为障碍绕开，避免箭头压过相邻分子。
 - 前端改动后应尽量用浏览器/Playwright 检查真实 UI，而不只看 `npm run build`。
 - 任务面板中常驻的“查看计算队列（Gaussian）”和“查看路线候选”按钮已被移除。计算队列状态与结果已统一收拢到底部任务日志抽屉；路线预测成功后，点击绿色状态的预测路线任务按钮或任务日志中对应的成功记录，均能直接调起带交互操作（“加入当前画布”/“新建路线单元”）的路线候选弹窗，而不是无操作的静态展示。
 - 绿色“已完成”任务按钮不应只能查看旧结果；从任务面板点击已完成任务打开结果/路线候选窗口时，应在窗口底部保留“重新计算”入口，复用该任务原来的运行/重试逻辑。Gaussian 等需要参数的任务仍应保留“修改配置”入口。
@@ -208,6 +209,7 @@ WSL 临时文件必须放在：
 - [done] 2026-06-20 增加 SMILES 块删除：选中块后可显式删除，同时清理相邻箭头、关联反应及选中/连线状态；保存工作区后刷新不会复活。
 - [done] 2026-06-20 修复组合节点组分级逆合成插入：AiZynthFinder reaction 节点不再误作分子；多个前体拆为独立结构；复用所选目标节点；路线和原反应箭头均保持前体到产物的正向顺序；多组分宽度与下游间距已校正。
 - [done] 2026-06-20 修复逆合成候选插入语义：从现有 SMILES 块预测路线时强制复用该产物块；同一步多个前体合并为一个点式 SMILES 反应物块，并只生成一条反应箭头指向产物。
+- [done] 2026-06-20 修复点式多分子目标的路线箭头端点：从内层组分预测路线后，新增反应边会把 `targetComponentIndex` 持久化到 edge data，渲染时把终点定位到目标组分边缘，并把同块其它组分作为路由障碍。
 - [done] 2026-06-20 优化任务面板已完成任务：点击绿色完成态任务打开结果或路线候选窗口时，窗口底部提供“重新计算”按钮，失败态仍沿用错误窗口重试逻辑。
 - [done] 三阶段计划已写入 `plan.md`。
 - [done] 基础 CLI、适配器、API、测试面已建立。
@@ -313,6 +315,7 @@ WSL 临时文件必须放在：
 - 2026-06-20 WSL 挂起事故恢复验证：停止 OrgSynFlow 服务后，发现 API 派生的 CREST 与 `/compute/status` WSL 探测残留 `wsl.exe`；`wsl --terminate Ubuntu-24.04` 与 `wsl --shutdown` 均超时，非管理员 shell 无法 `Restart-Service WslService`。精确停止 10 个命令行含 `/tmp/codex/orgsynflow` / `orgsynflow-chem` 的残留 `wsl.exe` 后，`wsl -e true` 恢复为 exit code 0；重启 OrgSynFlow 后，`/route/predict` 对 aspirin 返回 `used_fallback=false`、`available=true`，OPERA 对 CCO 返回 melting point `-114`、boiling point `78`、LogP `-0.31`、water solubility `1.26`、vapor pressure `1.77`，`/compute/status` 中 AiZynthFinder、OPERA、RXNMapper、DRFP、CREST 均 available。
 - 2026-06-20 已完成任务重新计算入口验证：`cd web; npm run build` 成功（仅 Vite 大 chunk warning）；使用本机 Chrome headless 打开 `http://127.0.0.1:5173/`，临时添加 CCO 节点并运行“计算分子描述符（RDKit）”，任务按钮变为 `task-status-succeeded`，首次结果弹窗和再次点击绿色按钮打开的结果弹窗均出现“重新计算”。测试前后已从 `%LOCALAPPDATA%\Temp\.agents\orgsynflow\example-workspace.before-recompute-ui.json` 恢复 `data/workspaces/example-workspace.json`，SHA256 均为 `0D7CA51DD36D940DFDAC7CAE89722F0298C6AE6155A44F3B7B0F1A36B8F2756F`。
 - 2026-06-20 逆合成候选插入修复验证：`cd web; npm run build` 成功（仅 Vite 大 chunk warning）；`uv run pytest -q tests/test_route_layout.py tests/test_workspace_api.py` 为 5 passed。代码检查确认 `addRouteCandidateToCell()` 会复用当前选中产物节点，并把同一步多前体候选投影为一个点式 SMILES reactant 节点与一条产物箭头。
+- 2026-06-20 组分级路线箭头端点验证：`cd web; npm run build` 成功（仅 Vite 大 chunk warning）；`uv run pytest -q tests/test_route_layout.py tests/test_workspace_api.py` 为 5 passed。Chrome/Playwright 使用临时工作区验证 `c1ccccc1.O=C1CCC(=O)N1Br` 中第二个组分作为逆合成目标时，插入候选后 edge path 为 `M 528,337.5L 678,337.5L 678,252L 706,252`，终点落在目标组分左边缘，且绕开左侧相邻组分；截图在 `%LOCALAPPDATA%\Temp\.agents\orgsynflow-route-component-endpoint.png`，临时工作区已删除。
 
 ## 4. New Issues
 
