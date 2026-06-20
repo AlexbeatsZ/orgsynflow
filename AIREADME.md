@@ -79,6 +79,8 @@ Desktop One-Click Toggle:
 C:\Users\Meta\Desktop\OrgSynFlow Toggle.cmd
 ```
 
+Every project update must also verify and, when necessary, update this desktop entry so it continues to target the current Windows project root and launcher script.
+
 It calls:
 
 ```powershell
