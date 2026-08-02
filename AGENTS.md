@@ -49,4 +49,4 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\orgsynflow-tog
 
 - After frontend changes, verify the real browser workflow; a production build alone is insufficient.
 - The desktop shortcut `C:\Users\Meta\Desktop\OrgSynFlow Toggle.cmd` must continue to target the current repository and `scripts\orgsynflow-toggle.ps1`.
-- Restart the API after adapter changes so Uvicorn does not keep stale modules loaded.
+- After backend Python changes or Vite configuration changes, restart through `C:\Users\Meta\Desktop\OrgSynFlow Toggle.cmd`; never kill Python or Node processes manually. Run it once to stop, wait for shutdown to finish, then run it again to start.
